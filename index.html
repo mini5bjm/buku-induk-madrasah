@@ -1098,7 +1098,7 @@
 </div>
 
 <!-- ==========================================
-     JAVASCRIPT MODULE: FIREBASE + PWA + LOGIC
+     JavASCRIPT MODULE: FIREBASE + PWA + LOGIC
      ========================================== -->
 <script type="module">
     import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
@@ -1108,7 +1108,7 @@
     // =========================================================================
     // 1. SAKLAR DEPLOYMENT & KONFIGURASI FIREBASE LIVE
     // =========================================================================
-    const IS_PREVIEW = false; // Terhubung ke Firebase Live Anda (`buku-induk-siswa-44637`)
+    const IS_PREVIEW = false; 
 
     const firebaseConfig = {
         apiKey: "AIzaSyBMl8koDD68AfQMRv8-0L4mAmdvxD6iMb4",
@@ -1367,7 +1367,7 @@
     // 5. AUTO SETUP DATABASE OTOMATIS
     // =========================================================================
     async function autoSetupDatabase() {
-        if (!isCloudConnected || !db || !auth.currentUser) return;
+        if (!isCloudConnected || !db) return;
         try {
             const snap = await getDocs(getColRef('buku_induk_siswa'));
             if (snap.empty) {
@@ -1399,19 +1399,14 @@
             auth = getAuth(app);
             db = getFirestore(app);
 
-            if (typeof __initial_auth_token !== 'undefined' && __initial_auth_token) {
-                await signInWithCustomToken(auth, __initial_auth_token);
-            } else {
-                await signInAnonymously(auth);
-            }
+            // Selalu lakukan signInAnonymously agar rules terbaca sebagai authenticated request (mencegah permission-denied saat baca publik)
+            await signInAnonymously(auth);
 
             isCloudConnected = true;
             badgeEl.textContent = "Cloud Firebase Terhubung";
             badgeEl.className = "px-3 py-1 rounded-full text-[11px] font-bold bg-lime-100 text-lime-900 border border-lime-300";
 
             await autoSetupDatabase();
-
-            if (!auth.currentUser) return;
 
             onSnapshot(getColRef('pengaturan_madrasah'), (snap) => {
                 snap.forEach(d => {
@@ -1443,7 +1438,9 @@
             }, (err) => {});
 
         } catch (error) {
+            console.error("Firebase connection error:", error);
             badgeEl.textContent = "Mode Offline";
+            badgeEl.className = "px-3 py-1 rounded-full text-[11px] font-bold bg-amber-100 text-amber-800 border border-amber-300";
             refreshAllUI();
         }
     }
@@ -1480,7 +1477,10 @@
             "Keluar dari Aplikasi?",
             "Sesi Anda akan diakhiri dan kembali ke halaman login utama.",
             async () => {
-                if (auth) await signOut(auth).catch(() => {});
+                if (auth) {
+                    await signOut(auth).catch(() => {});
+                    await signInAnonymously(auth).catch(() => {});
+                }
                 state.currentUser = null;
                 document.getElementById('app-shell').classList.add('hidden');
                 document.getElementById('login-screen').classList.remove('hidden');
