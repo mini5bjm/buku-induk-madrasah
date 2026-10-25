@@ -518,15 +518,15 @@
                             </div>
                         </div>
 
-                        <!-- 4 Key Metric Cards -->
-                        <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+                        <!-- 3 Key Metric Cards -->
+                        <div class="grid grid-cols-1 sm:grid-cols-3 gap-5">
                             <div
                                 class="bg-white rounded-3xl p-6 border border-slate-200/80 shadow-sm relative overflow-hidden">
                                 <div class="w-10 h-1 bg-opti-lime rounded-full mb-4"></div>
                                 <div class="flex items-baseline justify-between">
                                     <div>
                                         <span id="stat-total-aktif"
-                                            class="text-3xl sm:text-4xl font-extrabold text-slate-900">0</span>
+                                             class="text-3xl sm:text-4xl font-extrabold text-slate-900">0</span>
                                         <span class="text-opti-limeHover font-extrabold text-xl ml-1">+</span>
                                     </div>
                                     <div
@@ -545,7 +545,7 @@
                                 <div class="flex items-baseline justify-between">
                                     <div>
                                         <span id="stat-total-semua"
-                                            class="text-3xl sm:text-4xl font-extrabold text-slate-900">0</span>
+                                             class="text-3xl sm:text-4xl font-extrabold text-slate-900">0</span>
                                     </div>
                                     <div
                                         class="w-10 h-10 rounded-2xl bg-emerald-50 text-emerald-700 flex items-center justify-center">
@@ -562,7 +562,7 @@
                                 <div class="flex items-baseline justify-between">
                                     <div>
                                         <span id="stat-total-mutasi"
-                                            class="text-3xl sm:text-4xl font-extrabold text-slate-900">0</span>
+                                             class="text-3xl sm:text-4xl font-extrabold text-slate-900">0</span>
                                     </div>
                                     <div
                                         class="w-10 h-10 rounded-2xl bg-amber-50 text-amber-600 flex items-center justify-center">
@@ -571,23 +571,6 @@
                                 </div>
                                 <div class="text-xs font-bold text-slate-700 mt-2">Catatan Mutasi Siswa</div>
                                 <p class="text-[11px] text-slate-500 mt-0.5">Mutasi Masuk & Keluar</p>
-                            </div>
-
-                            <div
-                                class="bg-white rounded-3xl p-6 border border-slate-200/80 shadow-sm relative overflow-hidden">
-                                <div class="w-10 h-1 bg-indigo-500 rounded-full mb-4"></div>
-                                <div class="flex items-baseline justify-between">
-                                    <div>
-                                        <span id="stat-total-koreksi"
-                                            class="text-3xl sm:text-4xl font-extrabold text-slate-900">0</span>
-                                    </div>
-                                    <div
-                                        class="w-10 h-10 rounded-2xl bg-indigo-50 text-indigo-600 flex items-center justify-center">
-                                        <i class="fa-solid fa-file-pen"></i>
-                                    </div>
-                                </div>
-                                <div class="text-xs font-bold text-slate-700 mt-2">Usulan Koreksi Wali</div>
-                                <p class="text-[11px] text-slate-500 mt-0.5">Menunggu verifikasi operator</p>
                             </div>
                         </div>
 
@@ -2729,6 +2712,7 @@
                 getColRef('data_alumni').onSnapshot(snap => {
                     if (!snap.empty) {
                         state.alumni = snap.docs.map(d => ({ id: d.id, ...d.data() }));
+                        try { localStorage.setItem('mis_offline_alumni', JSON.stringify(state.alumni)); } catch (e) { }
                         window.renderAlumniTable();
                     }
                 }, err => console.warn("Firestore listener error (alumni):", err));
@@ -3164,9 +3148,6 @@
             const statMutasiEl = document.getElementById('stat-total-mutasi');
             if (statMutasiEl) statMutasiEl.textContent = state.mutations.length;
 
-            const statKoreksiEl = document.getElementById('stat-total-koreksi');
-            if (statKoreksiEl) statKoreksiEl.textContent = '0';
-
             const defaultClasses = ['Kelas 1', 'Kelas 2', 'Kelas 3', 'Kelas 4', 'Kelas 5', 'Kelas 6'];
             const extraClasses = [...new Set(aktifList.map(s => s.kelas_aktif).filter(k => k && !defaultClasses.includes(k)))].sort();
             const classes = [...defaultClasses, ...extraClasses];
@@ -3182,17 +3163,13 @@
 
                     const pctL = maxPerClass > 0 ? (countL / maxPerClass) * 100 : 0;
                     const pctP = maxPerClass > 0 ? (countP / maxPerClass) * 100 : 0;
-                    const pctClassOfTotal = totalAktif > 0 ? Math.round((count / totalAktif) * 100) : 0;
 
                     return `
                     <div class="p-3 sm:p-3.5 rounded-2xl bg-slate-50/70 hover:bg-slate-50 border border-slate-200/70 transition">
                         <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-2 mb-2.5">
                             <div class="flex items-center gap-2.5">
                                 <span class="w-7 h-7 rounded-xl bg-opti-dark text-opti-lime text-xs font-extrabold flex items-center justify-center shrink-0 shadow-2xs">${kls.replace('Kelas ', '')}</span>
-                                <div>
-                                    <span class="font-extrabold text-slate-900 text-xs">${kls}</span>
-                                    <span class="text-[10px] text-slate-400 ml-1.5 font-medium">(${pctClassOfTotal}% dari total aktif)</span>
-                                </div>
+                                <span class="font-extrabold text-slate-900 text-xs">${kls}</span>
                             </div>
                             <div class="flex items-center gap-1.5 flex-wrap">
                                 <span class="inline-flex items-center gap-1 px-2.5 py-1 rounded-lg bg-blue-50 text-blue-700 border border-blue-200 text-xs font-bold font-mono shadow-2xs" title="${kls} - Laki-laki: ${countL}">
@@ -3217,29 +3194,25 @@
 
             const summaryContainer = document.getElementById('class-distribution-summary');
             if (summaryContainer) {
-                const pctL = totalAktif > 0 ? Math.round((totalAktifL / totalAktif) * 100) : 0;
-                const pctP = totalAktif > 0 ? Math.round((totalAktifP / totalAktif) * 100) : 0;
-                const avgPerClass = classes.length > 0 ? (totalAktif / classes.length).toFixed(1) : 0;
-
                 summaryContainer.innerHTML = `
                     <div class="grid grid-cols-1 sm:grid-cols-3 gap-2.5 text-center">
                         <div class="p-2.5 rounded-xl bg-blue-50/70 border border-blue-100 flex sm:flex-col items-center justify-between sm:justify-center">
                             <div class="text-[10px] font-bold text-blue-800 uppercase tracking-wider flex items-center gap-1">
                                 <i class="fa-solid fa-mars text-blue-600"></i> Total Laki-laki
                             </div>
-                            <div class="text-sm sm:text-base font-extrabold text-blue-900 sm:mt-0.5 font-mono">${totalAktifL} <span class="text-[11px] font-normal text-blue-600">(${pctL}%)</span></div>
+                            <div class="text-sm sm:text-base font-extrabold text-blue-900 sm:mt-0.5 font-mono">${totalAktifL} <span class="text-xs font-semibold text-blue-700">Siswa</span></div>
                         </div>
                         <div class="p-2.5 rounded-xl bg-pink-50/70 border border-pink-100 flex sm:flex-col items-center justify-between sm:justify-center">
                             <div class="text-[10px] font-bold text-pink-800 uppercase tracking-wider flex items-center gap-1">
                                 <i class="fa-solid fa-venus text-pink-600"></i> Total Perempuan
                             </div>
-                            <div class="text-sm sm:text-base font-extrabold text-pink-900 sm:mt-0.5 font-mono">${totalAktifP} <span class="text-[11px] font-normal text-pink-600">(${pctP}%)</span></div>
+                            <div class="text-sm sm:text-base font-extrabold text-pink-900 sm:mt-0.5 font-mono">${totalAktifP} <span class="text-xs font-semibold text-pink-700">Siswi</span></div>
                         </div>
                         <div class="p-2.5 rounded-xl bg-slate-50 border border-slate-200 flex sm:flex-col items-center justify-between sm:justify-center">
                             <div class="text-[10px] font-bold text-slate-700 uppercase tracking-wider flex items-center gap-1">
-                                <i class="fa-solid fa-users text-slate-500"></i> Rata-rata / Kelas
+                                <i class="fa-solid fa-users text-slate-500"></i> Total Siswa Aktif
                             </div>
-                            <div class="text-sm sm:text-base font-extrabold text-slate-900 sm:mt-0.5 font-mono">${avgPerClass} <span class="text-[11px] font-normal text-slate-500">Siswa</span></div>
+                            <div class="text-sm sm:text-base font-extrabold text-slate-900 sm:mt-0.5 font-mono">${totalAktif} <span class="text-xs font-semibold text-slate-600">Siswa</span></div>
                         </div>
                     </div>
                 `;
@@ -5643,8 +5616,40 @@
             }).join('');
         };
 
+        // Helper kompresi gambar alumni agar hemat memori & sinkron lancar ke Cloud Firestore (< 1MB)
+        function compressAlumniImage(file, maxW, maxH, quality = 0.75) {
+            return new Promise((resolve) => {
+                const reader = new FileReader();
+                reader.onload = (e) => {
+                    const img = new Image();
+                    img.onload = () => {
+                        let w = img.width;
+                        let h = img.height;
+                        if (w > maxW || h > maxH) {
+                            if (w / h > maxW / maxH) {
+                                h = Math.round((h * maxW) / w);
+                                w = maxW;
+                            } else {
+                                w = Math.round((w * maxH) / h);
+                                h = maxH;
+                            }
+                        }
+                        const canvas = document.createElement('canvas');
+                        canvas.width = w;
+                        canvas.height = h;
+                        const ctx = canvas.getContext('2d');
+                        ctx.drawImage(img, 0, 0, w, h);
+                        resolve(canvas.toDataURL('image/jpeg', quality));
+                    };
+                    img.onerror = () => resolve(e.target.result);
+                    img.src = e.target.result;
+                };
+                reader.readAsDataURL(file);
+            });
+        }
+
         // File handling untuk Dokumen Alumni (Foto, Ijazah, Transkrip)
-        window.handleAlumniFileSelect = function (event, type) {
+        window.handleAlumniFileSelect = async function (event, type) {
             const file = event.target.files && event.target.files[0];
             if (!file) return;
 
@@ -5654,59 +5659,66 @@
                 return;
             }
 
-            const reader = new FileReader();
-            reader.onload = function (e) {
-                const dataUrl = e.target.result;
-                if (type === 'foto') {
-                    const dataInput = document.getElementById('al-data-foto');
-                    const prevImg = document.getElementById('prev-foto-alumni');
-                    const ph = document.getElementById('ph-foto-alumni');
-                    const btnDel = document.getElementById('btn-del-foto-alumni');
-                    if (dataInput) dataInput.value = dataUrl;
+            let dataUrl = '';
+            if (file.type.startsWith('image/')) {
+                const maxDim = type === 'foto' ? [600, 800, 0.8] : [1400, 2000, 0.78];
+                dataUrl = await compressAlumniImage(file, maxDim[0], maxDim[1], maxDim[2]);
+            } else {
+                dataUrl = await new Promise((resolve) => {
+                    const reader = new FileReader();
+                    reader.onload = (e) => resolve(e.target.result);
+                    reader.readAsDataURL(file);
+                });
+            }
+
+            if (type === 'foto') {
+                const dataInput = document.getElementById('al-data-foto');
+                const prevImg = document.getElementById('prev-foto-alumni');
+                const ph = document.getElementById('ph-foto-alumni');
+                const btnDel = document.getElementById('btn-del-foto-alumni');
+                if (dataInput) dataInput.value = dataUrl;
+                if (prevImg) { prevImg.src = dataUrl; prevImg.classList.remove('hidden'); }
+                if (ph) ph.classList.add('hidden');
+                if (btnDel) btnDel.classList.remove('hidden');
+            } else if (type === 'ijazah') {
+                const dataInput = document.getElementById('al-data-ijazah');
+                const nameInput = document.getElementById('al-name-ijazah');
+                const prevImg = document.getElementById('prev-ijazah-alumni');
+                const ph = document.getElementById('ph-ijazah-alumni');
+                const txt = document.getElementById('txt-ijazah-status');
+                const btnDel = document.getElementById('btn-del-ijazah-alumni');
+                if (dataInput) dataInput.value = dataUrl;
+                if (nameInput) nameInput.value = file.name;
+                if (btnDel) btnDel.classList.remove('hidden');
+
+                if (file.type.startsWith('image/')) {
                     if (prevImg) { prevImg.src = dataUrl; prevImg.classList.remove('hidden'); }
                     if (ph) ph.classList.add('hidden');
-                    if (btnDel) btnDel.classList.remove('hidden');
-                } else if (type === 'ijazah') {
-                    const dataInput = document.getElementById('al-data-ijazah');
-                    const nameInput = document.getElementById('al-name-ijazah');
-                    const prevImg = document.getElementById('prev-ijazah-alumni');
-                    const ph = document.getElementById('ph-ijazah-alumni');
-                    const txt = document.getElementById('txt-ijazah-status');
-                    const btnDel = document.getElementById('btn-del-ijazah-alumni');
-                    if (dataInput) dataInput.value = dataUrl;
-                    if (nameInput) nameInput.value = file.name;
-                    if (btnDel) btnDel.classList.remove('hidden');
-
-                    if (file.type.startsWith('image/')) {
-                        if (prevImg) { prevImg.src = dataUrl; prevImg.classList.remove('hidden'); }
-                        if (ph) ph.classList.add('hidden');
-                    } else {
-                        if (prevImg) prevImg.classList.add('hidden');
-                        if (ph) ph.classList.remove('hidden');
-                        if (txt) txt.innerHTML = `<span class="font-bold text-red-600 block"><i class="fa-solid fa-file-pdf"></i> PDF</span><span class="text-[9px] text-slate-600 truncate block max-w-[120px]">${file.name}</span>`;
-                    }
-                } else if (type === 'transkrip') {
-                    const dataInput = document.getElementById('al-data-transkrip');
-                    const nameInput = document.getElementById('al-name-transkrip');
-                    const prevImg = document.getElementById('prev-transkrip-alumni');
-                    const ph = document.getElementById('ph-transkrip-alumni');
-                    const txt = document.getElementById('txt-transkrip-status');
-                    const btnDel = document.getElementById('btn-del-transkrip-alumni');
-                    if (dataInput) dataInput.value = dataUrl;
-                    if (nameInput) nameInput.value = file.name;
-                    if (btnDel) btnDel.classList.remove('hidden');
-
-                    if (file.type.startsWith('image/')) {
-                        if (prevImg) { prevImg.src = dataUrl; prevImg.classList.remove('hidden'); }
-                        if (ph) ph.classList.add('hidden');
-                    } else {
-                        if (prevImg) prevImg.classList.add('hidden');
-                        if (ph) ph.classList.remove('hidden');
-                        if (txt) txt.innerHTML = `<span class="font-bold text-red-600 block"><i class="fa-solid fa-file-pdf"></i> PDF</span><span class="text-[9px] text-slate-600 truncate block max-w-[120px]">${file.name}</span>`;
-                    }
+                } else {
+                    if (prevImg) prevImg.classList.add('hidden');
+                    if (ph) ph.classList.remove('hidden');
+                    if (txt) txt.innerHTML = `<span class="font-bold text-red-600 block"><i class="fa-solid fa-file-pdf"></i> PDF</span><span class="text-[9px] text-slate-600 truncate block max-w-[120px]">${file.name}</span>`;
                 }
-            };
-            reader.readAsDataURL(file);
+            } else if (type === 'transkrip') {
+                const dataInput = document.getElementById('al-data-transkrip');
+                const nameInput = document.getElementById('al-name-transkrip');
+                const prevImg = document.getElementById('prev-transkrip-alumni');
+                const ph = document.getElementById('ph-transkrip-alumni');
+                const txt = document.getElementById('txt-transkrip-status');
+                const btnDel = document.getElementById('btn-del-transkrip-alumni');
+                if (dataInput) dataInput.value = dataUrl;
+                if (nameInput) nameInput.value = file.name;
+                if (btnDel) btnDel.classList.remove('hidden');
+
+                if (file.type.startsWith('image/')) {
+                    if (prevImg) { prevImg.src = dataUrl; prevImg.classList.remove('hidden'); }
+                    if (ph) ph.classList.add('hidden');
+                } else {
+                    if (prevImg) prevImg.classList.add('hidden');
+                    if (ph) ph.classList.remove('hidden');
+                    if (txt) txt.innerHTML = `<span class="font-bold text-red-600 block"><i class="fa-solid fa-file-pdf"></i> PDF</span><span class="text-[9px] text-slate-600 truncate block max-w-[120px]">${file.name}</span>`;
+                }
+            }
         };
 
         window.removeAlumniDoc = function (type) {
