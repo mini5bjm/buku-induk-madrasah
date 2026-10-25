@@ -2172,6 +2172,36 @@
         const getColRef = (colName) => db.collection('artifacts').doc(appId).collection('public').doc('data').collection(colName);
         const getDocRef = (colName, docId) => db.collection('artifacts').doc(appId).collection('public').doc('data').collection(colName).doc(docId);
 
+        // Helper Functions Global
+        window.normalizeStudentData = function (s) {
+            if (!s) return s;
+            let ak = String(s.anak_ke !== undefined && s.anak_ke !== null ? s.anak_ke : '').trim();
+            if (!ak || ak === '1' || ak === '0' || ak === '') ak = '-';
+            let js = String(s.jml_saudara !== undefined && s.jml_saudara !== null ? s.jml_saudara : '').trim();
+            if (!js || js === '1' || js === '0' || js === '') js = '-';
+            return { ...s, anak_ke: ak, jml_saudara: js };
+        };
+        const normalizeStudentData = window.normalizeStudentData;
+
+        window.withButtonFeedback = async function (btn, taskFn, successText = 'Tersimpan!') {
+            if (!btn) return await taskFn();
+            const origHtml = btn.innerHTML;
+            btn.disabled = true;
+            btn.innerHTML = `<i class="fa-solid fa-spinner fa-spin mr-1.5"></i> <span>Menyimpan...</span>`;
+            try {
+                await taskFn();
+                btn.innerHTML = `<i class="fa-solid fa-circle-check text-emerald-400 mr-1.5"></i> <span>${successText}</span>`;
+                await new Promise(r => setTimeout(r, 650));
+            } catch (err) {
+                console.error("Task error:", err);
+                throw err;
+            } finally {
+                btn.innerHTML = origHtml;
+                btn.disabled = false;
+            }
+        };
+        const withButtonFeedback = window.withButtonFeedback;
+
         async function startCloudSync() {
             if (!db) return;
             try {
@@ -2180,7 +2210,7 @@
                 if (snap && snap.empty) {
                     await getDocRef('pengaturan_madrasah', 'profil').set(INITIAL_MADRASAH_SETTINGS).catch(e => console.warn(e));
                     for (const s of INITIAL_STUDENTS) {
-                        await getDocRef('buku_induk_siswa', s.id).set(s).catch(e => console.warn(e));
+                        await getDocRef('buku_induk_siswa', s.id).set(normalizeStudentData(s)).catch(e => console.warn(e));
                     }
                     for (const t of INITIAL_TEACHERS) {
                         await getDocRef('data_guru', t.id).set(t).catch(e => console.warn(e));
@@ -2200,33 +2230,6 @@
                     });
                     refreshAllUI();
                 }, err => console.warn("Firestore listener error (pengaturan):", err));
-
-        function normalizeStudentData(s) {
-            if (!s) return s;
-            let ak = String(s.anak_ke !== undefined && s.anak_ke !== null ? s.anak_ke : '').trim();
-            if (!ak || ak === '1' || ak === '0' || ak === '') ak = '-';
-            let js = String(s.jml_saudara !== undefined && s.jml_saudara !== null ? s.jml_saudara : '').trim();
-            if (!js || js === '1' || js === '0' || js === '') js = '-';
-            return { ...s, anak_ke: ak, jml_saudara: js };
-        }
-
-        async function withButtonFeedback(btn, taskFn, successText = 'Tersimpan!') {
-            if (!btn) return await taskFn();
-            const origHtml = btn.innerHTML;
-            btn.disabled = true;
-            btn.innerHTML = `<i class="fa-solid fa-spinner fa-spin mr-1.5"></i> <span>Menyimpan...</span>`;
-            try {
-                await taskFn();
-                btn.innerHTML = `<i class="fa-solid fa-circle-check text-emerald-400 mr-1.5"></i> <span>${successText}</span>`;
-                await new Promise(r => setTimeout(r, 650));
-            } catch (err) {
-                console.error("Task error:", err);
-                throw err;
-            } finally {
-                btn.innerHTML = origHtml;
-                btn.disabled = false;
-            }
-        }
 
                 getColRef('buku_induk_siswa').onSnapshot(snap => {
                     if (snap && !snap.empty) {
@@ -2799,8 +2802,12 @@
                 document.getElementById('f-tgl-lahir').value = s.tgl_lahir;
                 window.updateFormAgeBadge(s.tgl_lahir);
                 document.getElementById('f-agama').value = s.agama || 'Islam';
-                document.getElementById('f-anak-ke').value = (s.anak_ke !== undefined && s.anak_ke !== null && s.anak_ke !== '') ? s.anak_ke : '-';
-                document.getElementById('f-jml-saudara').value = (s.jml_saudara !== undefined && s.jml_saudara !== null && s.jml_saudara !== '') ? s.jml_saudara : '-';
+                let akVal = String(s.anak_ke !== undefined && s.anak_ke !== null ? s.anak_ke : '').trim();
+                if (!akVal || akVal === '1' || akVal === '0' || akVal === '') akVal = '-';
+                let jsVal = String(s.jml_saudara !== undefined && s.jml_saudara !== null ? s.jml_saudara : '').trim();
+                if (!jsVal || jsVal === '1' || jsVal === '0' || jsVal === '') jsVal = '-';
+                document.getElementById('f-anak-ke').value = akVal;
+                document.getElementById('f-jml-saudara').value = jsVal;
                 document.getElementById('f-kelas').value = s.kelas_aktif;
                 document.getElementById('f-alamat').value = s.alamat;
 
@@ -2852,64 +2859,73 @@
 
         window.handleSaveStudent = async function (e) {
             e.preventDefault();
-            const existingId = document.getElementById('f-doc-id').value;
-            const nisnVal = document.getElementById('f-nisn').value.trim();
-            const docId = existingId || `SISWA-${nisnVal}`;
+            const btn = document.getElementById('btn-save-student') || e.target.querySelector('button[type="submit"]');
 
-            let savedPenghasilan = document.getElementById('f-penghasilan-ortu').value;
-            if (savedPenghasilan === 'Lainnya') {
-                const customVal = document.getElementById('f-penghasilan-custom').value.trim();
-                savedPenghasilan = customVal || 'Lainnya';
-            }
+            await withButtonFeedback(btn, async () => {
+                const existingId = document.getElementById('f-doc-id').value;
+                const nisnVal = document.getElementById('f-nisn').value.trim();
+                const docId = existingId || `SISWA-${nisnVal}`;
 
-            const studentPayload = {
-                id: docId,
-                nisn: nisnVal,
-                role: 'siswa',
-                nis_lokal: document.getElementById('f-nis-lokal').value.trim() || '-',
-                nik: document.getElementById('f-nik').value.trim() || '-',
-                nama_lengkap: document.getElementById('f-nama').value.trim(),
-                jk: document.getElementById('f-jk').value,
-                tempat_lahir: document.getElementById('f-tempat-lahir').value.trim() || 'Banjarmasin',
-                tgl_lahir: document.getElementById('f-tgl-lahir').value || '2016-01-01',
-                agama: document.getElementById('f-agama').value.trim() || 'Islam',
-                anak_ke: document.getElementById('f-anak-ke').value.trim() || '-',
-                jml_saudara: document.getElementById('f-jml-saudara').value.trim() || '-',
-                kelas_aktif: document.getElementById('f-kelas').value,
-                alamat: document.getElementById('f-alamat').value.trim() || 'Banjarmasin',
-                status_siswa: document.getElementById('f-status-siswa').value,
-                orang_tua: {
-                    nama_ayah: document.getElementById('f-nama-ayah').value.trim() || '-',
-                    pekerjaan_ayah: document.getElementById('f-pekerjaan-ayah').value.trim() || '-',
-                    nama_ibu: document.getElementById('f-nama-ibu').value.trim() || '-',
-                    pekerjaan_ibu: document.getElementById('f-pekerjaan-ibu').value.trim() || '-',
-                    no_hp_ortu: document.getElementById('f-nohp-ortu').value.trim() || '-',
-                    penghasilan_ortu: savedPenghasilan || '-'
-                },
-                pendidikan: {
-                    jenis_masuk: document.getElementById('f-jenis-masuk')?.value || 'Siswa Baru (TK/RA)',
-                    asal_tk_ra: document.getElementById('f-asal-tk')?.value.trim() || '-',
-                    asal_sekolah_pindahan: document.getElementById('f-asal-pindahan')?.value.trim() || '-',
-                    surat_pindah: document.getElementById('f-surat-pindah')?.value.trim() || '-',
-                    tgl_masuk: document.getElementById('f-tgl-masuk')?.value || '2024-07-15',
-                    diterima_kelas: document.getElementById('f-diterima-kelas')?.value || 'Kelas 1',
-                    tahun_lulus: document.getElementById('f-tahun-lulus')?.value.trim() || '',
-                    no_ijazah: document.getElementById('f-no-ijazah')?.value.trim() || ''
+                let savedPenghasilan = document.getElementById('f-penghasilan-ortu').value;
+                if (savedPenghasilan === 'Lainnya') {
+                    const customVal = document.getElementById('f-penghasilan-custom').value.trim();
+                    savedPenghasilan = customVal || 'Lainnya';
                 }
-            };
 
-            if (isCloudConnected && db) {
-                try {
-                    await getDocRef('buku_induk_siswa', docId).set(studentPayload);
-                } catch (err) { }
-            } else {
-                const idx = state.students.findIndex(s => s.id === docId);
-                if (idx >= 0) state.students[idx] = studentPayload;
-                else state.students.push(studentPayload);
-                state.students.sort((a, b) => (a.nama_lengkap || '').localeCompare(b.nama_lengkap || '', 'id', { sensitivity: 'base' }));
-                try { localStorage.setItem('mis_offline_students', JSON.stringify(state.students)); } catch (e) { }
-                refreshAllUI();
-            }
+                const rawAk = document.getElementById('f-anak-ke').value.trim();
+                const rawJs = document.getElementById('f-jml-saudara').value.trim();
+                const anakKe = (!rawAk || rawAk === '0' || rawAk === '') ? '-' : rawAk;
+                const jmlSaudara = (!rawJs || rawJs === '0' || rawJs === '') ? '-' : rawJs;
+
+                const studentPayload = {
+                    id: docId,
+                    nisn: nisnVal,
+                    role: 'siswa',
+                    nis_lokal: document.getElementById('f-nis-lokal').value.trim() || '-',
+                    nik: document.getElementById('f-nik').value.trim() || '-',
+                    nama_lengkap: document.getElementById('f-nama').value.trim(),
+                    jk: document.getElementById('f-jk').value,
+                    tempat_lahir: document.getElementById('f-tempat-lahir').value.trim() || 'Banjarmasin',
+                    tgl_lahir: document.getElementById('f-tgl-lahir').value || '2016-01-01',
+                    agama: document.getElementById('f-agama').value.trim() || 'Islam',
+                    anak_ke: anakKe,
+                    jml_saudara: jmlSaudara,
+                    kelas_aktif: document.getElementById('f-kelas').value,
+                    alamat: document.getElementById('f-alamat').value.trim() || 'Banjarmasin',
+                    status_siswa: document.getElementById('f-status-siswa').value,
+                    orang_tua: {
+                        nama_ayah: document.getElementById('f-nama-ayah').value.trim() || '-',
+                        pekerjaan_ayah: document.getElementById('f-pekerjaan-ayah').value.trim() || '-',
+                        nama_ibu: document.getElementById('f-nama-ibu').value.trim() || '-',
+                        pekerjaan_ibu: document.getElementById('f-pekerjaan-ibu').value.trim() || '-',
+                        no_hp_ortu: document.getElementById('f-nohp-ortu').value.trim() || '-',
+                        penghasilan_ortu: savedPenghasilan || '-'
+                    },
+                    pendidikan: {
+                        jenis_masuk: document.getElementById('f-jenis-masuk')?.value || 'Siswa Baru (TK/RA)',
+                        asal_tk_ra: document.getElementById('f-asal-tk')?.value.trim() || '-',
+                        asal_sekolah_pindahan: document.getElementById('f-asal-pindahan')?.value.trim() || '-',
+                        surat_pindah: document.getElementById('f-surat-pindah')?.value.trim() || '-',
+                        tgl_masuk: document.getElementById('f-tgl-masuk')?.value || '2024-07-15',
+                        diterima_kelas: document.getElementById('f-diterima-kelas')?.value || 'Kelas 1',
+                        tahun_lulus: document.getElementById('f-tahun-lulus')?.value.trim() || '',
+                        no_ijazah: document.getElementById('f-no-ijazah')?.value.trim() || ''
+                    }
+                };
+
+                if (isCloudConnected && db) {
+                    try {
+                        await getDocRef('buku_induk_siswa', docId).set(studentPayload);
+                    } catch (err) { }
+                } else {
+                    const idx = state.students.findIndex(s => s.id === docId);
+                    if (idx >= 0) state.students[idx] = studentPayload;
+                    else state.students.push(studentPayload);
+                    state.students.sort((a, b) => (a.nama_lengkap || '').localeCompare(b.nama_lengkap || '', 'id', { sensitivity: 'base' }));
+                    try { localStorage.setItem('mis_offline_students', JSON.stringify(state.students)); } catch (e) { }
+                    refreshAllUI();
+                }
+            }, "Data Siswa Tersimpan!");
 
             window.closeStudentModal();
             showToast("Data siswa berhasil disimpan!", "success");
@@ -3093,37 +3109,41 @@
 
         window.handleSaveMutation = async function (e) {
             e.preventDefault();
+            const btn = document.getElementById('btn-save-mutasi') || e.target.querySelector('button[type="submit"]');
             const siswaId = document.getElementById('mutasi-siswa-id').value;
             const s = state.students.find(item => item.id === siswaId);
             if (!s) return;
 
-            const jenis = document.getElementById('mutasi-jenis').value;
-            const newMut = {
-                id: `MUT-${Date.now()}`,
-                siswa_id: s.id,
-                nisn: s.nisn,
-                nama_siswa: s.nama_lengkap,
-                jenis_mutasi: jenis,
-                tgl_mutasi: document.getElementById('mutasi-tanggal').value,
-                kelas_saat_mutasi: s.kelas_aktif,
-                no_surat: document.getElementById('mutasi-nosurat').value.trim(),
-                sekolah_tujuan_asal: document.getElementById('mutasi-sekolah').value.trim(),
-                alasan_mutasi: document.getElementById('mutasi-alasan').value.trim()
-            };
+            await withButtonFeedback(btn, async () => {
+                const jenis = document.getElementById('mutasi-jenis').value;
+                const newMut = {
+                    id: `MUT-${Date.now()}`,
+                    siswa_id: s.id,
+                    nisn: s.nisn,
+                    nama_siswa: s.nama_lengkap,
+                    jenis_mutasi: jenis,
+                    tgl_mutasi: document.getElementById('mutasi-tanggal').value,
+                    kelas_saat_mutasi: s.kelas_aktif,
+                    no_surat: document.getElementById('mutasi-nosurat').value.trim(),
+                    sekolah_tujuan_asal: document.getElementById('mutasi-sekolah').value.trim(),
+                    alasan_mutasi: document.getElementById('mutasi-alasan').value.trim()
+                };
 
-            if (jenis === 'Keluar') s.status_siswa = 'Mutasi Keluar';
-            else s.status_siswa = 'Aktif';
+                if (jenis === 'Keluar') s.status_siswa = 'Mutasi Keluar';
+                else s.status_siswa = 'Aktif';
 
-            if (isCloudConnected && db) {
-                await getDocRef('data_mutasi', newMut.id).set(newMut);
-                await getDocRef('buku_induk_siswa', s.id).set(s);
-            } else {
-                state.mutations.unshift(newMut);
-                renderMutationSection();
-            }
+                if (isCloudConnected && db) {
+                    await getDocRef('data_mutasi', newMut.id).set(newMut);
+                    await getDocRef('buku_induk_siswa', s.id).set(s);
+                } else {
+                    state.mutations.unshift(newMut);
+                    renderMutationSection();
+                }
 
-            document.getElementById('form-input-mutasi').reset();
-            showToast("Mutasi berhasil dicatat!", "success");
+                document.getElementById('form-input-mutasi').reset();
+            }, "Mutasi Tersimpan!");
+
+            showToast("Mutasi berhasil dicatat dan disimpan!", "success");
         };
 
         window.handleDeleteMutation = async function (mutId) {
@@ -3267,28 +3287,33 @@
 
         window.handleSaveSettings = async function (e) {
             e.preventDefault();
-            const chosenTA = (document.getElementById('set-ta-select')?.value || document.getElementById('set-ta')?.value || state.madrasahSettings.tahun_ajaran_aktif || '2026/2027').trim();
-            const updated = {
-                ...state.madrasahSettings,
-                nama_madrasah: document.getElementById('set-nama-madrasah').value.trim(),
-                nsm: document.getElementById('set-nsm').value.trim(),
-                npsn: document.getElementById('set-npsn').value.trim(),
-                alamat: document.getElementById('set-alamat').value.trim(),
-                kepala_madrasah: document.getElementById('set-kamad').value.trim(),
-                nip_kamad: document.getElementById('set-nip').value.trim(),
-                tahun_ajaran_aktif: chosenTA,
-                daftar_tahun_ajaran: state.madrasahSettings.daftar_tahun_ajaran || ["2023/2024", "2024/2025", "2025/2026", "2026/2027"]
-            };
-            state.madrasahSettings = updated;
-            if (isCloudConnected && db) {
-                try {
-                    await getDocRef('pengaturan_madrasah', 'profil').set(updated, { merge: true });
-                } catch (err) {
-                    console.warn("Firestore save settings error:", err);
+            const btn = document.getElementById('btn-save-settings') || e.target.querySelector('button[type="submit"]');
+
+            await withButtonFeedback(btn, async () => {
+                const chosenTA = (document.getElementById('set-ta-select')?.value || document.getElementById('set-ta')?.value || state.madrasahSettings.tahun_ajaran_aktif || '2026/2027').trim();
+                const updated = {
+                    ...state.madrasahSettings,
+                    nama_madrasah: document.getElementById('set-nama-madrasah').value.trim(),
+                    nsm: document.getElementById('set-nsm').value.trim(),
+                    npsn: document.getElementById('set-npsn').value.trim(),
+                    alamat: document.getElementById('set-alamat').value.trim(),
+                    kepala_madrasah: document.getElementById('set-kamad').value.trim(),
+                    nip_kamad: document.getElementById('set-nip').value.trim(),
+                    tahun_ajaran_aktif: chosenTA,
+                    daftar_tahun_ajaran: state.madrasahSettings.daftar_tahun_ajaran || ["2023/2024", "2024/2025", "2025/2026", "2026/2027"]
+                };
+                state.madrasahSettings = updated;
+                if (isCloudConnected && db) {
+                    try {
+                        await getDocRef('pengaturan_madrasah', 'profil').set(updated, { merge: true });
+                    } catch (err) {
+                        console.warn("Firestore save settings error:", err);
+                    }
                 }
-            }
-            try { localStorage.setItem('mis_offline_settings', JSON.stringify(updated)); } catch (e) { }
-            refreshAllUI();
+                try { localStorage.setItem('mis_offline_settings', JSON.stringify(updated)); } catch (e) { }
+                refreshAllUI();
+            }, "Identitas Tersimpan!");
+
             showToast("Nama sekolahan dan identitas madrasah berhasil disimpan!", "success");
         };
 
@@ -3305,6 +3330,7 @@
 
         window.addNewTahunAjaran = async function () {
             const inputNew = document.getElementById('set-ta-new');
+            const btn = document.getElementById('btn-add-new-ta');
             if (!inputNew) return;
             const val = inputNew.value.trim();
             if (!val) {
@@ -3315,23 +3341,27 @@
                 showToast("Format tahun ajaran harus YYYY/YYYY (contoh: 2027/2028)", "error");
                 return;
             }
-            let listTA = Array.isArray(state.madrasahSettings.daftar_tahun_ajaran) ? [...state.madrasahSettings.daftar_tahun_ajaran] : ["2023/2024", "2024/2025", "2025/2026", "2026/2027"];
-            if (!listTA.includes(val)) {
-                listTA.push(val);
-                listTA.sort();
-            }
-            state.madrasahSettings.daftar_tahun_ajaran = listTA;
-            state.madrasahSettings.tahun_ajaran_aktif = val;
-            inputNew.value = '';
 
-            if (isCloudConnected && db) {
-                await getDocRef('pengaturan_madrasah', 'profil').set({
-                    daftar_tahun_ajaran: listTA,
-                    tahun_ajaran_aktif: val
-                }, { merge: true }).catch(() => {});
-            }
-            try { localStorage.setItem('mis_offline_settings', JSON.stringify(state.madrasahSettings)); } catch (e) { }
-            refreshAllUI();
+            await withButtonFeedback(btn, async () => {
+                let listTA = Array.isArray(state.madrasahSettings.daftar_tahun_ajaran) ? [...state.madrasahSettings.daftar_tahun_ajaran] : ["2023/2024", "2024/2025", "2025/2026", "2026/2027"];
+                if (!listTA.includes(val)) {
+                    listTA.push(val);
+                    listTA.sort();
+                }
+                state.madrasahSettings.daftar_tahun_ajaran = listTA;
+                state.madrasahSettings.tahun_ajaran_aktif = val;
+                inputNew.value = '';
+
+                if (isCloudConnected && db) {
+                    await getDocRef('pengaturan_madrasah', 'profil').set({
+                        daftar_tahun_ajaran: listTA,
+                        tahun_ajaran_aktif: val
+                    }, { merge: true }).catch(() => {});
+                }
+                try { localStorage.setItem('mis_offline_settings', JSON.stringify(state.madrasahSettings)); } catch (e) { }
+                refreshAllUI();
+            }, "T.A. Tersimpan!");
+
             showToast(`Tahun Ajaran baru ${val} berhasil ditambahkan dan disimpan!`, "success");
         };
 
@@ -3391,6 +3421,7 @@
         // SIMPAN PENGATURAN USERNAME & PASSWORD ADMIN
         window.handleSaveAdminAccount = async function (e) {
             e.preventDefault();
+            const btn = document.getElementById('btn-save-admin-account') || e.target.querySelector('button[type="submit"]');
             const newUsername = document.getElementById('set-admin-username').value.trim();
             const newPass = document.getElementById('set-admin-new-pass').value.trim();
             const confirmPass = document.getElementById('set-admin-confirm-pass').value.trim();
@@ -3408,37 +3439,39 @@
                 return;
             }
 
-            state.madrasahSettings.admin_username = newUsername;
-            state.madrasahSettings.admin_password = newPass;
+            await withButtonFeedback(btn, async () => {
+                state.madrasahSettings.admin_username = newUsername;
+                state.madrasahSettings.admin_password = newPass;
 
-            try {
-                localStorage.setItem('mis_admin_custom_username', newUsername);
-                localStorage.setItem('mis_admin_custom_password', newPass);
-                localStorage.setItem('mis_offline_settings', JSON.stringify(state.madrasahSettings));
-                if (state.currentUser) {
-                    state.currentUser.name = `Operator (${newUsername})`;
-                    localStorage.setItem('mis_auth_session', JSON.stringify(state.currentUser));
-                    const userNameEl = document.getElementById('sidebar-user-name');
-                    if (userNameEl) userNameEl.textContent = state.currentUser.name;
-                }
-            } catch (err) {
-                console.warn("Local storage error:", err);
-            }
-
-            if (isCloudConnected && db) {
                 try {
-                    await getDocRef('pengaturan_madrasah', 'profil').set({
-                        admin_username: newUsername,
-                        admin_password: newPass
-                    }, { merge: true });
-                } catch (fsErr) {
-                    console.warn("Firestore save account note:", fsErr);
+                    localStorage.setItem('mis_admin_custom_username', newUsername);
+                    localStorage.setItem('mis_admin_custom_password', newPass);
+                    localStorage.setItem('mis_offline_settings', JSON.stringify(state.madrasahSettings));
+                    if (state.currentUser) {
+                        state.currentUser.name = `Operator (${newUsername})`;
+                        localStorage.setItem('mis_auth_session', JSON.stringify(state.currentUser));
+                        const userNameEl = document.getElementById('sidebar-user-name');
+                        if (userNameEl) userNameEl.textContent = state.currentUser.name;
+                    }
+                } catch (err) {
+                    console.warn("Local storage error:", err);
                 }
-            }
 
-            // Bersihkan input password setelah berhasil disimpan
-            document.getElementById('set-admin-new-pass').value = '';
-            document.getElementById('set-admin-confirm-pass').value = '';
+                if (isCloudConnected && db) {
+                    try {
+                        await getDocRef('pengaturan_madrasah', 'profil').set({
+                            admin_username: newUsername,
+                            admin_password: newPass
+                        }, { merge: true });
+                    } catch (fsErr) {
+                        console.warn("Firestore save account note:", fsErr);
+                    }
+                }
+
+                // Bersihkan input password setelah berhasil disimpan
+                document.getElementById('set-admin-new-pass').value = '';
+                document.getElementById('set-admin-confirm-pass').value = '';
+            }, "Akun Berhasil Tersimpan!");
 
             showToast("Username dan Password operator berhasil diperbarui!", "success");
         };
@@ -3451,13 +3484,14 @@
             const headers = [
                 "No", "Nama_Lengkap", "NISN", "NIS_Lokal", "NIK", "JK",
                 "Tempat_Lahir", "Tanggal_Lahir", "Kelas", "Status", "Agama",
+                "Anak_Ke", "Jumlah_Saudara",
                 "Nama_Ayah", "Pekerjaan_Ayah", "Nama_Ibu", "Pekerjaan_Ibu", "No_HP_Ortu", "Alamat"
             ];
 
             const samples = [
-                [1, "Muhammad Hafidz Al-Banjari", "0134567801", "1112637100182101", "6371041205150001", "L", "Banjarmasin", "2015-05-12", "Kelas 5", "Aktif", "Islam", "H. Syamsul Arifin", "Wiraswasta", "Hj. Siti Rahmah", "Ibu Rumah Tangga", "081251234501", "Jl. A. Yani Km. 5 Gang Purnama RT. 14"],
-                [2, "Aisyah Az-Zahra", "0145678902", "1112637100182102", "6371045508160002", "P", "Banjarmasin", "2016-08-15", "Kelas 4", "Aktif", "Islam", "Rahmat Hidayat", "PNS", "Nur Asiah", "Guru", "081251234502", "Jl. Pemurus Dalam Komp. Mitra RT. 08"],
-                [3, "Ahmad Maulana Fajar", "0156789013", "1112637100182103", "6371041809170003", "L", "Banjarmasin", "2017-09-18", "Kelas 3", "Aktif", "Islam", "Drs. H. Fahmi", "Pegawai Kemenag", "Rusmini, S.Pd", "Guru Madrasah", "085249123453", "Jl. Veteran Komp. Merpati No. 12"]
+                [1, "Muhammad Hafidz Al-Banjari", "0134567801", "1112637100182101", "6371041205150001", "L", "Banjarmasin", "2015-05-12", "Kelas 5", "Aktif", "Islam", "-", "-", "H. Syamsul Arifin", "Wiraswasta", "Hj. Siti Rahmah", "Ibu Rumah Tangga", "081251234501", "Jl. A. Yani Km. 5 Gang Purnama RT. 14"],
+                [2, "Aisyah Az-Zahra", "0145678902", "1112637100182102", "6371045508160002", "P", "Banjarmasin", "2016-08-15", "Kelas 4", "Aktif", "Islam", "-", "-", "Rahmat Hidayat", "PNS", "Nur Asiah", "Guru", "081251234502", "Jl. Pemurus Dalam Komp. Mitra RT. 08"],
+                [3, "Ahmad Maulana Fajar", "0156789013", "1112637100182103", "6371041809170003", "L", "Banjarmasin", "2017-09-18", "Kelas 3", "Aktif", "Islam", "-", "-", "Drs. H. Fahmi", "Pegawai Kemenag", "Rusmini, S.Pd", "Guru Madrasah", "085249123453", "Jl. Veteran Komp. Merpati No. 12"]
             ];
 
             // 1. Prioritas Utama: Buat file .xlsx asli menggunakan library SheetJS (XLSX)
@@ -3479,12 +3513,14 @@
                         { wch: 12 }, // Kolom I: Kelas
                         { wch: 10 }, // Kolom J: Status
                         { wch: 10 }, // Kolom K: Agama
-                        { wch: 22 }, // Kolom L: Nama_Ayah
-                        { wch: 18 }, // Kolom M: Pekerjaan_Ayah
-                        { wch: 22 }, // Kolom N: Nama_Ibu
-                        { wch: 18 }, // Kolom O: Pekerjaan_Ibu
-                        { wch: 16 }, // Kolom P: No_HP_Ortu
-                        { wch: 38 }  // Kolom Q: Alamat
+                        { wch: 10 }, // Kolom L: Anak_Ke
+                        { wch: 14 }, // Kolom M: Jumlah_Saudara
+                        { wch: 22 }, // Kolom N: Nama_Ayah
+                        { wch: 18 }, // Kolom O: Pekerjaan_Ayah
+                        { wch: 22 }, // Kolom P: Nama_Ibu
+                        { wch: 18 }, // Kolom Q: Pekerjaan_Ibu
+                        { wch: 16 }, // Kolom R: No_HP_Ortu
+                        { wch: 38 }  // Kolom S: Alamat
                     ];
 
                     const wb = XLSX.utils.book_new();
@@ -3609,8 +3645,8 @@
                 tempat_lahir: String(s.tempat_lahir || '').trim() || 'Banjarmasin',
                 tgl_lahir: String(s.tgl_lahir || '').trim() || '2016-01-01',
                 agama: String(s.agama || '').trim() || 'Islam',
-                anak_ke: (s.anak_ke !== undefined && s.anak_ke !== null && String(s.anak_ke).trim() !== '') ? String(s.anak_ke).trim() : '-',
-                jml_saudara: (s.jml_saudara !== undefined && s.jml_saudara !== null && String(s.jml_saudara).trim() !== '') ? String(s.jml_saudara).trim() : '-',
+                anak_ke: (!s.anak_ke || String(s.anak_ke).trim() === '' || String(s.anak_ke).trim() === '0' || String(s.anak_ke).trim() === '1') ? '-' : String(s.anak_ke).trim(),
+                jml_saudara: (!s.jml_saudara || String(s.jml_saudara).trim() === '' || String(s.jml_saudara).trim() === '0' || String(s.jml_saudara).trim() === '1') ? '-' : String(s.jml_saudara).trim(),
                 alamat: String(s.alamat || '').trim() || 'Banjarmasin',
                 kelas_aktif: String(s.kelas_aktif || '').trim() || 'Kelas 1',
                 status_siswa: String(s.status_siswa || '').trim() || 'Aktif',
@@ -3746,6 +3782,8 @@
                     else if (clean.includes('kelas') || clean.includes('rombel') || clean.includes('tingkat')) colMap.kelas = idx;
                     else if (clean.includes('status') || clean.includes('keaktifan')) colMap.status = idx;
                     else if (clean.includes('agama')) colMap.agama = idx;
+                    else if (clean.includes('anakke') || clean === 'anak' || clean === 'urutanak') colMap.anak_ke = idx;
+                    else if (clean.includes('jumlahsaudara') || clean.includes('jmlsaudara') || clean.includes('saudara')) colMap.jml_saudara = idx;
                     else if (clean.includes('namaayah') || clean === 'ayah' || clean === 'bapak') colMap.nama_ayah = idx;
                     else if (clean.includes('pekerjaanayah') || clean === 'pekayah') colMap.pekerjaan_ayah = idx;
                     else if (clean.includes('namaibu') || clean === 'ibu') colMap.nama_ibu = idx;
@@ -3860,7 +3898,17 @@
                 const namaIbu = colMap.nama_ibu !== undefined ? String(cols[colMap.nama_ibu] || '-').trim() : '-';
                 const pekIbu = colMap.pekerjaan_ibu !== undefined ? String(cols[colMap.pekerjaan_ibu] || '-').trim() : '-';
                 const noHp = colMap.no_hp !== undefined ? String(cols[colMap.no_hp] || '-').trim() : '-';
-                const alamat = colMap.alamat !== undefined ? String(cols[colMap.alamat] || 'Banjarmasin').trim() : 'Banjarmasin';
+                let anakKe = '-';
+                if (colMap.anak_ke !== undefined && cols[colMap.anak_ke] !== undefined) {
+                    const rawAk = String(cols[colMap.anak_ke]).trim();
+                    if (rawAk && rawAk !== '0' && rawAk !== '1') anakKe = rawAk;
+                }
+
+                let jmlSaudara = '-';
+                if (colMap.jml_saudara !== undefined && cols[colMap.jml_saudara] !== undefined) {
+                    const rawJs = String(cols[colMap.jml_saudara]).trim();
+                    if (rawJs && rawJs !== '0' && rawJs !== '1') jmlSaudara = rawJs;
+                }
 
                 parsedCsvStudents.push({
                     id: `SISWA-${nisn}`,
@@ -3873,8 +3921,8 @@
                     tempat_lahir: tempatLahir,
                     tgl_lahir: tglLahir,
                     agama: agama,
-                    anak_ke: "-",
-                    jml_saudara: "-",
+                    anak_ke: anakKe,
+                    jml_saudara: jmlSaudara,
                     alamat: alamat,
                     kelas_aktif: kelas,
                     status_siswa: status,
@@ -3966,55 +4014,55 @@
         window.executeImportCSV = async function () {
             if (!parsedCsvStudents || parsedCsvStudents.length === 0) return;
             const btn = document.getElementById('btn-execute-import');
-            btn.disabled = true;
-            btn.innerHTML = '<span>Menyimpan ke Buku Induk...</span> <i class="fa-solid fa-spinner fa-spin ml-2"></i>';
 
-            let countAdded = 0;
-            const currentStudents = [...state.students];
+            await withButtonFeedback(btn, async () => {
+                let countAdded = 0;
+                const currentStudents = [...state.students];
 
-            for (let i = 0; i < parsedCsvStudents.length; i++) {
-                const s = sanitizeStudent(parsedCsvStudents[i], i);
-                const hasValidNisn = s.nisn && s.nisn !== '-' && s.nisn !== '0' && s.nisn.length >= 6;
-                const existingIdx = hasValidNisn
-                    ? currentStudents.findIndex(item => item.nisn === s.nisn)
-                    : currentStudents.findIndex(item => item.nama_lengkap.toLowerCase() === s.nama_lengkap.toLowerCase() && item.kelas_aktif === s.kelas_aktif);
+                for (let i = 0; i < parsedCsvStudents.length; i++) {
+                    const s = sanitizeStudent(parsedCsvStudents[i], i);
+                    const hasValidNisn = s.nisn && s.nisn !== '-' && s.nisn !== '0' && s.nisn.length >= 6;
+                    const existingIdx = hasValidNisn
+                        ? currentStudents.findIndex(item => item.nisn === s.nisn)
+                        : currentStudents.findIndex(item => item.nama_lengkap.toLowerCase() === s.nama_lengkap.toLowerCase() && item.kelas_aktif === s.kelas_aktif);
 
-                if (existingIdx >= 0) {
-                    currentStudents[existingIdx] = { ...currentStudents[existingIdx], ...s };
-                } else {
-                    currentStudents.push(s);
-                }
-                countAdded++;
-            }
-
-            // Urutkan seluruh siswa sesuai abjad A-Z
-            currentStudents.sort((a, b) => (a.nama_lengkap || '').localeCompare(b.nama_lengkap || '', 'id', { sensitivity: 'base' }));
-            state.students = currentStudents;
-
-            // Simpan ke offline cache terlebih dahulu
-            try {
-                localStorage.setItem('mis_offline_students', JSON.stringify(state.students));
-            } catch (e) { }
-
-            // Simpan ke Firestore via batching (maksimal 450 per batch)
-            if (isCloudConnected && db) {
-                try {
-                    const batch = db.batch();
-                    const batchItems = parsedCsvStudents.slice(0, 450);
-                    for (let i = 0; i < batchItems.length; i++) {
-                        const s = sanitizeStudent(batchItems[i], i);
-                        const docRef = getDocRef('buku_induk_siswa', s.id);
-                        batch.set(docRef, s, { merge: true });
+                    if (existingIdx >= 0) {
+                        currentStudents[existingIdx] = { ...currentStudents[existingIdx], ...s };
+                    } else {
+                        currentStudents.push(s);
                     }
-                    await batch.commit().catch(err => console.warn("Batch commit note:", err));
-                } catch (e) {
-                    console.warn("Firestore batch note:", e);
+                    countAdded++;
                 }
-            }
+
+                // Urutkan seluruh siswa sesuai abjad A-Z
+                currentStudents.sort((a, b) => (a.nama_lengkap || '').localeCompare(b.nama_lengkap || '', 'id', { sensitivity: 'base' }));
+                state.students = currentStudents;
+
+                // Simpan ke offline cache terlebih dahulu
+                try {
+                    localStorage.setItem('mis_offline_students', JSON.stringify(state.students));
+                } catch (e) { }
+
+                // Simpan ke Firestore via batching (maksimal 450 per batch)
+                if (isCloudConnected && db) {
+                    try {
+                        const batch = db.batch();
+                        const batchItems = parsedCsvStudents.slice(0, 450);
+                        for (let i = 0; i < batchItems.length; i++) {
+                            const s = sanitizeStudent(batchItems[i], i);
+                            const docRef = getDocRef('buku_induk_siswa', s.id);
+                            batch.set(docRef, s, { merge: true });
+                        }
+                        await batch.commit().catch(err => console.warn("Batch commit note:", err));
+                    } catch (e) {
+                        console.warn("Firestore batch note:", e);
+                    }
+                }
+            }, "Data Siswa Berhasil Diimpor!");
 
             window.closeImportModal();
             refreshAllUI();
-            showToast(`Berhasil mengimpor ${countAdded} data siswa ke Buku Induk!`, "success");
+            showToast(`Berhasil mengimpor ${parsedCsvStudents.length} data siswa ke Buku Induk!`, "success");
         };
 
         // ==========================================
@@ -4214,31 +4262,36 @@
 
         window.handleSaveTeacher = async function (e) {
             e.preventDefault();
-            const id = document.getElementById('g-doc-id').value.trim() || `GURU-${Date.now()}`;
-            const teacherData = {
-                id: id,
-                nip: document.getElementById('g-nip').value.trim() || '-',
-                nama_lengkap: document.getElementById('g-nama').value.trim(),
-                jk: document.getElementById('g-jk').value,
-                jabatan: document.getElementById('g-jabatan').value.trim() || 'Guru',
-                mapel: document.getElementById('g-mapel').value.trim() || 'Tematik',
-                no_hp: document.getElementById('g-nohp').value.trim() || '-',
-                status: document.getElementById('g-status').value
-            };
+            const btn = document.getElementById('btn-save-teacher') || e.target.querySelector('button[type="submit"]');
 
-            const idx = state.teachers.findIndex(t => t.id === id);
-            if (idx >= 0) state.teachers[idx] = teacherData;
-            else state.teachers.push(teacherData);
+            await withButtonFeedback(btn, async () => {
+                const id = document.getElementById('g-doc-id').value.trim() || `GURU-${Date.now()}`;
+                const teacherData = {
+                    id: id,
+                    nip: document.getElementById('g-nip').value.trim() || '-',
+                    nama_lengkap: document.getElementById('g-nama').value.trim(),
+                    jk: document.getElementById('g-jk').value,
+                    jabatan: document.getElementById('g-jabatan').value.trim() || 'Guru',
+                    mapel: document.getElementById('g-mapel').value.trim() || 'Tematik',
+                    no_hp: document.getElementById('g-nohp').value.trim() || '-',
+                    status: document.getElementById('g-status').value
+                };
 
-            state.teachers.sort((a, b) => (a.nama_lengkap || '').localeCompare(b.nama_lengkap || '', 'id', { sensitivity: 'base' }));
+                const idx = state.teachers.findIndex(t => t.id === id);
+                if (idx >= 0) state.teachers[idx] = teacherData;
+                else state.teachers.push(teacherData);
 
-            if (isCloudConnected && db) {
-                await getDocRef('data_guru', id).set(teacherData).catch(err => console.warn(err));
-            }
-            try { localStorage.setItem('mis_offline_teachers', JSON.stringify(state.teachers)); } catch (e) { }
+                state.teachers.sort((a, b) => (a.nama_lengkap || '').localeCompare(b.nama_lengkap || '', 'id', { sensitivity: 'base' }));
+
+                if (isCloudConnected && db) {
+                    await getDocRef('data_guru', id).set(teacherData).catch(err => console.warn(err));
+                }
+                try { localStorage.setItem('mis_offline_teachers', JSON.stringify(state.teachers)); } catch (e) { }
+
+                window.renderTeachersTable();
+            }, "Data Guru Tersimpan!");
 
             window.closeTeacherModal();
-            window.renderTeachersTable();
             showToast("Data guru berhasil disimpan!", "success");
         };
 
@@ -4516,52 +4569,50 @@
         window.executeImportTeachers = async function () {
             if (!parsedTeacherRows || parsedTeacherRows.length === 0) return;
             const btn = document.getElementById('btn-execute-import-teacher');
-            if (btn) {
-                btn.disabled = true;
-                btn.innerHTML = '<span>Menyimpan Semua Data Guru...</span> <i class="fa-solid fa-spinner fa-spin ml-2"></i>';
-            }
 
-            const currentTeachers = [...state.teachers];
-            let countAdded = 0;
+            await withButtonFeedback(btn, async () => {
+                const currentTeachers = [...state.teachers];
+                let countAdded = 0;
 
-            for (const t of parsedTeacherRows) {
-                const hasValidNip = t.nip && t.nip !== '-' && t.nip.length >= 6;
-                const existingIdx = hasValidNip
-                    ? currentTeachers.findIndex(item => item.nip === t.nip)
-                    : currentTeachers.findIndex(item => item.nama_lengkap.toLowerCase() === t.nama_lengkap.toLowerCase());
+                for (const t of parsedTeacherRows) {
+                    const hasValidNip = t.nip && t.nip !== '-' && t.nip.length >= 6;
+                    const existingIdx = hasValidNip
+                        ? currentTeachers.findIndex(item => item.nip === t.nip)
+                        : currentTeachers.findIndex(item => item.nama_lengkap.toLowerCase() === t.nama_lengkap.toLowerCase());
 
-                if (existingIdx >= 0) {
-                    currentTeachers[existingIdx] = { ...currentTeachers[existingIdx], ...t };
-                } else {
-                    currentTeachers.push(t);
-                }
-                countAdded++;
-            }
-
-            currentTeachers.sort((a, b) => (a.nama_lengkap || '').localeCompare(b.nama_lengkap || '', 'id', { sensitivity: 'base' }));
-            state.teachers = currentTeachers;
-
-            try {
-                localStorage.setItem('mis_offline_teachers', JSON.stringify(state.teachers));
-            } catch (e) { }
-
-            if (isCloudConnected && db) {
-                try {
-                    const batch = db.batch();
-                    const batchItems = parsedTeacherRows.slice(0, 450);
-                    for (const t of batchItems) {
-                        const docRef = getDocRef('data_guru', t.id);
-                        batch.set(docRef, t, { merge: true });
+                    if (existingIdx >= 0) {
+                        currentTeachers[existingIdx] = { ...currentTeachers[existingIdx], ...t };
+                    } else {
+                        currentTeachers.push(t);
                     }
-                    await batch.commit().catch(err => console.warn("Teacher batch error:", err));
-                } catch (e) {
-                    console.warn("Firestore teacher batch note:", e);
+                    countAdded++;
                 }
-            }
+
+                currentTeachers.sort((a, b) => (a.nama_lengkap || '').localeCompare(b.nama_lengkap || '', 'id', { sensitivity: 'base' }));
+                state.teachers = currentTeachers;
+
+                try {
+                    localStorage.setItem('mis_offline_teachers', JSON.stringify(state.teachers));
+                } catch (e) { }
+
+                if (isCloudConnected && db) {
+                    try {
+                        const batch = db.batch();
+                        const batchItems = parsedTeacherRows.slice(0, 450);
+                        for (const t of batchItems) {
+                            const docRef = getDocRef('data_guru', t.id);
+                            batch.set(docRef, t, { merge: true });
+                        }
+                        await batch.commit().catch(err => console.warn("Teacher batch error:", err));
+                    } catch (e) {
+                        console.warn("Firestore teacher batch note:", e);
+                    }
+                }
+            }, "Data Guru Berhasil Diimpor!");
 
             window.closeImportTeacherModal();
             window.renderTeachersTable();
-            showToast(`Berhasil mengimpor ${countAdded} data guru ke sistem!`, "success");
+            showToast(`Berhasil mengimpor ${parsedTeacherRows.length} data guru ke sistem!`, "success");
         };
 
         // ==========================================
@@ -4660,32 +4711,37 @@
 
         window.handleSaveAlumni = async function (e) {
             e.preventDefault();
-            const id = document.getElementById('al-doc-id').value.trim() || `ALUMNI-${Date.now()}`;
-            const alumniData = {
-                id: id,
-                nisn: document.getElementById('al-nisn').value.trim(),
-                nis_lokal: document.getElementById('al-nis-lokal').value.trim() || '-',
-                nama_lengkap: document.getElementById('al-nama').value.trim(),
-                jk: document.getElementById('al-jk').value,
-                tahun_lulus: document.getElementById('al-tahun-lulus').value.trim(),
-                no_ijazah: document.getElementById('al-no-ijazah').value.trim() || '-',
-                jenis_lanjutan: document.getElementById('al-jenis-lanjutan').value,
-                nama_sekolah_lanjutan: document.getElementById('al-sekolah-lanjutan').value.trim(),
-                no_hp: document.getElementById('al-nohp').value.trim() || '-',
-                alamat: document.getElementById('al-alamat').value.trim() || '-'
-            };
+            const btn = document.getElementById('btn-save-alumni') || e.target.querySelector('button[type="submit"]');
 
-            const idx = state.alumni.findIndex(a => a.id === id);
-            if (idx >= 0) state.alumni[idx] = alumniData;
-            else state.alumni.unshift(alumniData);
+            await withButtonFeedback(btn, async () => {
+                const id = document.getElementById('al-doc-id').value.trim() || `ALUMNI-${Date.now()}`;
+                const alumniData = {
+                    id: id,
+                    nisn: document.getElementById('al-nisn').value.trim(),
+                    nis_lokal: document.getElementById('al-nis-lokal').value.trim() || '-',
+                    nama_lengkap: document.getElementById('al-nama').value.trim(),
+                    jk: document.getElementById('al-jk').value,
+                    tahun_lulus: document.getElementById('al-tahun-lulus').value.trim(),
+                    no_ijazah: document.getElementById('al-no-ijazah').value.trim() || '-',
+                    jenis_lanjutan: document.getElementById('al-jenis-lanjutan').value,
+                    nama_sekolah_lanjutan: document.getElementById('al-sekolah-lanjutan').value.trim(),
+                    no_hp: document.getElementById('al-nohp').value.trim() || '-',
+                    alamat: document.getElementById('al-alamat').value.trim() || '-'
+                };
 
-            if (isCloudConnected && db) {
-                await getDocRef('data_alumni', id).set(alumniData).catch(err => console.warn(err));
-            }
-            try { localStorage.setItem('mis_offline_alumni', JSON.stringify(state.alumni)); } catch (e) { }
+                const idx = state.alumni.findIndex(a => a.id === id);
+                if (idx >= 0) state.alumni[idx] = alumniData;
+                else state.alumni.unshift(alumniData);
+
+                if (isCloudConnected && db) {
+                    await getDocRef('data_alumni', id).set(alumniData).catch(err => console.warn(err));
+                }
+                try { localStorage.setItem('mis_offline_alumni', JSON.stringify(state.alumni)); } catch (e) { }
+
+                window.renderAlumniTable();
+            }, "Data Alumni Tersimpan!");
 
             window.closeAlumniModal();
-            window.renderAlumniTable();
             showToast("Data alumni berhasil disimpan!", "success");
         };
 
