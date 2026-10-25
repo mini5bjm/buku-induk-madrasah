@@ -6234,9 +6234,9 @@
                     const c = String(cell || '').toLowerCase().replace(/[^a-z0-9]/g, '');
                     if (!c) continue;
                     if (c === 'no' || c === 'nomor' || c === 'nourut') score += 2;
-                    else if (c.includes('nama') || c.includes('namalengkap') || c.includes('namaalumni')) score += 3;
+                    else if ((c.includes('nama') && !c.includes('sekolah') && !c.includes('lembaga')) || c.includes('namalengkap') || c.includes('namaalumni')) score += 3;
                     else if (c.includes('nisn')) score += 3;
-                    else if (c.includes('nislokal') || (c.includes('nis') && !c.includes('nisn'))) score += 2;
+                    else if (c.includes('nislokal') || c === 'nis' || (c.startsWith('nis') && !c.startsWith('nisn'))) score += 2;
                     else if (c === 'jk' || c.includes('jeniskelamin') || c === 'lp' || c.includes('gender')) score += 3;
                     else if (c.includes('tahunlulus') || c.includes('thnlulus') || (c.includes('lulus') && !c.includes('status'))) score += 3;
                     else if (c.includes('ijazah') || c.includes('noijazah')) score += 3;
@@ -6256,25 +6256,51 @@
                 const headerRow = (rows[headerIdx] || []).map(c => String(c || '').trim());
                 headerRow.forEach((colName, idx) => {
                     const clean = colName.toLowerCase().replace(/[^a-z0-9]/g, '');
-                    if (clean === 'no' || clean === 'nomor' || clean === 'nourut') colMap.no = idx;
-                    else if (clean.includes('nama') || clean.includes('namasiswa') || clean.includes('namaalumni') || clean.includes('namalengkap')) {
-                        if (colMap.nama === undefined) colMap.nama = idx;
+
+                    // 1. Kolom No
+                    if (clean === 'no' || clean === 'nomor' || clean === 'nourut') {
+                        colMap.no = idx;
                     }
-                    else if (clean.includes('nisn')) colMap.nisn = idx;
-                    else if (clean.includes('nislokal') || (clean.includes('nis') && !clean.includes('nisn'))) colMap.nis_lokal = idx;
-                    else if (clean === 'jk' || clean.includes('jeniskelamin') || clean === 'lp' || clean.includes('kelamin') || clean.includes('gender')) colMap.jk = idx;
+                    // 2. NISN
+                    else if (clean.includes('nisn') || clean.includes('induknasional')) {
+                        colMap.nisn = idx;
+                    }
+                    // 3. NIS Lokal (Hati-hati: jangan gunakan includes('nis') karena kata 'jenis' mengandung 'nis'!)
+                    else if (clean.includes('nislokal') || clean.includes('induklokal') || clean === 'nis' || (clean.startsWith('nis') && !clean.startsWith('nisn'))) {
+                        colMap.nis_lokal = idx;
+                    }
+                    // 4. Jenis Kelamin (L/P)
+                    else if (clean === 'jk' || clean.includes('jeniskelamin') || clean === 'lp' || clean.includes('kelamin') || clean.includes('gender')) {
+                        colMap.jk = idx;
+                    }
+                    // 5. Tahun Lulus
                     else if (clean.includes('tahunlulus') || clean.includes('thnlulus') || clean.includes('thlulus') || (clean.includes('lulus') && !clean.includes('status'))) {
                         if (colMap.tahun_lulus === undefined) colMap.tahun_lulus = idx;
                     }
-                    else if (clean.includes('ijazah') || clean.includes('noijazah')) colMap.no_ijazah = idx;
-                    else if (clean.includes('jenislanjutan') || (clean.includes('lanjutan') && !clean.includes('sekolah') && !clean.includes('lembaga') && !clean.includes('nama') && !clean.includes('pesantren'))) {
-                        if (colMap.jenis_lanjutan === undefined) colMap.jenis_lanjutan = idx;
+                    // 6. No Ijazah
+                    else if (clean.includes('ijazah') || clean.includes('noijazah')) {
+                        colMap.no_ijazah = idx;
                     }
-                    else if (clean.includes('sekolahlanjutan') || clean.includes('namasekolah') || clean.includes('lembagalanjutan') || clean.includes('tujuan') || (clean.includes('sekolah') && clean.includes('lanjutan')) || clean.includes('pesantren')) {
+                    // 7. Nama Sekolah / Pesantren Lanjutan (Harus sebelum nama alumni agar 'Nama Sekolah Lanjutan' tidak tertangkap sebagai nama siswa!)
+                    else if (clean.includes('sekolah') || clean.includes('pesantren') || clean.includes('lembagalanjutan') || clean.includes('namasekolah') || clean.includes('tujuan')) {
                         if (colMap.sekolah_lanjutan === undefined) colMap.sekolah_lanjutan = idx;
                     }
-                    else if (clean.includes('nohp') || clean.includes('telepon') || clean.includes('telp') || clean.includes('wa') || clean.includes('hp') || clean.includes('whatsapp')) colMap.no_hp = idx;
-                    else if (clean.includes('alamat')) colMap.alamat = idx;
+                    // 8. Jenis Lanjutan (MTs / SMP / Ponpes)
+                    else if (clean.includes('jenislanjutan') || (clean.includes('lanjutan') && !clean.includes('sekolah') && !clean.includes('pesantren'))) {
+                        if (colMap.jenis_lanjutan === undefined) colMap.jenis_lanjutan = idx;
+                    }
+                    // 9. Nama Lengkap Alumni
+                    else if (clean.includes('nama') || clean.includes('namasiswa') || clean.includes('namaalumni') || clean.includes('namalengkap') || clean.includes('pesertadidik')) {
+                        if (colMap.nama === undefined) colMap.nama = idx;
+                    }
+                    // 10. No HP / WhatsApp
+                    else if (clean.includes('nohp') || clean.includes('telepon') || clean.includes('telp') || clean.includes('wa') || clean.includes('hp') || clean.includes('whatsapp')) {
+                        colMap.no_hp = idx;
+                    }
+                    // 11. Alamat
+                    else if (clean.includes('alamat')) {
+                        colMap.alamat = idx;
+                    }
                 });
             }
 
