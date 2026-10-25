@@ -659,6 +659,13 @@
                                     <option value="Kelas 5">Kelas 5</option>
                                     <option value="Kelas 6">Kelas 6</option>
                                 </select>
+                                <select id="filter-status-siswa" onchange="window.renderStudentsTable()"
+                                    class="px-4 py-2.5 rounded-2xl border border-slate-300 text-sm bg-white font-medium text-slate-700 focus:outline-none focus:ring-2 focus:ring-opti-dark">
+                                    <option value="Aktif" selected>Status: Aktif</option>
+                                    <option value="ALL">Semua Status</option>
+                                    <option value="Mutasi Keluar">Mutasi Keluar</option>
+                                    <option value="Lulus">Lulus / Alumni</option>
+                                </select>
                             </div>
                             <div class="flex flex-wrap items-center gap-2">
                                 <button onclick="window.downloadStudentTemplate()"
@@ -2655,6 +2662,60 @@
             } catch (e) { }
         };
 
+        window.getDeletedMutationIds = function () {
+            try {
+                const raw = localStorage.getItem('mis_deleted_mutations');
+                return raw ? JSON.parse(raw) : [];
+            } catch (e) {
+                return [];
+            }
+        };
+        window.trackDeletedMutationId = function (id) {
+            if (!id) return;
+            try {
+                const list = window.getDeletedMutationIds();
+                if (!list.includes(id)) {
+                    list.push(id);
+                    localStorage.setItem('mis_deleted_mutations', JSON.stringify(list));
+                }
+            } catch (e) { }
+        };
+        window.uncheckDeletedMutationId = function (id) {
+            if (!id) return;
+            try {
+                let list = window.getDeletedMutationIds();
+                list = list.filter(item => item !== id);
+                localStorage.setItem('mis_deleted_mutations', JSON.stringify(list));
+            } catch (e) { }
+        };
+
+        window.getDeletedTeacherIds = function () {
+            try {
+                const raw = localStorage.getItem('mis_deleted_teachers');
+                return raw ? JSON.parse(raw) : [];
+            } catch (e) {
+                return [];
+            }
+        };
+        window.trackDeletedTeacherId = function (id) {
+            if (!id) return;
+            try {
+                const list = window.getDeletedTeacherIds();
+                if (!list.includes(id)) {
+                    list.push(id);
+                    localStorage.setItem('mis_deleted_teachers', JSON.stringify(list));
+                }
+            } catch (e) { }
+        };
+        window.uncheckDeletedTeacherId = function (id) {
+            if (!id) return;
+            try {
+                let list = window.getDeletedTeacherIds();
+                list = list.filter(item => item !== id);
+                localStorage.setItem('mis_deleted_teachers', JSON.stringify(list));
+            } catch (e) { }
+        };
+
         window.normalizeStudentData = function (s) {
             if (!s) return s;
             let ak = String(s.anak_ke !== undefined && s.anak_ke !== null ? s.anak_ke : '').trim();
@@ -2709,14 +2770,143 @@
         };
         const withButtonFeedback = window.withButtonFeedback;
 
-        // HELPER PENYIMPANAN OFFLINE ALUMNI YANG AMAN DARI BATAS KUOTA LOCALSTORAGE
+        // =========================================================================
+        // SISTEM PENYIMPANAN PERSISTEN INDEXEDDB (ANTI HILANG SAAT REFRESH & KUOTA BESAR UNTUK FOTO/BERKAS)
+        // =========================================================================
+        const IDB_NAME = 'BukuIndukDB';
+        const IDB_VERSION = 1;
+        const IDB_STORE = 'app_data';
+
+        let _idbPromise = null;
+        function getIndexedDB() {
+            if (!window.indexedDB) return Promise.resolve(null);
+            if (!_idbPromise) {
+                _idbPromise = new Promise((resolve) => {
+                    try {
+                        const req = window.indexedDB.open(IDB_NAME, IDB_VERSION);
+                        req.onupgradeneeded = (e) => {
+                            const db = e.target.result;
+                            if (!db.objectStoreNames.contains(IDB_STORE)) {
+                                db.createObjectStore(IDB_STORE);
+                            }
+                        };
+                        req.onsuccess = (e) => resolve(e.target.result);
+                        req.onerror = (e) => {
+                            console.warn("IndexedDB open error:", e);
+                            resolve(null);
+                        };
+                    } catch (err) {
+                        console.warn("IndexedDB initialization error:", err);
+                        resolve(null);
+                    }
+                });
+            }
+            return _idbPromise;
+        }
+
+        async function idbSet(key, value) {
+            try {
+                const db = await getIndexedDB();
+                if (!db) return false;
+                return new Promise((resolve) => {
+                    const tx = db.transaction(IDB_STORE, 'readwrite');
+                    const store = tx.objectStore(IDB_STORE);
+                    store.put(value, key);
+                    tx.oncomplete = () => resolve(true);
+                    tx.onerror = (err) => {
+                        console.warn("IndexedDB set error for " + key, err);
+                        resolve(false);
+                    };
+                });
+            } catch (e) {
+                console.warn("idbSet error:", e);
+                return false;
+            }
+        }
+        window.idbSet = idbSet;
+
+        async function idbGet(key) {
+            try {
+                const db = await getIndexedDB();
+                if (!db) return null;
+                return new Promise((resolve) => {
+                    const tx = db.transaction(IDB_STORE, 'readonly');
+                    const store = tx.objectStore(IDB_STORE);
+                    const req = store.get(key);
+                    req.onsuccess = () => resolve(req.result !== undefined ? req.result : null);
+                    req.onerror = () => resolve(null);
+                });
+            } catch (e) {
+                console.warn("idbGet error:", e);
+                return null;
+            }
+        }
+        window.idbGet = idbGet;
+
+        // HELPER SINKRONISASI KE FIRESTORE DENGAN PROTEKSI BATAS DOKUMEN 1MB
+        async function safeCloudSaveDoc(collectionName, docId, data, merge = true) {
+            if (!isCloudConnected || !db) return;
+            try {
+                const docRef = getDocRef(collectionName, docId);
+                await (merge ? docRef.set(data, { merge: true }) : docRef.set(data));
+            } catch (err) {
+                console.warn(`Firestore save note (${collectionName}/${docId}):`, err);
+                try {
+                    // Jika berkas terlalu besar untuk batas 1MB Firestore, simpan metadata teks saja ke Cloud
+                    const lightData = { ...data };
+                    if (lightData.file_ijazah && lightData.file_ijazah.length > 500000) lightData.file_ijazah = '';
+                    if (lightData.file_transkrip && lightData.file_transkrip.length > 500000) lightData.file_transkrip = '';
+                    if (lightData.foto_alumni && lightData.foto_alumni.length > 500000) lightData.foto_alumni = '';
+                    if (lightData.foto_guru && lightData.foto_guru.length > 500000) lightData.foto_guru = '';
+                    if (lightData.foto_siswa && lightData.foto_siswa.length > 500000) lightData.foto_siswa = '';
+                    const docRef = getDocRef(collectionName, docId);
+                    await (merge ? docRef.set(lightData, { merge: true }) : docRef.set(lightData));
+                } catch (e2) {
+                    console.warn(`Firestore light fallback note (${collectionName}/${docId}):`, e2);
+                }
+            }
+        }
+        window.safeCloudSaveDoc = safeCloudSaveDoc;
+
+        // HELPER PENYIMPANAN OFFLINE SISWA
+        function saveOfflineStudents() {
+            idbSet('mis_full_students', state.students);
+            try {
+                localStorage.setItem('mis_offline_students', JSON.stringify(state.students));
+            } catch (quotaErr) {
+                try {
+                    const lightStudents = state.students.map(s => ({
+                        ...s,
+                        foto_siswa: s.foto_siswa && s.foto_siswa.length > 50000 ? '' : s.foto_siswa
+                    }));
+                    localStorage.setItem('mis_offline_students', JSON.stringify(lightStudents));
+                } catch (e2) {}
+            }
+        }
+        window.saveOfflineStudents = saveOfflineStudents;
+
+        // HELPER PENYIMPANAN OFFLINE MUTASI
+        function saveOfflineMutations() {
+            idbSet('mis_full_mutations', state.mutations);
+            try {
+                localStorage.setItem('mis_offline_mutations', JSON.stringify(state.mutations));
+            } catch (e) {
+                console.warn("Gagal menyimpan cadangan offline mutasi:", e);
+            }
+        }
+        window.saveOfflineMutations = saveOfflineMutations;
+
+        // HELPER PENYIMPANAN OFFLINE ALUMNI (INDEXEDDB FULL + LOCALSTORAGE FALLBACK)
         function saveOfflineAlumni() {
+            // 1. Simpan salinan LENGKAP dengan foto & berkas ijazah/transkrip ke IndexedDB
+            idbSet('mis_full_alumni', state.alumni);
+
+            // 2. Simpan cadangan ke localStorage
             try {
                 localStorage.setItem('mis_offline_alumni', JSON.stringify(state.alumni));
             } catch (quotaErr) {
-                console.warn("LocalStorage penuh karena berkas gambar, menyimpan metadata alumni:", quotaErr);
+                console.warn("LocalStorage penuh, metadata alumni disimpan ke localStorage & berkas lengkap aman di IndexedDB:", quotaErr);
                 try {
-                    // Simpan metadata teks saja jika gambar/pdf base64 melebihi kuota 5MB browser
                     const lightAlumni = state.alumni.map(a => ({
                         ...a,
                         file_ijazah: a.file_ijazah && a.file_ijazah.length > 2000 ? '' : a.file_ijazah,
@@ -2731,12 +2921,16 @@
         }
         window.saveOfflineAlumni = saveOfflineAlumni;
 
-        // HELPER PENYIMPANAN OFFLINE GURU DENGAN PROTEKSI KUOTA GAMBAR
+        // HELPER PENYIMPANAN OFFLINE GURU (INDEXEDDB FULL + LOCALSTORAGE FALLBACK)
         function saveOfflineTeachers() {
+            // 1. Simpan salinan LENGKAP dengan foto guru ke IndexedDB
+            idbSet('mis_full_teachers', state.teachers);
+
+            // 2. Simpan cadangan ke localStorage
             try {
                 localStorage.setItem('mis_offline_teachers', JSON.stringify(state.teachers));
             } catch (quotaErr) {
-                console.warn("LocalStorage penuh karena foto guru, menyimpan metadata guru:", quotaErr);
+                console.warn("LocalStorage penuh, metadata guru disimpan ke localStorage & foto utuh aman di IndexedDB:", quotaErr);
                 try {
                     const lightTeachers = state.teachers.map(t => ({
                         ...t,
@@ -2796,30 +2990,40 @@
                         for (const localSt of state.students) {
                             if (deletedIds.includes(localSt.id)) continue;
                             const hasValidNisn = localSt.nisn && localSt.nisn !== '-' && localSt.nisn !== '0' && String(localSt.nisn).length >= 6;
-                            const alreadyInCloud = combined.some(c => c.id === localSt.id || (hasValidNisn && c.nisn === localSt.nisn));
-                            if (!alreadyInCloud) {
+                            const existingIdx = combined.findIndex(c => c.id === localSt.id || (hasValidNisn && c.nisn === localSt.nisn));
+                            if (existingIdx >= 0) {
+                                combined[existingIdx] = {
+                                    ...localSt,
+                                    ...combined[existingIdx],
+                                    foto_siswa: (localSt.foto_siswa && localSt.foto_siswa.length > 20) ? localSt.foto_siswa : (combined[existingIdx].foto_siswa || '')
+                                };
+                            } else {
                                 combined.push(normalizeStudentData(localSt));
                             }
                         }
                         combined.sort((a, b) => (a.nama_lengkap || '').localeCompare(b.nama_lengkap || '', 'id', { sensitivity: 'base' }));
                         state.students = combined;
-                        try { localStorage.setItem('mis_offline_students', JSON.stringify(state.students)); } catch (e) { }
+                        saveOfflineStudents();
                         refreshAllUI();
                     }
                 }, err => console.warn("Firestore listener error (siswa):", err));
 
                 getColRef('data_guru').onSnapshot(snap => {
                     if (snap) {
-                        const cloudTeachers = snap.docs.map(d => ({ id: d.id, ...d.data() }));
+                        const deletedTeacherIds = window.getDeletedTeacherIds();
+                        const cloudTeachers = snap.docs
+                            .map(d => ({ id: d.id, ...d.data() }))
+                            .filter(t => !deletedTeacherIds.includes(t.id));
                         const combined = [...cloudTeachers];
                         for (const localT of state.teachers) {
+                            if (deletedTeacherIds.includes(localT.id)) continue;
                             const hasValidNip = localT.nip && localT.nip !== '-' && localT.nip.length >= 6;
                             const existingIdx = combined.findIndex(c => c.id === localT.id || (hasValidNip && c.nip === localT.nip) || (localT.nama_lengkap && c.nama_lengkap && c.nama_lengkap.toLowerCase() === localT.nama_lengkap.toLowerCase()));
                             if (existingIdx >= 0) {
                                 combined[existingIdx] = {
                                     ...localT,
                                     ...combined[existingIdx],
-                                    foto_guru: combined[existingIdx].foto_guru || localT.foto_guru || ''
+                                    foto_guru: (localT.foto_guru && localT.foto_guru.length > 20) ? localT.foto_guru : (combined[existingIdx].foto_guru || '')
                                 };
                             } else {
                                 combined.push(localT);
@@ -2835,7 +3039,9 @@
                 getColRef('data_alumni').onSnapshot(snap => {
                     if (snap) {
                         const deletedAlumniIds = window.getDeletedAlumniIds();
-                        const cloudAlumni = snap.docs.map(d => ({ id: d.id, ...d.data() })).filter(a => !deletedAlumniIds.includes(a.id));
+                        const cloudAlumni = snap.docs
+                            .map(d => ({ id: d.id, ...d.data() }))
+                            .filter(a => !deletedAlumniIds.includes(a.id));
                         const combined = [...cloudAlumni];
                         for (const localA of state.alumni) {
                             if (deletedAlumniIds.includes(localA.id)) continue;
@@ -2845,11 +3051,11 @@
                                 combined[existingIdx] = {
                                     ...localA,
                                     ...combined[existingIdx],
-                                    foto_alumni: combined[existingIdx].foto_alumni || localA.foto_alumni || '',
-                                    file_ijazah: combined[existingIdx].file_ijazah || localA.file_ijazah || '',
-                                    nama_file_ijazah: combined[existingIdx].nama_file_ijazah || localA.nama_file_ijazah || '',
-                                    file_transkrip: combined[existingIdx].file_transkrip || localA.file_transkrip || '',
-                                    nama_file_transkrip: combined[existingIdx].nama_file_transkrip || localA.nama_file_transkrip || ''
+                                    foto_alumni: (localA.foto_alumni && localA.foto_alumni.length > 20) ? localA.foto_alumni : (combined[existingIdx].foto_alumni || ''),
+                                    file_ijazah: (localA.file_ijazah && localA.file_ijazah.length > 20) ? localA.file_ijazah : (combined[existingIdx].file_ijazah || ''),
+                                    nama_file_ijazah: localA.nama_file_ijazah || combined[existingIdx].nama_file_ijazah || '',
+                                    file_transkrip: (localA.file_transkrip && localA.file_transkrip.length > 20) ? localA.file_transkrip : (combined[existingIdx].file_transkrip || ''),
+                                    nama_file_transkrip: localA.nama_file_transkrip || combined[existingIdx].nama_file_transkrip || ''
                                 };
                             } else {
                                 combined.push(localA);
@@ -2863,15 +3069,44 @@
                 }, err => console.warn("Firestore listener error (alumni):", err));
 
                 getColRef('riwayat_akademik').onSnapshot(snap => {
-                    state.academics = snap.docs.map(d => ({ id: d.id, ...d.data() }));
-                    try { localStorage.setItem('mis_offline_academics', JSON.stringify(state.academics)); } catch (e) { }
-                    refreshAllUI();
+                    if (snap) {
+                        const cloudAcademics = snap.docs.map(d => ({ id: d.id, ...d.data() }));
+                        const combined = [...cloudAcademics];
+                        for (const localAc of state.academics) {
+                            const existingIdx = combined.findIndex(c => c.id === localAc.id);
+                            if (existingIdx >= 0) {
+                                combined[existingIdx] = { ...localAc, ...combined[existingIdx] };
+                            } else {
+                                combined.push(localAc);
+                            }
+                        }
+                        state.academics = combined;
+                        try { localStorage.setItem('mis_offline_academics', JSON.stringify(state.academics)); } catch (e) { }
+                        refreshAllUI();
+                    }
                 }, err => console.warn("Firestore listener error (akademik):", err));
 
                 getColRef('data_mutasi').onSnapshot(snap => {
-                    state.mutations = snap.docs.map(d => ({ id: d.id, ...d.data() }));
-                    try { localStorage.setItem('mis_offline_mutations', JSON.stringify(state.mutations)); } catch (e) { }
-                    refreshAllUI();
+                    if (snap) {
+                        const deletedMutIds = window.getDeletedMutationIds();
+                        const cloudMutations = snap.docs
+                            .map(d => ({ id: d.id, ...d.data() }))
+                            .filter(m => !deletedMutIds.includes(m.id));
+
+                        const combined = [...cloudMutations];
+                        for (const localM of state.mutations) {
+                            if (deletedMutIds.includes(localM.id)) continue;
+                            const existingIdx = combined.findIndex(c => c.id === localM.id);
+                            if (existingIdx >= 0) {
+                                combined[existingIdx] = { ...localM, ...combined[existingIdx] };
+                            } else {
+                                combined.push(localM);
+                            }
+                        }
+                        state.mutations = combined;
+                        saveOfflineMutations();
+                        window.renderMutationsTable();
+                    }
                 }, err => console.warn("Firestore listener error (mutasi):", err));
             } catch (err) {
                 console.warn("startCloudSync error:", err);
@@ -2881,7 +3116,7 @@
         async function initFirebase() {
             const badgeEl = document.getElementById('mode-indicator-badge');
 
-            // Muat data tersimpan lokal jika ada
+            // Muat data tersimpan lokal jika ada (sinkron cepat)
             try {
                 const deletedIds = window.getDeletedStudentIds();
                 const cachedStudents = localStorage.getItem('mis_offline_students');
@@ -2890,12 +3125,16 @@
                         .map(normalizeStudentData)
                         .filter(s => !deletedIds.includes(s.id));
                     state.students.sort((a, b) => (a.nama_lengkap || '').localeCompare(b.nama_lengkap || '', 'id', { sensitivity: 'base' }));
-                    try { localStorage.setItem('mis_offline_students', JSON.stringify(state.students)); } catch (e) { }
                 } else {
                     state.students = state.students.filter(s => !deletedIds.includes(s.id));
                 }
+                const deletedTeacherIds = window.getDeletedTeacherIds();
                 const cachedTeachers = localStorage.getItem('mis_offline_teachers');
-                if (cachedTeachers) state.teachers = JSON.parse(cachedTeachers);
+                if (cachedTeachers) {
+                    state.teachers = JSON.parse(cachedTeachers).filter(t => !deletedTeacherIds.includes(t.id));
+                } else {
+                    state.teachers = state.teachers.filter(t => !deletedTeacherIds.includes(t.id));
+                }
                 const deletedAlumniIds = window.getDeletedAlumniIds();
                 const cachedAlumni = localStorage.getItem('mis_offline_alumni');
                 if (cachedAlumni) {
@@ -2905,8 +3144,13 @@
                 }
                 const cachedAcademics = localStorage.getItem('mis_offline_academics');
                 if (cachedAcademics) state.academics = JSON.parse(cachedAcademics);
+                const deletedMutIds = window.getDeletedMutationIds();
                 const cachedMutations = localStorage.getItem('mis_offline_mutations');
-                if (cachedMutations) state.mutations = JSON.parse(cachedMutations);
+                if (cachedMutations) {
+                    state.mutations = JSON.parse(cachedMutations).filter(m => !deletedMutIds.includes(m.id));
+                } else {
+                    state.mutations = state.mutations.filter(m => !deletedMutIds.includes(m.id));
+                }
                 const cachedSettings = localStorage.getItem('mis_offline_settings');
                 if (cachedSettings) {
                     state.madrasahSettings = { ...INITIAL_MADRASAH_SETTINGS, ...JSON.parse(cachedSettings) };
@@ -2916,6 +3160,84 @@
                 const cachedPassword = localStorage.getItem('mis_admin_custom_password');
                 if (cachedPassword) state.madrasahSettings.admin_password = cachedPassword;
             } catch (e) { }
+
+            // PULIHKAN DOKUMEN & FOTO UTUH DARI INDEXEDDB (ANTI HILANG SAAT REFRESH!)
+            try {
+                const [idbTeachers, idbAlumni, idbStudents, idbMutations] = await Promise.all([
+                    idbGet('mis_full_teachers'),
+                    idbGet('mis_full_alumni'),
+                    idbGet('mis_full_students'),
+                    idbGet('mis_full_mutations')
+                ]);
+
+                if (Array.isArray(idbTeachers) && idbTeachers.length > 0) {
+                    const deletedTeacherIds = window.getDeletedTeacherIds();
+                    idbTeachers.forEach(it => {
+                        if (deletedTeacherIds.includes(it.id)) return;
+                        const cur = state.teachers.find(t => t.id === it.id);
+                        if (cur) {
+                            if (it.foto_guru) cur.foto_guru = it.foto_guru;
+                        } else {
+                            state.teachers.push(it);
+                        }
+                    });
+                } else if (state.teachers && state.teachers.length > 0) {
+                    idbSet('mis_full_teachers', state.teachers);
+                }
+
+                if (Array.isArray(idbAlumni) && idbAlumni.length > 0) {
+                    const deletedAlumniIds = window.getDeletedAlumniIds();
+                    idbAlumni.forEach(ia => {
+                        if (deletedAlumniIds.includes(ia.id)) return;
+                        const cur = state.alumni.find(a => a.id === ia.id);
+                        if (cur) {
+                            if (ia.foto_alumni) cur.foto_alumni = ia.foto_alumni;
+                            if (ia.file_ijazah) {
+                                cur.file_ijazah = ia.file_ijazah;
+                                cur.nama_file_ijazah = ia.nama_file_ijazah || cur.nama_file_ijazah;
+                            }
+                            if (ia.file_transkrip) {
+                                cur.file_transkrip = ia.file_transkrip;
+                                cur.nama_file_transkrip = ia.nama_file_transkrip || cur.nama_file_transkrip;
+                            }
+                        } else {
+                            state.alumni.push(ia);
+                        }
+                    });
+                } else if (state.alumni && state.alumni.length > 0) {
+                    idbSet('mis_full_alumni', state.alumni);
+                }
+
+                if (Array.isArray(idbStudents) && idbStudents.length > 0) {
+                    const deletedIds = window.getDeletedStudentIds();
+                    idbStudents.forEach(is => {
+                        if (deletedIds.includes(is.id)) return;
+                        const cur = state.students.find(s => s.id === is.id);
+                        if (cur) {
+                            if (is.foto_siswa) cur.foto_siswa = is.foto_siswa;
+                        } else {
+                            state.students.push(normalizeStudentData(is));
+                        }
+                    });
+                } else if (state.students && state.students.length > 0) {
+                    idbSet('mis_full_students', state.students);
+                }
+
+                if (Array.isArray(idbMutations) && idbMutations.length > 0) {
+                    const deletedMutIds = window.getDeletedMutationIds();
+                    idbMutations.forEach(im => {
+                        if (deletedMutIds.includes(im.id)) return;
+                        const cur = state.mutations.find(m => m.id === im.id);
+                        if (!cur) {
+                            state.mutations.push(im);
+                        }
+                    });
+                } else if (state.mutations && state.mutations.length > 0) {
+                    idbSet('mis_full_mutations', state.mutations);
+                }
+            } catch (idbErr) {
+                console.warn("Gagal memulihkan berkas dari IndexedDB:", idbErr);
+            }
 
             // Tampilkan nama sekolah tersimpan di login screen
             const loginBrand = document.getElementById('login-brand-school');
@@ -3425,15 +3747,24 @@
         };
 
         window.renderStudentsTable = function () {
-            const q = (document.getElementById('filter-search-siswa')?.value || '').toLowerCase();
+            const q = (document.getElementById('filter-search-siswa')?.value || '').toLowerCase().trim();
             const klsFilter = document.getElementById('filter-kelas-siswa')?.value || 'ALL';
+            const statusFilter = document.getElementById('filter-status-siswa')?.value || 'Aktif';
 
             const filtered = state.students.filter(s => {
-                // Hanya tampilkan siswa berstatus 'Aktif' di menu Data Siswa
                 const status = s.status_siswa || 'Aktif';
-                if (status !== 'Aktif') return false;
 
-                const matchText = (s.nama_lengkap || '').toLowerCase().includes(q) ||
+                if (statusFilter !== 'ALL') {
+                    if (!q) {
+                        if (statusFilter === 'Aktif' && status !== 'Aktif') return false;
+                        if (statusFilter !== 'Aktif' && status !== statusFilter) return false;
+                    } else {
+                        if (statusFilter !== 'Aktif' && status !== statusFilter) return false;
+                    }
+                }
+
+                const matchText = !q ||
+                    (s.nama_lengkap || '').toLowerCase().includes(q) ||
                     String(s.nisn || '').includes(q) ||
                     String(s.nis_lokal || '').includes(q) ||
                     String(s.nik || '').includes(q);
@@ -3448,7 +3779,7 @@
             if (!tbody) return;
 
             if (filtered.length === 0) {
-                tbody.innerHTML = `<tr><td colspan="7" class="py-12 text-center text-slate-400 text-sm">Tidak ada data siswa aktif ditemukan.</td></tr>`;
+                tbody.innerHTML = `<tr><td colspan="7" class="py-12 text-center text-slate-400 text-sm">Tidak ada data siswa yang cocok dengan filter / pencarian.</td></tr>`;
                 return;
             }
 
@@ -3459,7 +3790,14 @@
                     <div class="text-[11px] text-slate-500 mt-0.5">NIS: ${s.nis_lokal || '-'}</div>
                 </td>
                 <td class="py-3.5 px-5 font-bold text-slate-900 text-xs">
-                    <div>${s.nama_lengkap}</div>
+                    <div class="flex items-center gap-1.5 flex-wrap">
+                        <span>${s.nama_lengkap}</span>
+                        ${s.status_siswa && s.status_siswa !== 'Aktif' ? `
+                            <span class="px-2 py-0.5 rounded text-[10px] font-extrabold ${s.status_siswa === 'Mutasi Keluar' ? 'bg-amber-100 text-amber-900 border border-amber-300' : 'bg-blue-100 text-blue-900 border border-blue-300'}">
+                                ${s.status_siswa}
+                            </span>
+                        ` : ''}
+                    </div>
                     <div class="text-[11px] text-slate-500 font-normal mt-0.5">NIK: ${s.nik || '-'}</div>
                 </td>
                 <td class="py-3.5 px-3 text-center whitespace-nowrap">
@@ -3699,12 +4037,8 @@
                 }
                 state.students.sort((a, b) => (a.nama_lengkap || '').localeCompare(b.nama_lengkap || '', 'id', { sensitivity: 'base' }));
 
-                // 2. Selalu simpan ke offline LocalStorage agar aman 100% dan tidak pernah hilang
-                try {
-                    localStorage.setItem('mis_offline_students', JSON.stringify(state.students));
-                } catch (e) {
-                    console.warn("LocalStorage save error:", e);
-                }
+                // 2. Selalu simpan ke offline IndexedDB & LocalStorage agar aman 100% dan tidak pernah hilang
+                saveOfflineStudents();
 
                 // 3. Render ulang seluruh tampilan segera
                 refreshAllUI();
@@ -3736,12 +4070,8 @@
                     // 2. Filter dari state lokal secara langsung
                     state.students = state.students.filter(item => item.id !== studentId);
 
-                    // 3. Simpan perubahan ke LocalStorage segera
-                    try {
-                        localStorage.setItem('mis_offline_students', JSON.stringify(state.students));
-                    } catch (e) {
-                        console.warn("LocalStorage save error:", e);
-                    }
+                    // 3. Simpan perubahan ke IndexedDB & LocalStorage segera
+                    saveOfflineStudents();
 
                     // 4. Perbarui seluruh UI seketika
                     refreshAllUI();
@@ -3876,19 +4206,20 @@
             const klsFilter = document.getElementById('filter-kelas-mutasi')?.value || 'ALL';
             const jenisFilter = document.getElementById('filter-jenis-mutasi')?.value || 'ALL';
 
-            const filtered = state.mutations.filter(m => {
-                const matchText = (m.nama_siswa || '').toLowerCase().includes(q) ||
-                    (m.nisn || '').toLowerCase().includes(q) ||
-                    (m.no_surat || '').toLowerCase().includes(q) ||
-                    (m.sekolah_tujuan_asal || '').toLowerCase().includes(q) ||
-                    (m.alasan_mutasi || '').toLowerCase().includes(q);
+            const filtered = (state.mutations || []).filter(m => {
+                const matchText = !q ||
+                    (m.nama_siswa || '').toLowerCase().includes(q) ||
+                    String(m.nisn || '').toLowerCase().includes(q) ||
+                    String(m.no_surat || '').toLowerCase().includes(q) ||
+                    String(m.sekolah_tujuan_asal || '').toLowerCase().includes(q) ||
+                    String(m.alasan_mutasi || '').toLowerCase().includes(q);
                 const matchKelas = klsFilter === 'ALL' || m.kelas_saat_mutasi === klsFilter;
                 const matchJenis = jenisFilter === 'ALL' || m.jenis_mutasi === jenisFilter;
                 return matchText && matchKelas && matchJenis;
             });
 
-            // Urutkan data mutasi sesuai abjad A-Z berdasarkan Nama Siswa
-            filtered.sort((a, b) => (a.nama_siswa || '').localeCompare(b.nama_siswa || '', 'id', { sensitivity: 'base' }));
+            // Urutkan data mutasi: mutasi terbaru di atas
+            filtered.sort((a, b) => (b.tgl_mutasi || '').localeCompare(a.tgl_mutasi || '') || (a.nama_siswa || '').localeCompare(b.nama_siswa || '', 'id', { sensitivity: 'base' }));
 
             const countBadge = document.getElementById('stat-mutasi-count');
             if (countBadge) countBadge.textContent = `${filtered.length} Data Mutasi`;
@@ -3941,46 +4272,74 @@
 
         function renderMutationSection() {
             window.filterMutationFormStudents(document.getElementById('mutasi-filter-form-kelas')?.value || 'ALL');
+            const tglInput = document.getElementById('mutasi-tanggal');
+            if (tglInput && !tglInput.value) {
+                tglInput.value = new Date().toISOString().split('T')[0];
+            }
             window.renderMutationsTable();
         }
 
         window.handleSaveMutation = async function (e) {
             e.preventDefault();
             const btn = document.getElementById('btn-save-mutasi') || e.target.querySelector('button[type="submit"]');
-            const siswaId = document.getElementById('mutasi-siswa-id').value;
-            const s = state.students.find(item => item.id === siswaId);
-            if (!s) return;
+            const siswaId = document.getElementById('mutasi-siswa-id')?.value;
+            const s = (state.students || []).find(item => item.id === siswaId);
+            if (!siswaId || !s) {
+                showToast("Pilih siswa yang akan dimutasi terlebih dahulu!", "error");
+                return;
+            }
+
+            const tgl = (document.getElementById('mutasi-tanggal')?.value || '').trim();
+            if (!tgl) {
+                showToast("Pilih tanggal mutasi!", "error");
+                return;
+            }
 
             await withButtonFeedback(btn, async () => {
-                const jenis = document.getElementById('mutasi-jenis').value;
+                const jenis = document.getElementById('mutasi-jenis')?.value || 'Keluar';
                 const newMut = {
                     id: `MUT-${Date.now()}`,
                     siswa_id: s.id,
-                    nisn: s.nisn,
+                    nisn: s.nisn || '-',
+                    nis_lokal: s.nis_lokal || '-',
                     nama_siswa: s.nama_lengkap,
                     jenis_mutasi: jenis,
-                    tgl_mutasi: document.getElementById('mutasi-tanggal').value,
+                    tgl_mutasi: tgl,
                     kelas_saat_mutasi: s.kelas_aktif,
-                    no_surat: document.getElementById('mutasi-nosurat').value.trim(),
-                    sekolah_tujuan_asal: document.getElementById('mutasi-sekolah').value.trim(),
-                    alasan_mutasi: document.getElementById('mutasi-alasan').value.trim()
+                    no_surat: (document.getElementById('mutasi-nosurat')?.value || '').trim() || '-',
+                    sekolah_tujuan_asal: (document.getElementById('mutasi-sekolah')?.value || '').trim() || '-',
+                    alasan_mutasi: (document.getElementById('mutasi-alasan')?.value || '').trim() || '-'
                 };
 
-                if (jenis === 'Keluar') s.status_siswa = 'Mutasi Keluar';
-                else s.status_siswa = 'Aktif';
+                // Perbarui status siswa
+                if (jenis === 'Keluar') {
+                    s.status_siswa = 'Mutasi Keluar';
+                } else {
+                    s.status_siswa = 'Aktif';
+                }
 
+                // Tambahkan ke riwayat mutasi siswa
+                if (!s.riwayat_mutasi) s.riwayat_mutasi = [];
+                s.riwayat_mutasi.unshift(newMut);
+
+                // Uncheck dari daftar ID terhapus
+                window.uncheckDeletedMutationId(newMut.id);
+
+                // Perbarui daftar mutasi
                 const idx = state.mutations.findIndex(m => m.id === newMut.id);
                 if (idx >= 0) state.mutations[idx] = newMut;
                 else state.mutations.unshift(newMut);
 
-                try {
-                    localStorage.setItem('mis_offline_mutations', JSON.stringify(state.mutations));
-                    localStorage.setItem('mis_offline_students', JSON.stringify(state.students));
-                } catch (e) { }
+                // Simpan segera ke IndexedDB & localStorage
+                saveOfflineMutations();
+                saveOfflineStudents();
 
-                renderMutationSection();
-                refreshAllUI();
+                // Segera update tampilan UI
+                window.renderMutationsTable();
+                window.renderStudentsTable();
+                renderAdminDashboard();
 
+                // Simpan ke Firestore jika online
                 if (isCloudConnected && db) {
                     try {
                         await getDocRef('data_mutasi', newMut.id).set(newMut);
@@ -3990,25 +4349,39 @@
                     }
                 }
 
+                // Reset form mutasi dengan tetap mengisi tanggal hari ini
                 document.getElementById('form-input-mutasi').reset();
+                const tglEl = document.getElementById('mutasi-tanggal');
+                if (tglEl) tglEl.value = new Date().toISOString().split('T')[0];
+                window.filterMutationFormStudents(document.getElementById('mutasi-filter-form-kelas')?.value || 'ALL');
             }, "Mutasi Tersimpan!");
 
-            showToast("Mutasi berhasil dicatat dan disimpan!", "success");
+            showToast("Catatan mutasi berhasil dicatat dan tersimpan!", "success");
         };
 
         window.handleDeleteMutation = async function (mutId) {
-            state.mutations = state.mutations.filter(m => m.id !== mutId);
-            try { localStorage.setItem('mis_offline_mutations', JSON.stringify(state.mutations)); } catch (e) { }
-            renderMutationSection();
+            const mut = state.mutations.find(m => m.id === mutId);
+            const nama = mut ? mut.nama_siswa : 'ini';
 
-            if (isCloudConnected && db) {
-                try {
-                    await getDocRef('data_mutasi', mutId).delete();
-                } catch (err) {
-                    console.warn("Firestore delete mutation note:", err);
+            showConfirmModal(
+                `Hapus Catatan Mutasi?`,
+                `Catatan mutasi siswa ${nama} akan dihapus dari agenda.`,
+                async () => {
+                    window.trackDeletedMutationId(mutId);
+                    state.mutations = state.mutations.filter(m => m.id !== mutId);
+                    saveOfflineMutations();
+                    window.renderMutationsTable();
+
+                    if (isCloudConnected && db) {
+                        try {
+                            await getDocRef('data_mutasi', mutId).delete();
+                        } catch (err) {
+                            console.warn("Firestore delete mutation note:", err);
+                        }
+                    }
+                    showToast("Catatan mutasi dihapus.", "info");
                 }
-            }
-            showToast("Mutasi dihapus.", "info");
+            );
         };
 
         window.populatePrintSelector = function () {
@@ -4559,27 +4932,29 @@
                             setTimeout(() => {
                                 if (Array.isArray(data.students)) {
                                     state.students = data.students.map(normalizeStudentData);
-                                    localStorage.setItem('mis_offline_students', JSON.stringify(state.students));
+                                    saveOfflineStudents();
                                 }
                                 if (Array.isArray(data.teachers)) {
                                     state.teachers = data.teachers;
-                                    localStorage.setItem('mis_offline_teachers', JSON.stringify(state.teachers));
+                                    saveOfflineTeachers();
                                 }
                                 if (Array.isArray(data.alumni)) {
                                     state.alumni = data.alumni;
-                                    localStorage.setItem('mis_offline_alumni', JSON.stringify(state.alumni));
+                                    saveOfflineAlumni();
                                 }
                                 if (Array.isArray(data.academics)) {
                                     state.academics = data.academics;
-                                    localStorage.setItem('mis_offline_academics', JSON.stringify(state.academics));
+                                    idbSet('mis_full_academics', state.academics);
+                                    try { localStorage.setItem('mis_offline_academics', JSON.stringify(state.academics)); } catch (e) {}
                                 }
                                 if (Array.isArray(data.mutations)) {
                                     state.mutations = data.mutations;
-                                    localStorage.setItem('mis_offline_mutations', JSON.stringify(state.mutations));
+                                    saveOfflineMutations();
                                 }
                                 if (data.madrasahSettings) {
                                     state.madrasahSettings = { ...state.madrasahSettings, ...data.madrasahSettings };
-                                    localStorage.setItem('mis_offline_settings', JSON.stringify(state.madrasahSettings));
+                                    idbSet('mis_full_settings', state.madrasahSettings);
+                                    try { localStorage.setItem('mis_offline_settings', JSON.stringify(state.madrasahSettings)); } catch (e) {}
                                 }
                                 refreshAllUI();
                                 window.hideTransitionLoading();
@@ -5212,7 +5587,11 @@
                         : currentStudents.findIndex(item => item.nama_lengkap.toLowerCase() === s.nama_lengkap.toLowerCase() && item.kelas_aktif === s.kelas_aktif);
 
                     if (existingIdx >= 0) {
-                        currentStudents[existingIdx] = { ...currentStudents[existingIdx], ...s };
+                        currentStudents[existingIdx] = {
+                            ...currentStudents[existingIdx],
+                            ...s,
+                            foto_siswa: currentStudents[existingIdx].foto_siswa || s.foto_siswa || ''
+                        };
                     } else {
                         currentStudents.push(s);
                     }
@@ -5223,10 +5602,8 @@
                 currentStudents.sort((a, b) => (a.nama_lengkap || '').localeCompare(b.nama_lengkap || '', 'id', { sensitivity: 'base' }));
                 state.students = currentStudents;
 
-                // Simpan ke offline cache terlebih dahulu
-                try {
-                    localStorage.setItem('mis_offline_students', JSON.stringify(state.students));
-                } catch (e) { }
+                // Simpan ke offline cache IndexedDB & LocalStorage
+                saveOfflineStudents();
 
                 // Simpan ke Firestore via batching (maksimal 450 per batch)
                 if (isCloudConnected && db) {
@@ -5590,7 +5967,7 @@
                 saveOfflineTeachers();
 
                 if (isCloudConnected && db) {
-                    await getDocRef('data_guru', teacherId).set(teacher, { merge: true }).catch(err => console.warn(err));
+                    await safeCloudSaveDoc('data_guru', teacherId, teacher, true);
                 }
 
                 window.renderTeachersTable();
@@ -5599,6 +5976,7 @@
                 console.error("Quick upload teacher error:", err);
                 showToast("Gagal mengunggah foto guru: " + err.message, "error");
             } finally {
+                if (e && e.target) e.target.value = '';
                 window.hideTransitionLoading();
             }
         };
@@ -5694,6 +6072,7 @@
                     foto_guru: document.getElementById('g-data-foto')?.value || ''
                 };
 
+                window.uncheckDeletedTeacherId(id);
                 const idx = state.teachers.findIndex(t => t.id === id);
                 if (idx >= 0) state.teachers[idx] = teacherData;
                 else state.teachers.push(teacherData);
@@ -5701,7 +6080,7 @@
                 state.teachers.sort((a, b) => (a.nama_lengkap || '').localeCompare(b.nama_lengkap || '', 'id', { sensitivity: 'base' }));
 
                 if (isCloudConnected && db) {
-                    await getDocRef('data_guru', id).set(teacherData, { merge: true }).catch(err => console.warn(err));
+                    await safeCloudSaveDoc('data_guru', id, teacherData, true);
                 }
                 saveOfflineTeachers();
 
@@ -5720,6 +6099,7 @@
                 `Hapus Guru ${t.nama_lengkap}?`,
                 "Data guru yang dihapus tidak dapat dipulihkan.",
                 async () => {
+                    window.trackDeletedTeacherId(id);
                     state.teachers = state.teachers.filter(item => item.id !== id);
                     if (isCloudConnected && db) {
                         await getDocRef('data_guru', id).delete().catch(err => console.warn(err));
@@ -6037,6 +6417,7 @@
                 let countAdded = 0;
 
                 for (const t of parsedTeacherRows) {
+                    window.uncheckDeletedTeacherId(t.id);
                     const hasValidNip = t.nip && t.nip !== '-' && t.nip.length >= 6;
                     const existingIdx = hasValidNip
                         ? currentTeachers.findIndex(item => item.nip === t.nip)
@@ -6535,12 +6916,12 @@
                     state.alumni[idx] = alumni;
                 }
 
-                // Simpan offline dengan aman
+                // Simpan offline dengan aman ke IndexedDB & LocalStorage
                 saveOfflineAlumni();
 
-                // Simpan ke Firestore
+                // Simpan ke Firestore dengan proteksi limit ukuran
                 if (isCloudConnected && db) {
-                    await getDocRef('data_alumni', alumniId).set(alumni, { merge: true }).catch(err => console.warn(err));
+                    await safeCloudSaveDoc('data_alumni', alumniId, alumni, true);
                 }
 
                 window.renderAlumniTable();
@@ -6549,6 +6930,7 @@
                 console.error("Quick upload error:", err);
                 showToast("Gagal mengunggah berkas: " + err.message, "error");
             } finally {
+                if (e && e.target) e.target.value = '';
                 window.hideTransitionLoading();
             }
         };
@@ -6677,7 +7059,7 @@
                 else state.alumni.unshift(alumniData);
 
                 if (isCloudConnected && db) {
-                    await getDocRef('data_alumni', id).set(alumniData).catch(err => console.warn(err));
+                    await safeCloudSaveDoc('data_alumni', id, alumniData, true);
                 }
                 saveOfflineAlumni();
 
@@ -7178,7 +7560,15 @@
                         : currentAlumni.findIndex(item => item.nama_lengkap.toLowerCase() === a.nama_lengkap.toLowerCase());
 
                     if (existingIdx >= 0) {
-                        currentAlumni[existingIdx] = { ...currentAlumni[existingIdx], ...a };
+                        currentAlumni[existingIdx] = {
+                            ...currentAlumni[existingIdx],
+                            ...a,
+                            foto_alumni: currentAlumni[existingIdx].foto_alumni || a.foto_alumni || '',
+                            file_ijazah: currentAlumni[existingIdx].file_ijazah || a.file_ijazah || '',
+                            nama_file_ijazah: currentAlumni[existingIdx].nama_file_ijazah || a.nama_file_ijazah || '',
+                            file_transkrip: currentAlumni[existingIdx].file_transkrip || a.file_transkrip || '',
+                            nama_file_transkrip: currentAlumni[existingIdx].nama_file_transkrip || a.nama_file_transkrip || ''
+                        };
                     } else {
                         currentAlumni.push(a);
                     }
