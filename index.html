@@ -659,13 +659,6 @@
                                     <option value="Kelas 5">Kelas 5</option>
                                     <option value="Kelas 6">Kelas 6</option>
                                 </select>
-                                <select id="filter-status-siswa" onchange="window.renderStudentsTable()"
-                                    class="px-4 py-2.5 rounded-2xl border border-slate-300 text-sm bg-white font-medium text-slate-700 focus:outline-none focus:ring-2 focus:ring-opti-dark">
-                                    <option value="Aktif" selected>Status: Aktif</option>
-                                    <option value="ALL">Semua Status</option>
-                                    <option value="Mutasi Keluar">Mutasi Keluar</option>
-                                    <option value="Lulus">Lulus / Alumni</option>
-                                </select>
                             </div>
                             <div class="flex flex-wrap items-center gap-2">
                                 <button onclick="window.downloadStudentTemplate()"
@@ -3741,20 +3734,8 @@
         window.renderStudentsTable = function () {
             const q = (document.getElementById('filter-search-siswa')?.value || '').toLowerCase().trim();
             const klsFilter = document.getElementById('filter-kelas-siswa')?.value || 'ALL';
-            const statusFilter = document.getElementById('filter-status-siswa')?.value || 'Aktif';
 
             const filtered = state.students.filter(s => {
-                const status = s.status_siswa || 'Aktif';
-
-                if (statusFilter !== 'ALL') {
-                    if (!q) {
-                        if (statusFilter === 'Aktif' && status !== 'Aktif') return false;
-                        if (statusFilter !== 'Aktif' && status !== statusFilter) return false;
-                    } else {
-                        if (statusFilter !== 'Aktif' && status !== statusFilter) return false;
-                    }
-                }
-
                 const matchText = !q ||
                     (s.nama_lengkap || '').toLowerCase().includes(q) ||
                     String(s.nisn || '').includes(q) ||
