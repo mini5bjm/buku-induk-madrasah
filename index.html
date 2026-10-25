@@ -241,7 +241,7 @@
                             <div>
                                 <span class="text-xs uppercase tracking-widest text-opti-lime font-bold block">SIM Buku
                                     Induk Digital</span>
-                                <h2 class="text-white font-bold text-lg leading-tight">MIS. Nurul Islam Km. 5</h2>
+                                <h2 class="text-white font-bold text-lg leading-tight" id="login-brand-school">MIS. Nurul Islam Km. 5</h2>
                             </div>
                         </div>
 
@@ -259,7 +259,7 @@
                         </h1>
                         <p class="text-slate-300 text-sm sm:text-base leading-relaxed mb-8 max-w-xl">
                             Sistem informasi manajemen rekam jejak akademik, biodata induk siswa, mutasi, dan alumni
-                            secara akurat, aman, serta siap cetak kapan saja untuk MIS. Nurul Islam Km. 5 Banjarmasin.
+                            secara akurat, aman, serta siap cetak kapan saja untuk dokumen resmi madrasah.
                         </p>
                     </div>
 
@@ -292,7 +292,7 @@
                             </div>
                             <span id="mode-indicator-badge"
                                 class="px-3 py-1 rounded-full text-[11px] font-bold bg-lime-100 text-lime-900 border border-lime-300">
-                                Cloud Firestore Terhubung
+                                Sistem Online
                             </span>
                         </div>
 
@@ -303,8 +303,7 @@
                                 <div class="flex items-start gap-2">
                                     <i class="fa-solid fa-shield-halved text-opti-dark mt-0.5"></i>
                                     <div>
-                                        Khusus Admin / Operator <strong>MIS. Nurul Islam Km. 5</strong> untuk mengelola
-                                        data induk siswa dan cetak dokumen resmi.
+                                        Khusus Admin / Operator untuk mengelola data induk siswa, mutasi, nilai rapor, dan cetak lembar buku induk resmi.
                                     </div>
                                 </div>
                             </div>
@@ -351,8 +350,7 @@
                                     <i class="fa-solid fa-laptop-code text-slate-500"></i>
                                     <span>Masuk Mode Offline (Data Lokal Browser)</span>
                                 </button>
-                                <p class="text-[11px] text-slate-400 mt-1.5">Gunakan mode offline jika akun Firebase
-                                    belum selesai dikonfigurasi.</p>
+                                <p class="text-[11px] text-slate-400 mt-1.5">Gunakan mode offline jika perangkat sedang tidak terhubung ke jaringan internet.</p>
                             </div>
                         </form>
                     </div>
@@ -999,86 +997,148 @@
                         </div>
                     </section>
 
-                    <!-- SECTION 6: PENGATURAN MADRASAH -->
+                    <!-- SECTION 6: PENGATURAN MADRASAH & AKUN -->
                     <section id="sec-admin-pengaturan" class="app-section hidden space-y-6">
                         <div class="grid grid-cols-1 lg:grid-cols-12 gap-6">
-                            <div class="lg:col-span-5 bg-white rounded-3xl p-6 border border-slate-200/80 shadow-sm">
-                                <span
-                                    class="text-[11px] font-bold uppercase tracking-wider px-2.5 py-1 rounded-full bg-lime-100 text-lime-900">Identitas
-                                    Satuan Pendidikan</span>
-                                <h3 class="text-lg font-extrabold text-slate-900 mt-1 mb-4">Profil MIS. Nurul Islam Km.
-                                    5</h3>
+                            <!-- Card 1: Identitas Madrasah / Sekolah -->
+                            <div class="lg:col-span-6 bg-white rounded-3xl p-6 border border-slate-200/80 shadow-sm flex flex-col justify-between">
+                                <div>
+                                    <div class="flex items-center justify-between mb-4">
+                                        <div>
+                                            <span
+                                                class="text-[11px] font-bold uppercase tracking-wider px-2.5 py-1 rounded-full bg-lime-100 text-lime-900">Identitas
+                                                Lembaga</span>
+                                            <h3 class="text-lg font-extrabold text-slate-900 mt-1" id="setting-card-title">Profil & Nama Madrasah</h3>
+                                            <p class="text-xs text-slate-500">Ubah identitas madrasah untuk kop surat dan dokumen resmi</p>
+                                        </div>
+                                        <div class="w-10 h-10 rounded-2xl bg-lime-50 text-opti-dark flex items-center justify-center text-lg">
+                                            <i class="fa-solid fa-school"></i>
+                                        </div>
+                                    </div>
 
-                                <form id="form-pengaturan-madrasah" onsubmit="window.handleSaveSettings(event)"
-                                    class="space-y-3.5">
-                                    <div>
-                                        <label class="block text-xs font-bold text-slate-700 mb-1">Nama Madrasah</label>
-                                        <input type="text" id="set-nama-madrasah" required
-                                            class="w-full px-3.5 py-2.5 rounded-xl border border-slate-300 text-xs font-bold">
-                                    </div>
-                                    <div class="grid grid-cols-2 gap-3">
+                                    <form id="form-pengaturan-madrasah" onsubmit="window.handleSaveSettings(event)"
+                                        class="space-y-3.5">
                                         <div>
-                                            <label class="block text-xs font-bold text-slate-700 mb-1">NSM</label>
-                                            <input type="text" id="set-nsm" required
-                                                class="w-full px-3.5 py-2.5 rounded-xl border border-slate-300 text-xs font-mono">
+                                            <label class="block text-xs font-bold text-slate-700 mb-1">Nama Madrasah / Sekolah</label>
+                                            <input type="text" id="set-nama-madrasah" required
+                                                placeholder="MIS. Nurul Islam Km. 5"
+                                                class="w-full px-3.5 py-2.5 rounded-xl border border-slate-300 text-xs font-bold text-slate-900 focus:outline-none focus:ring-2 focus:ring-opti-dark">
+                                        </div>
+                                        <div class="grid grid-cols-2 gap-3">
+                                            <div>
+                                                <label class="block text-xs font-bold text-slate-700 mb-1">NSM</label>
+                                                <input type="text" id="set-nsm" required
+                                                    class="w-full px-3.5 py-2.5 rounded-xl border border-slate-300 text-xs font-mono focus:outline-none focus:ring-2 focus:ring-opti-dark">
+                                            </div>
+                                            <div>
+                                                <label class="block text-xs font-bold text-slate-700 mb-1">NPSN</label>
+                                                <input type="text" id="set-npsn" required
+                                                    class="w-full px-3.5 py-2.5 rounded-xl border border-slate-300 text-xs font-mono focus:outline-none focus:ring-2 focus:ring-opti-dark">
+                                            </div>
                                         </div>
                                         <div>
-                                            <label class="block text-xs font-bold text-slate-700 mb-1">NPSN</label>
-                                            <input type="text" id="set-npsn" required
-                                                class="w-full px-3.5 py-2.5 rounded-xl border border-slate-300 text-xs font-mono">
+                                            <label class="block text-xs font-bold text-slate-700 mb-1">Alamat
+                                                Lengkap</label>
+                                            <textarea id="set-alamat" rows="2" required
+                                                class="w-full px-3.5 py-2 rounded-xl border border-slate-300 text-xs focus:outline-none focus:ring-2 focus:ring-opti-dark"></textarea>
                                         </div>
-                                    </div>
-                                    <div>
-                                        <label class="block text-xs font-bold text-slate-700 mb-1">Alamat
-                                            Lengkap</label>
-                                        <textarea id="set-alamat" rows="2" required
-                                            class="w-full px-3.5 py-2 rounded-xl border border-slate-300 text-xs"></textarea>
-                                    </div>
-                                    <div class="grid grid-cols-2 gap-3">
+                                        <div class="grid grid-cols-2 gap-3">
+                                            <div>
+                                                <label class="block text-xs font-bold text-slate-700 mb-1">Kepala
+                                                    Madrasah</label>
+                                                <input type="text" id="set-kamad" required
+                                                    class="w-full px-3.5 py-2.5 rounded-xl border border-slate-300 text-xs focus:outline-none focus:ring-2 focus:ring-opti-dark">
+                                            </div>
+                                            <div>
+                                                <label class="block text-xs font-bold text-slate-700 mb-1">NIP</label>
+                                                <input type="text" id="set-nip" required
+                                                    class="w-full px-3.5 py-2.5 rounded-xl border border-slate-300 text-xs font-mono focus:outline-none focus:ring-2 focus:ring-opti-dark">
+                                            </div>
+                                        </div>
                                         <div>
-                                            <label class="block text-xs font-bold text-slate-700 mb-1">Kepala
-                                                Madrasah</label>
-                                            <input type="text" id="set-kamad" required
-                                                class="w-full px-3.5 py-2.5 rounded-xl border border-slate-300 text-xs">
+                                            <label class="block text-xs font-bold text-slate-700 mb-1">Tahun Ajaran
+                                                Aktif</label>
+                                            <input type="text" id="set-ta" required
+                                                class="w-full px-3.5 py-2.5 rounded-xl border border-slate-300 text-xs font-bold focus:outline-none focus:ring-2 focus:ring-opti-dark">
                                         </div>
-                                        <div>
-                                            <label class="block text-xs font-bold text-slate-700 mb-1">NIP</label>
-                                            <input type="text" id="set-nip" required
-                                                class="w-full px-3.5 py-2.5 rounded-xl border border-slate-300 text-xs font-mono">
-                                        </div>
-                                    </div>
-                                    <div>
-                                        <label class="block text-xs font-bold text-slate-700 mb-1">Tahun Ajaran
-                                            Aktif</label>
-                                        <input type="text" id="set-ta" required
-                                            class="w-full px-3.5 py-2.5 rounded-xl border border-slate-300 text-xs font-bold">
-                                    </div>
-                                    <button type="submit"
-                                        class="w-full py-3 rounded-full bg-opti-dark hover:bg-slate-800 text-opti-lime font-bold text-xs transition flex items-center justify-center gap-2">
-                                        <i class="fa-solid fa-check-double"></i>
-                                        <span>Simpan Pengaturan</span>
-                                    </button>
-                                </form>
+                                        <button type="submit"
+                                            class="w-full py-3 rounded-full bg-opti-dark hover:bg-slate-800 text-opti-lime font-bold text-xs transition flex items-center justify-center gap-2 shadow-md">
+                                            <i class="fa-solid fa-check-double"></i>
+                                            <span>Simpan Identitas Madrasah</span>
+                                        </button>
+                                    </form>
+                                </div>
                             </div>
 
-                            <div class="lg:col-span-7 bg-white rounded-3xl p-6 border border-slate-200/80 shadow-sm">
-                                <div class="flex items-center justify-between mb-4">
-                                    <div>
-                                        <span
-                                            class="text-[11px] font-bold uppercase tracking-wider px-2.5 py-1 rounded-full bg-indigo-100 text-indigo-900">Arsip
-                                            & Sinkronisasi</span>
-                                        <h3 class="text-lg font-extrabold text-slate-900 mt-1">Status Koneksi Cloud
-                                            Firestore</h3>
+                            <!-- Card 2: Pengaturan Akun Operator (Username & Password) -->
+                            <div class="lg:col-span-6 bg-white rounded-3xl p-6 border border-slate-200/80 shadow-sm flex flex-col justify-between">
+                                <div>
+                                    <div class="flex items-center justify-between mb-4">
+                                        <div>
+                                            <span
+                                                class="text-[11px] font-bold uppercase tracking-wider px-2.5 py-1 rounded-full bg-amber-100 text-amber-900">Keamanan
+                                                & Akses</span>
+                                            <h3 class="text-lg font-extrabold text-slate-900 mt-1">Ganti Username & Password</h3>
+                                            <p class="text-xs text-slate-500">Atur kredensial akun login untuk operator madrasah</p>
+                                        </div>
+                                        <div class="w-10 h-10 rounded-2xl bg-amber-50 text-amber-600 flex items-center justify-center text-lg">
+                                            <i class="fa-solid fa-user-shield"></i>
+                                        </div>
                                     </div>
-                                </div>
-                                <div
-                                    class="p-4 rounded-2xl bg-slate-50 border border-slate-200 text-xs text-slate-700 space-y-2">
-                                    <div class="font-bold text-slate-900">Catatan Penting Login Admin:</div>
-                                    <p>Pastikan Anda telah mendaftarkan email dan password operator di menu
-                                        <strong>Firebase Console > Authentication > Users</strong>.</p>
-                                    <p>Jika Anda belum membuat akun di Firebase Auth, silakan buat akun baru dengan
-                                        email dan password di konsol Firebase Anda agar dapat masuk ke panel operator.
-                                    </p>
+
+                                    <form id="form-pengaturan-akun" onsubmit="window.handleSaveAdminAccount(event)" class="space-y-4">
+                                        <div>
+                                            <label class="block text-xs font-bold text-slate-700 mb-1">Username Baru</label>
+                                            <div class="relative">
+                                                <i class="fa-solid fa-user absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400 text-xs"></i>
+                                                <input type="text" id="set-admin-username" required placeholder="admin"
+                                                    class="w-full pl-9 pr-3.5 py-2.5 rounded-xl border border-slate-300 text-xs font-bold text-slate-900 focus:outline-none focus:ring-2 focus:ring-opti-dark">
+                                            </div>
+                                            <p class="text-[11px] text-slate-400 mt-1">Username ini digunakan untuk masuk ke panel operator.</p>
+                                        </div>
+
+                                        <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                                            <div>
+                                                <label class="block text-xs font-bold text-slate-700 mb-1">Password Baru</label>
+                                                <div class="relative">
+                                                    <i class="fa-solid fa-key absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400 text-xs"></i>
+                                                    <input type="password" id="set-admin-new-pass" required placeholder="Minimal 6 karakter"
+                                                        class="w-full pl-9 pr-9 py-2.5 rounded-xl border border-slate-300 text-xs focus:outline-none focus:ring-2 focus:ring-opti-dark">
+                                                    <button type="button" onclick="window.toggleSettingPasswordVisibility('set-admin-new-pass', 'toggle-newpass-icon')"
+                                                        class="absolute right-2.5 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-700 p-1 cursor-pointer focus:outline-none"
+                                                        title="Lihat Password">
+                                                        <i id="toggle-newpass-icon" class="fa-solid fa-eye text-xs"></i>
+                                                    </button>
+                                                </div>
+                                            </div>
+                                            <div>
+                                                <label class="block text-xs font-bold text-slate-700 mb-1">Konfirmasi Password Baru</label>
+                                                <div class="relative">
+                                                    <i class="fa-solid fa-lock absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400 text-xs"></i>
+                                                    <input type="password" id="set-admin-confirm-pass" required placeholder="Ulangi password"
+                                                        class="w-full pl-9 pr-9 py-2.5 rounded-xl border border-slate-300 text-xs focus:outline-none focus:ring-2 focus:ring-opti-dark">
+                                                    <button type="button" onclick="window.toggleSettingPasswordVisibility('set-admin-confirm-pass', 'toggle-confpass-icon')"
+                                                        class="absolute right-2.5 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-700 p-1 cursor-pointer focus:outline-none"
+                                                        title="Lihat Password">
+                                                        <i id="toggle-confpass-icon" class="fa-solid fa-eye text-xs"></i>
+                                                    </button>
+                                                </div>
+                                            </div>
+                                        </div>
+
+                                        <div class="p-3.5 rounded-2xl bg-slate-50 border border-slate-200 text-xs text-slate-600 flex items-center gap-3">
+                                            <i class="fa-solid fa-circle-check text-emerald-600 text-sm shrink-0"></i>
+                                            <div>
+                                                Kredensial disimpan otomatis ke server database dan penyimpanan lokal perangkat Anda.
+                                            </div>
+                                        </div>
+
+                                        <button type="submit"
+                                            class="w-full py-3 rounded-full bg-slate-900 hover:bg-slate-800 text-white font-bold text-xs transition flex items-center justify-center gap-2 shadow-md">
+                                            <i class="fa-solid fa-user-check text-opti-lime"></i>
+                                            <span>Simpan Username & Password Baru</span>
+                                        </button>
+                                    </form>
                                 </div>
                             </div>
                         </div>
@@ -1371,7 +1431,9 @@
             alamat: "Jl. A. Yani Km. 5 Komp. Masjid Nurul Islam, Pemurus Dalam, Banjarmasin",
             kepala_madrasah: "H. Ahmad Fauzi, S.Pd.I",
             nip_kamad: "197804122005011004",
-            tahun_ajaran_aktif: "2026/2027"
+            tahun_ajaran_aktif: "2026/2027",
+            admin_username: "admin",
+            admin_password: ""
         };
 
         const INITIAL_STUDENTS = [
@@ -1443,7 +1505,10 @@
                 // Realtime Listeners
                 getColRef('pengaturan_madrasah').onSnapshot(snap => {
                     snap.forEach(d => {
-                        if (d.id === 'profil') state.madrasahSettings = d.data();
+                        if (d.id === 'profil') {
+                            state.madrasahSettings = { ...state.madrasahSettings, ...d.data() };
+                            try { localStorage.setItem('mis_offline_settings', JSON.stringify(state.madrasahSettings)); } catch (e) { }
+                        }
                     });
                     refreshAllUI();
                 }, err => console.warn("Firestore listener error (pengaturan):", err));
@@ -1477,8 +1542,20 @@
                 const cachedStudents = localStorage.getItem('mis_offline_students');
                 if (cachedStudents) state.students = JSON.parse(cachedStudents);
                 const cachedSettings = localStorage.getItem('mis_offline_settings');
-                if (cachedSettings) state.madrasahSettings = JSON.parse(cachedSettings);
+                if (cachedSettings) {
+                    state.madrasahSettings = { ...INITIAL_MADRASAH_SETTINGS, ...JSON.parse(cachedSettings) };
+                }
+                const cachedUsername = localStorage.getItem('mis_admin_custom_username');
+                if (cachedUsername) state.madrasahSettings.admin_username = cachedUsername;
+                const cachedPassword = localStorage.getItem('mis_admin_custom_password');
+                if (cachedPassword) state.madrasahSettings.admin_password = cachedPassword;
             } catch (e) { }
+
+            // Tampilkan nama sekolah tersimpan di login screen
+            const loginBrand = document.getElementById('login-brand-school');
+            if (loginBrand && state.madrasahSettings.nama_madrasah) {
+                loginBrand.textContent = state.madrasahSettings.nama_madrasah;
+            }
 
             try {
                 if (!firebase.apps.length) {
@@ -1487,10 +1564,10 @@
                 db = firebase.firestore();
                 auth = firebase.auth();
 
-                // Langsung aktifkan koneksi Cloud Firestore realtime (Bebas dari batasan domain)
+                // Status bersih dan ramah pengguna
                 isCloudConnected = true;
                 if (badgeEl) {
-                    badgeEl.textContent = "Cloud Firestore Terhubung";
+                    badgeEl.textContent = "Sistem Online";
                     badgeEl.className = "px-3 py-1 rounded-full text-[11px] font-bold bg-lime-100 text-lime-900 border border-lime-300";
                 }
                 await startCloudSync();
@@ -1498,14 +1575,14 @@
                 console.warn("Init note:", error);
                 isCloudConnected = true;
                 if (badgeEl) {
-                    badgeEl.textContent = "Cloud Firestore Terhubung";
+                    badgeEl.textContent = "Sistem Online";
                     badgeEl.className = "px-3 py-1 rounded-full text-[11px] font-bold bg-lime-100 text-lime-900 border border-lime-300";
                 }
                 refreshAllUI();
             }
         }
 
-        // TOGGLE SHOW / HIDE PASSWORD
+        // TOGGLE SHOW / HIDE PASSWORD (LOGIN SCREEN)
         window.togglePasswordVisibility = function () {
             const passInput = document.getElementById('login-admin-pass');
             const icon = document.getElementById('toggle-pass-icon');
@@ -1521,7 +1598,7 @@
             }
         };
 
-        // LOGIN ADMIN (BEBAS DARI BATASAN DOMAIN VERCEL)
+        // LOGIN ADMIN (BEBAS DARI BATASAN DOMAIN VERCEL & FLEKSIBEL KREDENSIAL)
         window.handleAdminLogin = async function (e) {
             e.preventDefault();
             const userInput = document.getElementById('login-admin-email').value.trim();
@@ -1534,59 +1611,66 @@
                 return;
             }
 
-            // Otomatis ubah username ke email jika user hanya mengetik 'admin' atau nama pengguna
-            let email = userInput;
-            if (!email.includes('@')) {
-                email = `${email.toLowerCase()}@mini5bjm.sch.id`;
-            }
-
             if (btnSubmit) {
                 btnSubmit.disabled = true;
                 btnSubmit.innerHTML = '<span>Memverifikasi Akun...</span> <i class="fa-solid fa-spinner fa-spin ml-2"></i>';
             }
 
+            // Kredensial aktif dari pengaturan aplikasi
+            const customUser = state.madrasahSettings.admin_username || localStorage.getItem('mis_admin_custom_username') || 'admin';
+            const customPass = state.madrasahSettings.admin_password || localStorage.getItem('mis_admin_custom_password');
+
             let loginSuccess = false;
 
-            // 1. Coba verifikasi via Firebase Identity REST API (Bebas dari batasan Authorized Domains Vercel)
-            try {
-                const resp = await fetch(`https://identitytoolkit.googleapis.com/v1/accounts:signInWithPassword?key=${firebaseConfig.apiKey}`, {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ email: email, password: password, returnSecureToken: true })
-                });
-                const data = await resp.json();
-                if (data.idToken) {
+            // 1. Cek langsung dengan kredensial kustom yang telah diatur di menu Pengaturan
+            if (customPass) {
+                if (userInput.toLowerCase() === customUser.toLowerCase() && password === customPass) {
                     loginSuccess = true;
-                } else if (data.error) {
-                    const errCode = data.error.message;
-                    if (errCode === 'INVALID_LOGIN_CREDENTIALS' || errCode === 'EMAIL_NOT_FOUND' || errCode === 'INVALID_PASSWORD') {
-                        showToast("Password atau Username salah! Periksa kembali akun Anda.", "error");
-                        if (btnSubmit) { btnSubmit.disabled = false; btnSubmit.innerHTML = origBtnText; }
-                        return;
-                    }
                 }
-            } catch (netErr) {
-                console.warn("REST login note:", netErr);
             }
 
-            // 2. Coba via SDK jika REST tidak tembus
+            // 2. Jika belum cocok, coba verifikasi via Firebase Identity REST API (Bebas dari batasan domain)
+            if (!loginSuccess) {
+                let email = userInput;
+                if (!email.includes('@')) {
+                    email = `${email.toLowerCase()}@mini5bjm.sch.id`;
+                }
+
+                try {
+                    const resp = await fetch(`https://identitytoolkit.googleapis.com/v1/accounts:signInWithPassword?key=${firebaseConfig.apiKey}`, {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({ email: email, password: password, returnSecureToken: true })
+                    });
+                    const data = await resp.json();
+                    if (data && data.idToken) {
+                        loginSuccess = true;
+                    }
+                } catch (netErr) {
+                    console.warn("REST login note:", netErr);
+                }
+            }
+
+            // 3. Coba via Firebase SDK
             if (!loginSuccess && auth) {
                 try {
+                    let email = userInput.includes('@') ? userInput : `${userInput.toLowerCase()}@mini5bjm.sch.id`;
                     await auth.signInWithEmailAndPassword(email, password);
                     loginSuccess = true;
                 } catch (sdkErr) {
-                    if (sdkErr.code === 'auth/unauthorized-domain' && (email.toLowerCase().includes('admin') || email.toLowerCase().includes('mini5bjm'))) {
+                    if (sdkErr.code === 'auth/unauthorized-domain' && (userInput.toLowerCase() === customUser.toLowerCase() || userInput.toLowerCase().includes('admin'))) {
                         loginSuccess = true;
                     }
                 }
             }
 
-            // 3. Fallback jika offline atau akun admin
+            // 4. Fallback jika offline atau username admin default
             if (!loginSuccess) {
-                if (email.toLowerCase().includes('admin') || email.toLowerCase().includes('mini5bjm')) {
+                if (!customPass && (userInput.toLowerCase() === 'admin' || userInput.toLowerCase().includes('admin'))) {
+                    // Password belum pernah diset secara kustom, izinkan default
                     loginSuccess = true;
                 } else {
-                    showToast("Username atau password tidak sesuai.", "error");
+                    showToast("Username atau Password tidak sesuai. Silakan periksa kembali.", "error");
                     if (btnSubmit) { btnSubmit.disabled = false; btnSubmit.innerHTML = origBtnText; }
                     return;
                 }
@@ -1598,11 +1682,11 @@
             }
 
             isCloudConnected = true;
-            state.currentUser = { role: 'admin', name: "Operator Madrasah", email: email };
+            state.currentUser = { role: 'admin', name: `Operator (${customUser})`, email: userInput };
             document.getElementById('login-screen').classList.add('hidden');
             document.getElementById('app-shell').classList.remove('hidden');
             window.navigateMenu('admin-dashboard');
-            showToast("Berhasil masuk ke Panel Operator Madrasah!", "success");
+            showToast("Berhasil masuk ke Panel Operator!", "success");
             await startCloudSync();
         };
 
@@ -1683,9 +1767,18 @@
 
         function refreshAllUI() {
             const s = state.madrasahSettings;
-            document.getElementById('sidebar-madrasah-name').textContent = s.nama_madrasah;
-            document.getElementById('sidebar-ta-badge').textContent = s.tahun_ajaran_aktif;
-            document.getElementById('dash-banner-nsm').textContent = `NSM: ${s.nsm} • NPSN: ${s.npsn} • T.A. ${s.tahun_ajaran_aktif}`;
+            if (s.nama_madrasah) {
+                document.title = `SIM Buku Induk Siswa - ${s.nama_madrasah}`;
+                const loginBrand = document.getElementById('login-brand-school');
+                if (loginBrand) loginBrand.textContent = s.nama_madrasah;
+                const sidebarName = document.getElementById('sidebar-madrasah-name');
+                if (sidebarName) sidebarName.textContent = s.nama_madrasah;
+                const cardTitle = document.getElementById('setting-card-title');
+                if (cardTitle) cardTitle.textContent = `Profil ${s.nama_madrasah}`;
+            }
+
+            document.getElementById('sidebar-ta-badge').textContent = s.tahun_ajaran_aktif || '2026/2027';
+            document.getElementById('dash-banner-nsm').textContent = `NSM: ${s.nsm || '-'} • NPSN: ${s.npsn || '-'} • T.A. ${s.tahun_ajaran_aktif || '-'}`;
 
             document.getElementById('set-nama-madrasah').value = s.nama_madrasah || '';
             document.getElementById('set-nsm').value = s.nsm || '';
@@ -1694,6 +1787,11 @@
             document.getElementById('set-kamad').value = s.kepala_madrasah || '';
             document.getElementById('set-nip').value = s.nip_kamad || '';
             document.getElementById('set-ta').value = s.tahun_ajaran_aktif || '';
+
+            const usernameField = document.getElementById('set-admin-username');
+            if (usernameField) {
+                usernameField.value = s.admin_username || localStorage.getItem('mis_admin_custom_username') || 'admin';
+            }
 
             renderAdminDashboard();
             window.renderStudentsTable();
@@ -2196,6 +2294,7 @@
         window.handleSaveSettings = async function (e) {
             e.preventDefault();
             const updated = {
+                ...state.madrasahSettings,
                 nama_madrasah: document.getElementById('set-nama-madrasah').value.trim(),
                 nsm: document.getElementById('set-nsm').value.trim(),
                 npsn: document.getElementById('set-npsn').value.trim(),
@@ -2206,12 +2305,80 @@
             };
             state.madrasahSettings = updated;
             if (isCloudConnected && db) {
-                await getDocRef('pengaturan_madrasah', 'profil').set(updated);
-            } else {
-                try { localStorage.setItem('mis_offline_settings', JSON.stringify(updated)); } catch (e) { }
+                try {
+                    await getDocRef('pengaturan_madrasah', 'profil').set(updated, { merge: true });
+                } catch (err) {
+                    console.warn("Firestore save settings error:", err);
+                }
             }
+            try { localStorage.setItem('mis_offline_settings', JSON.stringify(updated)); } catch (e) { }
             refreshAllUI();
-            showToast("Pengaturan madrasah disimpan!", "success");
+            showToast("Nama sekolahan dan identitas madrasah berhasil disimpan!", "success");
+        };
+
+        // LIHAT / SEMBUNYIKAN PASSWORD PADA PENGATURAN AKUN
+        window.toggleSettingPasswordVisibility = function (inputId, iconId) {
+            const passInput = document.getElementById(inputId);
+            const icon = document.getElementById(iconId);
+            if (!passInput || !icon) return;
+            if (passInput.type === 'password') {
+                passInput.type = 'text';
+                icon.classList.remove('fa-eye');
+                icon.classList.add('fa-eye-slash');
+            } else {
+                passInput.type = 'password';
+                icon.classList.remove('fa-eye-slash');
+                icon.classList.add('fa-eye');
+            }
+        };
+
+        // SIMPAN PENGATURAN USERNAME & PASSWORD ADMIN
+        window.handleSaveAdminAccount = async function (e) {
+            e.preventDefault();
+            const newUsername = document.getElementById('set-admin-username').value.trim();
+            const newPass = document.getElementById('set-admin-new-pass').value.trim();
+            const confirmPass = document.getElementById('set-admin-confirm-pass').value.trim();
+
+            if (!newUsername) {
+                showToast("Username operator tidak boleh kosong.", "error");
+                return;
+            }
+            if (newPass.length < 6) {
+                showToast("Password minimal 6 karakter demi keamanan akun.", "error");
+                return;
+            }
+            if (newPass !== confirmPass) {
+                showToast("Konfirmasi password baru tidak cocok! Periksa kembali.", "error");
+                return;
+            }
+
+            state.madrasahSettings.admin_username = newUsername;
+            state.madrasahSettings.admin_password = newPass;
+
+            try {
+                localStorage.setItem('mis_admin_custom_username', newUsername);
+                localStorage.setItem('mis_admin_custom_password', newPass);
+                localStorage.setItem('mis_offline_settings', JSON.stringify(state.madrasahSettings));
+            } catch (err) {
+                console.warn("Local storage error:", err);
+            }
+
+            if (isCloudConnected && db) {
+                try {
+                    await getDocRef('pengaturan_madrasah', 'profil').set({
+                        admin_username: newUsername,
+                        admin_password: newPass
+                    }, { merge: true });
+                } catch (fsErr) {
+                    console.warn("Firestore save account note:", fsErr);
+                }
+            }
+
+            // Bersihkan input password setelah berhasil disimpan
+            document.getElementById('set-admin-new-pass').value = '';
+            document.getElementById('set-admin-confirm-pass').value = '';
+
+            showToast("Username dan Password operator berhasil diperbarui!", "success");
         };
 
         function showToast(message, type = "info") {
