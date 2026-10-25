@@ -269,17 +269,20 @@
                             </div>
                         </div>
                         <div>
-                            <label class="block text-xs font-bold uppercase tracking-wider text-slate-600 mb-1.5">Email Admin / Operator</label>
+                            <label class="block text-xs font-bold uppercase tracking-wider text-slate-600 mb-1.5">Username / Email Admin</label>
                             <div class="relative">
-                                <i class="fa-solid fa-envelope absolute left-4 top-1/2 -translate-y-1/2 text-slate-400"></i>
-                                <input type="email" id="login-admin-email" required placeholder="admin@mini5bjm.sch.id" value="admin@mini5bjm.sch.id" class="w-full pl-11 pr-4 py-3 rounded-xl border border-slate-300 text-sm focus:outline-none focus:ring-2 focus:ring-opti-dark font-medium text-slate-800">
+                                <i class="fa-solid fa-user absolute left-4 top-1/2 -translate-y-1/2 text-slate-400"></i>
+                                <input type="text" id="login-admin-email" required placeholder="Masukkan username (contoh: admin)" autocomplete="username" class="w-full pl-11 pr-4 py-3 rounded-xl border border-slate-300 text-sm focus:outline-none focus:ring-2 focus:ring-opti-dark font-medium text-slate-800">
                             </div>
                         </div>
                         <div>
                             <label class="block text-xs font-bold uppercase tracking-wider text-slate-600 mb-1.5">Password</label>
                             <div class="relative">
                                 <i class="fa-solid fa-key absolute left-4 top-1/2 -translate-y-1/2 text-slate-400"></i>
-                                <input type="password" id="login-admin-pass" required placeholder="••••••••" class="w-full pl-11 pr-4 py-3 rounded-xl border border-slate-300 text-sm focus:outline-none focus:ring-2 focus:ring-opti-dark">
+                                <input type="password" id="login-admin-pass" required placeholder="••••••••" autocomplete="current-password" class="w-full pl-11 pr-11 py-3 rounded-xl border border-slate-300 text-sm focus:outline-none focus:ring-2 focus:ring-opti-dark">
+                                <button type="button" onclick="window.togglePasswordVisibility()" class="absolute right-3.5 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-700 p-1.5 focus:outline-none transition cursor-pointer" title="Lihat/Sembunyikan Password">
+                                    <i id="toggle-pass-icon" class="fa-solid fa-eye text-sm"></i>
+                                </button>
                             </div>
                         </div>
                         <button type="submit" id="btn-submit-admin" class="w-full py-3.5 px-6 rounded-full bg-opti-dark hover:bg-slate-800 text-opti-lime font-extrabold text-sm transition shadow-lg flex items-center justify-center gap-2 mt-2">
@@ -1261,17 +1264,39 @@
         }
     }
 
+    // TOGGLE SHOW / HIDE PASSWORD
+    window.togglePasswordVisibility = function() {
+        const passInput = document.getElementById('login-admin-pass');
+        const icon = document.getElementById('toggle-pass-icon');
+        if (!passInput || !icon) return;
+        if (passInput.type === 'password') {
+            passInput.type = 'text';
+            icon.classList.remove('fa-eye');
+            icon.classList.add('fa-eye-slash');
+        } else {
+            passInput.type = 'password';
+            icon.classList.remove('fa-eye-slash');
+            icon.classList.add('fa-eye');
+        }
+    };
+
     // LOGIN ADMIN (BEBAS DARI BATASAN DOMAIN VERCEL)
     window.handleAdminLogin = async function(e) {
         e.preventDefault();
-        const email = document.getElementById('login-admin-email').value.trim();
+        const userInput = document.getElementById('login-admin-email').value.trim();
         const password = document.getElementById('login-admin-pass').value.trim();
         const btnSubmit = document.getElementById('btn-submit-admin');
         const origBtnText = btnSubmit ? btnSubmit.innerHTML : '';
 
-        if (!email || !password) {
-            showToast("Harap masukkan email dan password operator.", "error");
+        if (!userInput || !password) {
+            showToast("Harap masukkan username dan password operator.", "error");
             return;
+        }
+
+        // Otomatis ubah username ke email jika user hanya mengetik 'admin' atau nama pengguna
+        let email = userInput;
+        if (!email.includes('@')) {
+            email = `${email.toLowerCase()}@mini5bjm.sch.id`;
         }
 
         if (btnSubmit) {
@@ -1294,7 +1319,7 @@
             } else if (data.error) {
                 const errCode = data.error.message;
                 if (errCode === 'INVALID_LOGIN_CREDENTIALS' || errCode === 'EMAIL_NOT_FOUND' || errCode === 'INVALID_PASSWORD') {
-                    showToast("Password atau Email salah! Periksa kembali password akun admin Anda.", "error");
+                    showToast("Password atau Username salah! Periksa kembali akun Anda.", "error");
                     if (btnSubmit) { btnSubmit.disabled = false; btnSubmit.innerHTML = origBtnText; }
                     return;
                 }
@@ -1320,7 +1345,7 @@
             if (email.toLowerCase().includes('admin') || email.toLowerCase().includes('mini5bjm')) {
                 loginSuccess = true;
             } else {
-                showToast("Email atau password tidak sesuai.", "error");
+                showToast("Username atau password tidak sesuai.", "error");
                 if (btnSubmit) { btnSubmit.disabled = false; btnSubmit.innerHTML = origBtnText; }
                 return;
             }
