@@ -1154,7 +1154,7 @@
                                         <label class="block text-xs font-bold text-slate-700 mb-1">No. Surat
                                             Keterangan</label>
                                         <input type="text" id="mutasi-nosurat" required
-                                            placeholder="MINI.XX/BS-K/XX/2026"
+                                            placeholder="045/MIS-NI/KM5/X/2026"
                                             class="w-full px-3.5 py-2.5 rounded-xl border border-slate-300 text-xs font-mono">
                                     </div>
                                     <div>
@@ -1166,7 +1166,7 @@
                                     <div>
                                         <label class="block text-xs font-bold text-slate-700 mb-1">Alasan</label>
                                         <textarea id="mutasi-alasan" rows="2" required
-                                            placeholder="Ikut orang tua."
+                                            placeholder="Pindah tugas orang tua."
                                             class="w-full px-3.5 py-2 rounded-xl border border-slate-300 text-xs"></textarea>
                                     </div>
                                     <button type="submit" id="btn-save-mutasi"
@@ -1478,6 +1478,71 @@
                                     </form>
                                 </div>
                             </div>
+
+                            <!-- Card 3: Cadangan & Pemulihan Database (Backup & Restore) -->
+                            <div class="lg:col-span-12 bg-white rounded-3xl p-6 border border-slate-200/80 shadow-sm">
+                                <div class="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 mb-4">
+                                    <div>
+                                        <span class="text-[11px] font-bold uppercase tracking-wider px-2.5 py-1 rounded-full bg-emerald-100 text-emerald-900">Keamanan Data</span>
+                                        <h3 class="text-lg font-extrabold text-slate-900 mt-1">Cadangan & Pemulihan Database (Backup & Restore)</h3>
+                                        <p class="text-xs text-slate-500">Amankan seluruh data buku induk siswa, guru, nilai, dan pengaturan ke dalam file cadangan agar data tidak pernah hilang saat file HTML di-update atau berpindah perangkat.</p>
+                                    </div>
+                                    <div class="w-10 h-10 rounded-2xl bg-emerald-50 text-emerald-700 flex items-center justify-center text-lg shrink-0">
+                                        <i class="fa-solid fa-database"></i>
+                                    </div>
+                                </div>
+
+                                <div class="grid grid-cols-1 md:grid-cols-3 gap-4 pt-2">
+                                    <!-- Tombol 1: Unduh Backup -->
+                                    <div class="p-4 rounded-2xl bg-slate-50 border border-slate-200 flex flex-col justify-between">
+                                        <div>
+                                            <div class="font-bold text-xs text-slate-800 flex items-center gap-2 mb-1">
+                                                <i class="fa-solid fa-download text-emerald-600"></i>
+                                                <span>1. Unduh Cadangan Data</span>
+                                            </div>
+                                            <p class="text-[11px] text-slate-500 mb-3">Simpan file cadangan (.json) ke komputer Anda sebelum mengganti file HTML atau berpindah laptop.</p>
+                                        </div>
+                                        <button type="button" onclick="window.exportDatabaseBackup()"
+                                            class="w-full py-2.5 px-4 rounded-xl bg-opti-dark text-opti-lime hover:bg-slate-800 font-bold text-xs transition flex items-center justify-center gap-2 shadow-sm">
+                                            <i class="fa-solid fa-file-arrow-down"></i>
+                                            <span>Unduh File Cadangan (.json)</span>
+                                        </button>
+                                    </div>
+
+                                    <!-- Tombol 2: Pulihkan Data -->
+                                    <div class="p-4 rounded-2xl bg-slate-50 border border-slate-200 flex flex-col justify-between">
+                                        <div>
+                                            <div class="font-bold text-xs text-slate-800 flex items-center gap-2 mb-1">
+                                                <i class="fa-solid fa-upload text-blue-600"></i>
+                                                <span>2. Pulihkan Data (Restore)</span>
+                                            </div>
+                                            <p class="text-[11px] text-slate-500 mb-3">Pilih file cadangan (.json) yang sudah diunduh sebelumnya untuk mengembalikan seluruh data dalam 1 detik.</p>
+                                        </div>
+                                        <input type="file" id="backup-file-input" accept=".json" class="hidden" onchange="window.restoreDatabaseBackup(event)">
+                                        <button type="button" onclick="document.getElementById('backup-file-input').click()"
+                                            class="w-full py-2.5 px-4 rounded-xl bg-blue-600 hover:bg-blue-700 text-white font-bold text-xs transition flex items-center justify-center gap-2 shadow-sm">
+                                            <i class="fa-solid fa-file-import"></i>
+                                            <span>Pilih File Pemulihan (.json)</span>
+                                        </button>
+                                    </div>
+
+                                    <!-- Tombol 3: Bersihkan Data Dummy -->
+                                    <div class="p-4 rounded-2xl bg-amber-50/60 border border-amber-200 flex flex-col justify-between">
+                                        <div>
+                                            <div class="font-bold text-xs text-amber-900 flex items-center gap-2 mb-1">
+                                                <i class="fa-solid fa-broom text-amber-600"></i>
+                                                <span>3. Bersihkan Data Dummy</span>
+                                            </div>
+                                            <p class="text-[11px] text-slate-500 mb-3">Hapus sisa data siswa contoh bawaan dari sistem sehingga daftar buku induk menjadi bersih 100%.</p>
+                                        </div>
+                                        <button type="button" onclick="window.clearAllDummyData()"
+                                            class="w-full py-2.5 px-4 rounded-xl bg-amber-600 hover:bg-amber-700 text-white font-bold text-xs transition flex items-center justify-center gap-2 shadow-sm">
+                                            <i class="fa-solid fa-trash-can"></i>
+                                            <span>Hapus Data Siswa Dummy</span>
+                                        </button>
+                                    </div>
+                                </div>
+                            </div>
                         </div>
                     </section>
 
@@ -1589,12 +1654,12 @@
                         </div>
                         <div>
                             <label class="block text-xs font-bold text-slate-700 mb-1">Anak Ke-</label>
-                            <input type="text" id="f-anak-ke" placeholder="Isi dengan angka"
+                            <input type="text" id="f-anak-ke" placeholder="Di isi dengan angka"
                                 class="w-full px-3.5 py-2.5 rounded-xl border border-slate-300 text-xs">
                         </div>
                         <div>
                             <label class="block text-xs font-bold text-slate-700 mb-1">Jumlah Saudara</label>
-                            <input type="text" id="f-jml-saudara" placeholder="Isi dengan angka"
+                            <input type="text" id="f-jml-saudara" placeholder="Di isi dengan angka"
                                 class="w-full px-3.5 py-2.5 rounded-xl border border-slate-300 text-xs">
                         </div>
                         <div>
@@ -1817,6 +1882,14 @@
                                 </tbody>
                             </table>
                         </div>
+                    </div>
+
+                    <!-- Pilihan Ganti Data Lama -->
+                    <div class="p-3.5 rounded-2xl bg-amber-50/70 border border-amber-200 text-xs text-amber-900 flex items-center gap-3">
+                        <input type="checkbox" id="import-replace-dummy" checked class="w-4 h-4 rounded text-opti-dark accent-opti-dark cursor-pointer shrink-0">
+                        <label for="import-replace-dummy" class="cursor-pointer font-semibold leading-relaxed">
+                            Bersihkan data dummy lama & ganti sepenuhnya dengan data siswa dari file ini
+                        </label>
                     </div>
                 </div>
 
@@ -2241,43 +2314,8 @@
             admin_password: ""
         };
 
-        const INITIAL_STUDENTS = [
-            {
-                id: "SISWA-0134567801",
-                nisn: "0134567801",
-                role: "siswa",
-                nis_lokal: "1112637100182101",
-                nik: "6371041205150001",
-                nama_lengkap: "Muhammad Hafidz Al-Banjari",
-                jk: "L",
-                tempat_lahir: "Banjarmasin",
-                tgl_lahir: "2015-05-12",
-                agama: "Islam",
-                anak_ke: "",
-                jml_saudara: "",
-                alamat: "Jl. A. Yani Km. 5 Gang Purnama RT. 14",
-                kelas_aktif: "Kelas 5",
-                status_siswa: "Aktif",
-                orang_tua: {
-                    nama_ayah: "H. Syamsul Arifin",
-                    pekerjaan_ayah: "Wiraswasta",
-                    nama_ibu: "Hj. Siti Rahmah",
-                    pekerjaan_ibu: "Ibu Rumah Tangga",
-                    no_hp_ortu: "081251234501",
-                    penghasilan_ortu: "Rp 2.500.000 - Rp 5.000.000"
-                },
-                pendidikan: {
-                    jenis_masuk: "Siswa Baru (TK/RA)",
-                    asal_tk_ra: "RA Nurul Islam Km. 5",
-                    asal_sekolah_pindahan: "-",
-                    surat_pindah: "-",
-                    tgl_masuk: "2021-07-12",
-                    diterima_kelas: "Kelas 1",
-                    tahun_lulus: "",
-                    no_ijazah: ""
-                }
-            }
-        ];
+        // Data awal siswa kosong (Data resmi diisi melalui Impor Excel atau Tambah Siswa)
+        const INITIAL_STUDENTS = [];
 
         const INITIAL_TEACHERS = [
             { id: "GURU-001", nip: "197804122005011004", nama_lengkap: "H. Ahmad Fauzi, S.Pd.I", jk: "L", jabatan: "Kepala Madrasah", mapel: "Pendidikan Agama Islam", no_hp: "081250123456", status: "Aktif" },
@@ -3782,6 +3820,120 @@
         };
 
         // ==========================================
+        // FITUR CADANGAN & PEMULIHAN DATABASE (BACKUP & RESTORE)
+        // ==========================================
+        window.exportDatabaseBackup = function () {
+            const backupObj = {
+                version: "1.0",
+                appName: "Buku Induk Siswa Digital",
+                madrasah: state.madrasahSettings.nama_madrasah,
+                exportDate: new Date().toISOString(),
+                madrasahSettings: state.madrasahSettings,
+                students: state.students,
+                teachers: state.teachers,
+                alumni: state.alumni,
+                academics: state.academics,
+                mutations: state.mutations
+            };
+            const jsonStr = JSON.stringify(backupObj, null, 2);
+            const blob = new Blob([jsonStr], { type: 'application/json' });
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            const d = new Date();
+            const dateStr = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
+            a.href = url;
+            a.download = `cadangan_buku_induk_${state.madrasahSettings.nsm || 'mis'}_${dateStr}.json`;
+            document.body.appendChild(a);
+            a.click();
+            document.body.removeChild(a);
+            URL.revokeObjectURL(url);
+            showToast("File cadangan database (.json) berhasil diunduh!", "success");
+        };
+
+        window.restoreDatabaseBackup = function (e) {
+            const file = e.target.files?.[0];
+            if (!file) return;
+            const reader = new FileReader();
+            reader.onload = function (evt) {
+                try {
+                    const data = JSON.parse(evt.target.result);
+                    if (!data || (!data.students && !data.madrasahSettings)) {
+                        showToast("Format file cadangan tidak valid.", "error");
+                        return;
+                    }
+                    showConfirmModal(
+                        "Pulihkan Database?",
+                        `File cadangan berisi ${data.students?.length || 0} Siswa, ${data.teachers?.length || 0} Guru. Apakah Anda yakin ingin memulihkan seluruh data ini ke dalam sistem?`,
+                        () => {
+                            window.showTransitionLoading("Memulihkan Database...", "Mengembalikan seluruh data siswa, guru & pengaturan");
+                            setTimeout(() => {
+                                if (Array.isArray(data.students)) {
+                                    state.students = data.students.map(normalizeStudentData);
+                                    localStorage.setItem('mis_offline_students', JSON.stringify(state.students));
+                                }
+                                if (Array.isArray(data.teachers)) {
+                                    state.teachers = data.teachers;
+                                    localStorage.setItem('mis_offline_teachers', JSON.stringify(state.teachers));
+                                }
+                                if (Array.isArray(data.alumni)) {
+                                    state.alumni = data.alumni;
+                                    localStorage.setItem('mis_offline_alumni', JSON.stringify(state.alumni));
+                                }
+                                if (Array.isArray(data.academics)) {
+                                    state.academics = data.academics;
+                                    localStorage.setItem('mis_offline_academics', JSON.stringify(state.academics));
+                                }
+                                if (Array.isArray(data.mutations)) {
+                                    state.mutations = data.mutations;
+                                    localStorage.setItem('mis_offline_mutations', JSON.stringify(state.mutations));
+                                }
+                                if (data.madrasahSettings) {
+                                    state.madrasahSettings = { ...state.madrasahSettings, ...data.madrasahSettings };
+                                    localStorage.setItem('mis_offline_settings', JSON.stringify(state.madrasahSettings));
+                                }
+                                refreshAllUI();
+                                window.hideTransitionLoading();
+                                showToast("Seluruh database berhasil dipulihkan secara utuh!", "success");
+                            }, 500);
+                        }
+                    );
+                } catch (err) {
+                    console.error("Restore error:", err);
+                    showToast("Gagal membaca file cadangan: " + err.message, "error");
+                }
+            };
+            reader.readAsText(file);
+            e.target.value = '';
+        };
+
+        window.clearAllDummyData = function () {
+            const dummyNames = ["Ahmad Rizky Pratama", "Siti Nurhaliza", "Muhammad Fikri", "Aisyah Humaira", "Zainal Abidin", "Fatimah Azzahra", "Muhammad Hafidz Al-Banjari"];
+            const dummyIds = ["SISWA-0134567801", "SISWA-0134567802", "SISWA-0134567803", "SISWA-0134567804", "SISWA-0134567805", "SISWA-0134567806"];
+
+            showConfirmModal(
+                "Bersihkan Seluruh Data Siswa Dummy?",
+                "Semua data siswa contoh bawaan akan dihapus permanen. Data siswa resmi yang Anda input/impor sendiri tidak akan terhapus.",
+                () => {
+                    const beforeCount = state.students.length;
+                    state.students = state.students.filter(s => {
+                        const isDummy = dummyIds.includes(s.id) || dummyNames.some(dn => (s.nama_lengkap || '').toLowerCase().includes(dn.toLowerCase()));
+                        if (isDummy) {
+                            window.trackDeletedStudentId(s.id);
+                            return false;
+                        }
+                        return true;
+                    });
+                    const removedCount = beforeCount - state.students.length;
+                    try {
+                        localStorage.setItem('mis_offline_students', JSON.stringify(state.students));
+                    } catch (e) { }
+                    refreshAllUI();
+                    showToast(`Selesai! ${removedCount} data siswa dummy berhasil dibersihkan.`, "success");
+                }
+            );
+        };
+
+        // ==========================================
         // FITUR 1: UNDUH TEMPLATE & IMPOR DATA SISWA (EXCEL .XLSX & CSV)
         // ==========================================
         window.downloadStudentTemplate = function () {
@@ -4322,7 +4474,8 @@
 
             await withButtonFeedback(btn, async () => {
                 let countAdded = 0;
-                const currentStudents = [...state.students];
+                const shouldReplaceOld = document.getElementById('import-replace-dummy')?.checked;
+                const currentStudents = shouldReplaceOld ? [] : [...state.students];
 
                 for (let i = 0; i < parsedCsvStudents.length; i++) {
                     const s = sanitizeStudent(parsedCsvStudents[i], i);
