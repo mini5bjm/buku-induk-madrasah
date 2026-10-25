@@ -4643,13 +4643,33 @@
 
             // Cari baris header tabel (cek hingga baris ke-25 untuk mengantisipasi judul/kop di atas tabel)
             let headerIdx = -1;
+            let bestScore = 0;
             for (let r = 0; r < Math.min(rows.length, 25); r++) {
-                const rowStr = (rows[r] || []).map(c => String(c).toLowerCase()).join(' ');
-                const hasNama = rowStr.includes('nama') || rowStr.includes('peserta') || rowStr.includes('siswa') || rowStr.includes('murid');
-                const hasOther = rowStr.includes('nisn') || rowStr.includes('nik') || rowStr.includes('jk') || rowStr.includes('kelas') || rowStr.includes('ttl') || rowStr.includes('lahir') || rowStr.includes('no');
-                if (hasNama && hasOther) {
+                const cols = rows[r] || [];
+                const nonEmptyCols = cols.filter(c => String(c || '').trim().length > 0);
+                if (nonEmptyCols.length < 3) continue;
+
+                const firstCell = String(cols[0] || '').toLowerCase().trim();
+                if (firstCell.startsWith('petunjuk') || firstCell.startsWith('catatan') || firstCell.startsWith('template') || firstCell.startsWith('keterangan') || firstCell.startsWith('instruksi')) continue;
+
+                let score = 0;
+                for (const cell of cols) {
+                    const c = String(cell || '').toLowerCase().replace(/[^a-z0-9]/g, '');
+                    if (!c) continue;
+                    if (c === 'no' || c === 'nomor' || c === 'nourut') score += 2;
+                    else if ((c.includes('nama') && !c.includes('ayah') && !c.includes('ibu') && !c.includes('wali')) || c.includes('namasiswa') || c.includes('pesertadidik')) score += 3;
+                    else if (c.includes('nisn')) score += 3;
+                    else if (c.includes('nik')) score += 2;
+                    else if (c.includes('nislokal') || (c.includes('nis') && !c.includes('nisn'))) score += 2;
+                    else if (c === 'jk' || c.includes('jeniskelamin') || c === 'lp' || c.includes('gender')) score += 3;
+                    else if (c.includes('kelas') || c.includes('rombel')) score += 2;
+                    else if (c.includes('tempatlahir') || c.includes('tanggallahir') || c.includes('ttl')) score += 2;
+                    else if (c.includes('ayah') || c.includes('ibu') || c.includes('ortu')) score += 2;
+                }
+
+                if (score > bestScore && score >= 5) {
+                    bestScore = score;
                     headerIdx = r;
-                    break;
                 }
             }
 
@@ -5340,6 +5360,21 @@
             for (const sheetName of workbook.SheetNames) {
                 const ws = workbook.Sheets[sheetName];
                 if (!ws) continue;
+
+                // Perbaiki rentang !ref agar SheetJS membaca seluruh baris yang ada tanpa terpotong
+                const keys = Object.keys(ws).filter(k => k && !k.startsWith('!'));
+                if (keys.length === 0) continue;
+
+                let maxR = 0, maxC = 0;
+                for (const k of keys) {
+                    try {
+                        const dec = XLSX.utils.decode_cell(k);
+                        if (dec.r > maxR) maxR = dec.r;
+                        if (dec.c > maxC) maxC = dec.c;
+                    } catch (e) { }
+                }
+                ws['!ref'] = XLSX.utils.encode_range({ s: { r: 0, c: 0 }, e: { r: maxR, c: maxC } });
+
                 const rows = XLSX.utils.sheet_to_json(ws, { header: 1, defval: '' });
                 if (rows && rows.length > 0) {
                     extractTeachersFromRows(rows);
@@ -5352,13 +5387,31 @@
             if (!rows || rows.length === 0) return;
 
             let headerIdx = -1;
+            let bestScore = 0;
             for (let r = 0; r < Math.min(rows.length, 25); r++) {
-                const rowStr = (rows[r] || []).map(c => String(c).toLowerCase()).join(' ');
-                const hasNama = rowStr.includes('nama') || rowStr.includes('guru') || rowStr.includes('pendidik') || rowStr.includes('pegawai');
-                const hasOther = rowStr.includes('nip') || rowStr.includes('pegid') || rowStr.includes('jabatan') || rowStr.includes('mapel') || rowStr.includes('pelajaran') || rowStr.includes('hp');
-                if (hasNama && hasOther) {
+                const cols = rows[r] || [];
+                const nonEmptyCols = cols.filter(c => String(c || '').trim().length > 0);
+                if (nonEmptyCols.length < 3) continue;
+
+                const firstCell = String(cols[0] || '').toLowerCase().trim();
+                if (firstCell.startsWith('petunjuk') || firstCell.startsWith('catatan') || firstCell.startsWith('template') || firstCell.startsWith('keterangan') || firstCell.startsWith('instruksi')) continue;
+
+                let score = 0;
+                for (const cell of cols) {
+                    const c = String(cell || '').toLowerCase().replace(/[^a-z0-9]/g, '');
+                    if (!c) continue;
+                    if (c === 'no' || c === 'nomor' || c === 'nourut') score += 2;
+                    else if (c.includes('nama') || c.includes('namaguru') || c.includes('namapendidik') || c.includes('namalengkap')) score += 3;
+                    else if (c.includes('nip') || c.includes('pegid') || c.includes('nuptk')) score += 3;
+                    else if (c === 'jk' || c.includes('jeniskelamin') || c === 'lp' || c.includes('gender')) score += 3;
+                    else if (c.includes('jabatan') || c.includes('tugas')) score += 2;
+                    else if (c.includes('mapel') || c.includes('pelajaran') || c.includes('matapelajaran')) score += 2;
+                    else if (c.includes('nohp') || c.includes('wa') || c.includes('telepon')) score += 2;
+                }
+
+                if (score > bestScore && score >= 5) {
+                    bestScore = score;
                     headerIdx = r;
-                    break;
                 }
             }
 
@@ -6138,6 +6191,21 @@
             for (const sheetName of workbook.SheetNames) {
                 const ws = workbook.Sheets[sheetName];
                 if (!ws) continue;
+
+                // Perbaiki rentang !ref agar SheetJS membaca seluruh baris yang ada tanpa terpotong
+                const keys = Object.keys(ws).filter(k => k && !k.startsWith('!'));
+                if (keys.length === 0) continue;
+
+                let maxR = 0, maxC = 0;
+                for (const k of keys) {
+                    try {
+                        const dec = XLSX.utils.decode_cell(k);
+                        if (dec.r > maxR) maxR = dec.r;
+                        if (dec.c > maxC) maxC = dec.c;
+                    } catch (e) { }
+                }
+                ws['!ref'] = XLSX.utils.encode_range({ s: { r: 0, c: 0 }, e: { r: maxR, c: maxC } });
+
                 const rows = XLSX.utils.sheet_to_json(ws, { header: 1, defval: '' });
                 if (rows && rows.length > 0) {
                     extractAlumniFromRows(rows);
@@ -6150,13 +6218,36 @@
             if (!rows || rows.length === 0) return;
 
             let headerIdx = -1;
+            let bestScore = 0;
+
             for (let r = 0; r < Math.min(rows.length, 25); r++) {
-                const rowStr = (rows[r] || []).map(c => String(c).toLowerCase()).join(' ');
-                const hasNama = rowStr.includes('nama') || rowStr.includes('alumni') || rowStr.includes('siswa');
-                const hasOther = rowStr.includes('nisn') || rowStr.includes('lulus') || rowStr.includes('ijazah') || rowStr.includes('lanjutan') || rowStr.includes('sekolah');
-                if (hasNama && hasOther) {
+                const cols = rows[r] || [];
+                const nonEmptyCols = cols.filter(c => String(c || '').trim().length > 0);
+                if (nonEmptyCols.length < 3) continue; // Header tabel asli pasti memiliki minimal 3 kolom terisi
+
+                const firstCell = String(cols[0] || '').toLowerCase().trim();
+                if (firstCell.startsWith('petunjuk') || firstCell.startsWith('catatan') || firstCell.startsWith('template') || firstCell.startsWith('keterangan') || firstCell.startsWith('instruksi')) continue;
+
+                // Hitung skor kecocokan kolom header tabel
+                let score = 0;
+                for (const cell of cols) {
+                    const c = String(cell || '').toLowerCase().replace(/[^a-z0-9]/g, '');
+                    if (!c) continue;
+                    if (c === 'no' || c === 'nomor' || c === 'nourut') score += 2;
+                    else if (c.includes('nama') || c.includes('namalengkap') || c.includes('namaalumni')) score += 3;
+                    else if (c.includes('nisn')) score += 3;
+                    else if (c.includes('nislokal') || (c.includes('nis') && !c.includes('nisn'))) score += 2;
+                    else if (c === 'jk' || c.includes('jeniskelamin') || c === 'lp' || c.includes('gender')) score += 3;
+                    else if (c.includes('tahunlulus') || c.includes('thnlulus') || (c.includes('lulus') && !c.includes('status'))) score += 3;
+                    else if (c.includes('ijazah') || c.includes('noijazah')) score += 3;
+                    else if (c.includes('lanjutan') || c.includes('sekolah') || c.includes('pesantren')) score += 2;
+                    else if (c.includes('nohp') || c.includes('wa') || c.includes('hp') || c.includes('telepon')) score += 2;
+                    else if (c.includes('alamat')) score += 1;
+                }
+
+                if (score > bestScore && score >= 5) {
+                    bestScore = score;
                     headerIdx = r;
-                    break;
                 }
             }
 
@@ -6171,16 +6262,18 @@
                     }
                     else if (clean.includes('nisn')) colMap.nisn = idx;
                     else if (clean.includes('nislokal') || (clean.includes('nis') && !clean.includes('nisn'))) colMap.nis_lokal = idx;
-                    else if (clean === 'jk' || clean.includes('jeniskelamin') || clean === 'lp' || clean === 'gender') colMap.jk = idx;
-                    else if (clean.includes('tahunlulus') || clean.includes('thnlulus') || clean.includes('tahun') || clean.includes('lulus')) {
+                    else if (clean === 'jk' || clean.includes('jeniskelamin') || clean === 'lp' || clean.includes('kelamin') || clean.includes('gender')) colMap.jk = idx;
+                    else if (clean.includes('tahunlulus') || clean.includes('thnlulus') || clean.includes('thlulus') || (clean.includes('lulus') && !clean.includes('status'))) {
                         if (colMap.tahun_lulus === undefined) colMap.tahun_lulus = idx;
                     }
                     else if (clean.includes('ijazah') || clean.includes('noijazah')) colMap.no_ijazah = idx;
-                    else if (clean.includes('jenislanjutan') || clean.includes('lanjutan')) {
+                    else if (clean.includes('jenislanjutan') || (clean.includes('lanjutan') && !clean.includes('sekolah') && !clean.includes('lembaga') && !clean.includes('nama') && !clean.includes('pesantren'))) {
                         if (colMap.jenis_lanjutan === undefined) colMap.jenis_lanjutan = idx;
                     }
-                    else if (clean.includes('sekolahlanjutan') || clean.includes('namasekolah') || clean.includes('lembagalanjutan') || clean.includes('tujuan')) colMap.sekolah_lanjutan = idx;
-                    else if (clean.includes('nohp') || clean.includes('telepon') || clean.includes('telp') || clean.includes('wa') || clean.includes('hp')) colMap.no_hp = idx;
+                    else if (clean.includes('sekolahlanjutan') || clean.includes('namasekolah') || clean.includes('lembagalanjutan') || clean.includes('tujuan') || (clean.includes('sekolah') && clean.includes('lanjutan')) || clean.includes('pesantren')) {
+                        if (colMap.sekolah_lanjutan === undefined) colMap.sekolah_lanjutan = idx;
+                    }
+                    else if (clean.includes('nohp') || clean.includes('telepon') || clean.includes('telp') || clean.includes('wa') || clean.includes('hp') || clean.includes('whatsapp')) colMap.no_hp = idx;
                     else if (clean.includes('alamat')) colMap.alamat = idx;
                 });
             }
@@ -6196,28 +6289,39 @@
                 } else {
                     for (let c = 0; c < Math.min(cols.length, 5); c++) {
                         const val = String(cols[c] || '').trim();
-                        if (val.length >= 3 && isNaN(val) && !val.toLowerCase().includes('alumni') && !val.toLowerCase().includes('no')) {
+                        if (val.length >= 3 && isNaN(val) && !val.toLowerCase().includes('alumni') && !val.toLowerCase().includes('no') && !val.toLowerCase().includes('petunjuk')) {
                             nama = val;
                             break;
                         }
                     }
                 }
 
-                if (!nama || nama.toLowerCase().includes('jumlah') || nama.toLowerCase().includes('total') || nama.toLowerCase() === 'nama') continue;
+                if (!nama || nama.toLowerCase().includes('jumlah') || nama.toLowerCase().includes('total') || nama.toLowerCase() === 'nama' || nama.toLowerCase().startsWith('petunjuk')) continue;
 
                 let nisn = colMap.nisn !== undefined ? String(cols[colMap.nisn] || '').trim() : '';
+                if (nisn.endsWith('.0')) nisn = nisn.slice(0, -2);
+                if (/^\d{9}$/.test(nisn)) nisn = '0' + nisn; // Kembalikan angka 0 di depan jika terpotong Excel
                 if (!nisn || nisn === '0') nisn = '-';
 
                 let nisLokal = colMap.nis_lokal !== undefined ? String(cols[colMap.nis_lokal] || '').trim() : '-';
+                if (nisLokal.endsWith('.0')) nisLokal = nisLokal.slice(0, -2);
+                if (!nisLokal || nisLokal === '0') nisLokal = '-';
 
                 let jk = 'L';
                 if (colMap.jk !== undefined) {
                     const rawJk = String(cols[colMap.jk] || '').toUpperCase().trim();
-                    jk = rawJk.startsWith('P') ? 'P' : 'L';
+                    jk = (rawJk === 'P' || rawJk.startsWith('P') || rawJk.includes('PEREMPUAN') || rawJk.includes('WANITA')) ? 'P' : 'L';
                 }
 
-                const thnLulus = colMap.tahun_lulus !== undefined ? String(cols[colMap.tahun_lulus] || '').trim() : (state.madrasahSettings.tahun_ajaran_aktif || '2025/2026');
-                const noIjazah = colMap.no_ijazah !== undefined ? String(cols[colMap.no_ijazah] || '-').trim() : '-';
+                let thnLulus = colMap.tahun_lulus !== undefined ? String(cols[colMap.tahun_lulus] || '').trim() : (state.madrasahSettings.tahun_ajaran_aktif || '2025/2026');
+                if (/^\d{4}$/.test(thnLulus)) {
+                    const y = parseInt(thnLulus);
+                    thnLulus = `${y - 1}/${y}`;
+                }
+                if (!thnLulus) thnLulus = state.madrasahSettings.tahun_ajaran_aktif || '2025/2026';
+
+                let noIjazah = colMap.no_ijazah !== undefined ? String(cols[colMap.no_ijazah] || '-').trim() : '-';
+                if (!noIjazah) noIjazah = '-';
 
                 let jenisLanjutan = 'MTs';
                 if (colMap.jenis_lanjutan !== undefined) {
@@ -6225,7 +6329,7 @@
                     if (rawJenis.includes('SMP')) jenisLanjutan = 'SMP';
                     else if (rawJenis.includes('PONPES') || rawJenis.includes('PESANTREN') || rawJenis.includes('PONDOK')) jenisLanjutan = 'Ponpes';
                     else if (rawJenis.includes('MTS') || rawJenis.includes('TSANAWIYAH')) jenisLanjutan = 'MTs';
-                    else if (rawJenis.length > 0) jenisLanjutan = 'Lainnya';
+                    else if (rawJenis.length > 0 && rawJenis !== '-') jenisLanjutan = 'Lainnya';
                 }
 
                 const sekolahLanjutan = colMap.sekolah_lanjutan !== undefined ? String(cols[colMap.sekolah_lanjutan] || '-').trim() : '-';
@@ -6240,8 +6344,8 @@
                     nis_lokal: nisLokal || '-',
                     nama_lengkap: nama,
                     jk: jk,
-                    tahun_lulus: thnLulus || '2025/2026',
-                    no_ijazah: noIjazah || '-',
+                    tahun_lulus: thnLulus,
+                    no_ijazah: noIjazah,
                     jenis_lanjutan: jenisLanjutan || 'MTs',
                     nama_sekolah_lanjutan: sekolahLanjutan || '-',
                     no_hp: noHp || '-',
