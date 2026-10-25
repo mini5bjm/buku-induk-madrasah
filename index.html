@@ -1272,7 +1272,6 @@
                                             <option value="Kelas 4">Kelas 4</option>
                                             <option value="Kelas 5">Kelas 5</option>
                                             <option value="Kelas 6">Kelas 6</option>
-                                            <option value="Lulus">Lulus / Alumni</option>
                                         </select>
                                     </div>
                                     <select id="print-select-siswa" onchange="window.renderOfficialPrintSheet()"
@@ -4018,107 +4017,13 @@
             const q = (document.getElementById('print-search-siswa')?.value || '').toLowerCase().trim();
             const klsFilter = document.getElementById('print-filter-kelas')?.value || 'ALL';
 
-            let candidateList = [];
-
-            if (klsFilter === 'Lulus') {
-                // Ambil siswa yang berstatus Lulus atau berkelas Lulus
-                const graduatedStudents = (state.students || []).filter(s =>
-                    s.kelas_aktif === 'Lulus' || s.status_siswa === 'Lulus' || s.status_siswa === 'Alumni'
-                );
-
-                const seenKeys = new Set();
-                graduatedStudents.forEach(s => {
-                    if (s.nisn && s.nisn !== '-') seenKeys.add('nisn:' + s.nisn);
-                    seenKeys.add('id:' + s.id);
-                    if (s.nama_lengkap) seenKeys.add('nama:' + s.nama_lengkap.trim().toLowerCase());
-                    candidateList.push({
-                        id: s.id,
-                        nama_lengkap: s.nama_lengkap || '',
-                        nisn: s.nisn || '',
-                        nis_lokal: s.nis_lokal || '',
-                        labelKelas: s.kelas_aktif || 'Lulus / Alumni',
-                        isAlumni: true
-                    });
-                });
-
-                // Tambahkan alumni dari state.alumni yang belum masuk
-                (state.alumni || []).forEach(a => {
-                    const hasNisn = a.nisn && a.nisn !== '-';
-                    const nisnKey = hasNisn ? 'nisn:' + a.nisn : null;
-                    const idKey = 'id:' + a.id;
-                    const nameKey = a.nama_lengkap ? 'nama:' + a.nama_lengkap.trim().toLowerCase() : null;
-
-                    if ((!nisnKey || !seenKeys.has(nisnKey)) && !seenKeys.has(idKey) && (!nameKey || !seenKeys.has(nameKey))) {
-                        if (nisnKey) seenKeys.add(nisnKey);
-                        seenKeys.add(idKey);
-                        if (nameKey) seenKeys.add(nameKey);
-                        candidateList.push({
-                            id: a.id,
-                            nama_lengkap: a.nama_lengkap || '',
-                            nisn: a.nisn || '',
-                            nis_lokal: a.nis_lokal || '',
-                            labelKelas: a.tahun_lulus ? `Alumni (Lulus ${a.tahun_lulus})` : 'Alumni',
-                            isAlumni: true
-                        });
-                    }
-                });
-            } else if (klsFilter === 'ALL') {
-                // Semua siswa aktif dan alumni
-                const seenKeys = new Set();
-                (state.students || []).forEach(s => {
-                    if (s.nisn && s.nisn !== '-') seenKeys.add('nisn:' + s.nisn);
-                    seenKeys.add('id:' + s.id);
-                    if (s.nama_lengkap) seenKeys.add('nama:' + s.nama_lengkap.trim().toLowerCase());
-                    candidateList.push({
-                        id: s.id,
-                        nama_lengkap: s.nama_lengkap || '',
-                        nisn: s.nisn || '',
-                        nis_lokal: s.nis_lokal || '',
-                        labelKelas: s.kelas_aktif || 'Aktif',
-                        isAlumni: s.kelas_aktif === 'Lulus' || s.status_siswa === 'Lulus' || s.status_siswa === 'Alumni'
-                    });
-                });
-
-                (state.alumni || []).forEach(a => {
-                    const hasNisn = a.nisn && a.nisn !== '-';
-                    const nisnKey = hasNisn ? 'nisn:' + a.nisn : null;
-                    const idKey = 'id:' + a.id;
-                    const nameKey = a.nama_lengkap ? 'nama:' + a.nama_lengkap.trim().toLowerCase() : null;
-
-                    if ((!nisnKey || !seenKeys.has(nisnKey)) && !seenKeys.has(idKey) && (!nameKey || !seenKeys.has(nameKey))) {
-                        if (nisnKey) seenKeys.add(nisnKey);
-                        seenKeys.add(idKey);
-                        if (nameKey) seenKeys.add(nameKey);
-                        candidateList.push({
-                            id: a.id,
-                            nama_lengkap: a.nama_lengkap || '',
-                            nisn: a.nisn || '',
-                            nis_lokal: a.nis_lokal || '',
-                            labelKelas: a.tahun_lulus ? `Alumni (Lulus ${a.tahun_lulus})` : 'Alumni',
-                            isAlumni: true
-                        });
-                    }
-                });
-            } else {
-                // Filter kelas reguler: Kelas 1 s/d Kelas 6
-                candidateList = (state.students || [])
-                    .filter(s => s.kelas_aktif === klsFilter)
-                    .map(s => ({
-                        id: s.id,
-                        nama_lengkap: s.nama_lengkap || '',
-                        nisn: s.nisn || '',
-                        nis_lokal: s.nis_lokal || '',
-                        labelKelas: s.kelas_aktif,
-                        isAlumni: false
-                    }));
-            }
-
-            // Filter teks (Nama, NISN, NIS Lokal)
-            const filtered = candidateList.filter(item => {
-                if (!q) return true;
-                return (item.nama_lengkap || '').toLowerCase().includes(q) ||
-                    String(item.nisn || '').toLowerCase().includes(q) ||
-                    String(item.nis_lokal || '').toLowerCase().includes(q);
+            const filtered = (state.students || []).filter(s => {
+                const matchText = !q ||
+                    (s.nama_lengkap || '').toLowerCase().includes(q) ||
+                    String(s.nisn || '').toLowerCase().includes(q) ||
+                    String(s.nis_lokal || '').toLowerCase().includes(q);
+                const matchKelas = klsFilter === 'ALL' || s.kelas_aktif === klsFilter;
+                return matchText && matchKelas;
             });
 
             // Urutkan A-Z
@@ -4127,16 +4032,16 @@
             if (filtered.length === 0) {
                 selectEl.innerHTML = `<option value="">-- Siswa tidak ditemukan --</option>`;
                 const container = document.getElementById('print-area');
-                if (container) container.innerHTML = `<div class="py-12 text-center text-slate-400 text-sm">Tidak ada data siswa atau alumni yang cocok dengan filter / pencarian.</div>`;
+                if (container) container.innerHTML = `<div class="py-12 text-center text-slate-400 text-sm">Tidak ada data siswa yang cocok dengan filter / pencarian.</div>`;
                 return;
             }
 
             const currentVal = selectEl.value;
             const hasCurrentVal = filtered.some(f => f.id === currentVal);
 
-            selectEl.innerHTML = filtered.map(item => `
-                <option value="${item.id}" ${item.id === currentVal ? 'selected' : ''}>
-                    ${item.nama_lengkap} — NISN: ${item.nisn || '-'} (${item.labelKelas})
+            selectEl.innerHTML = filtered.map(s => `
+                <option value="${s.id}" ${s.id === currentVal ? 'selected' : ''}>
+                    ${s.nama_lengkap} — NISN: ${s.nisn || '-'} (${s.kelas_aktif || 'Aktif'})
                 </option>
             `).join('');
 
@@ -4149,20 +4054,13 @@
 
         window.previewStudentPrint = function (studentId) {
             window.navigateMenu('admin-cetak');
-            const isAlumni = (state.alumni || []).some(a => a.id === studentId);
             const filterEl = document.getElementById('print-filter-kelas');
             if (filterEl) {
-                if (isAlumni) {
-                    filterEl.value = 'Lulus';
+                const st = (state.students || []).find(s => s.id === studentId);
+                if (st && st.kelas_aktif && ['Kelas 1', 'Kelas 2', 'Kelas 3', 'Kelas 4', 'Kelas 5', 'Kelas 6'].includes(st.kelas_aktif)) {
+                    filterEl.value = st.kelas_aktif;
                 } else {
-                    const st = (state.students || []).find(s => s.id === studentId);
-                    if (st && st.kelas_aktif && ['Kelas 1', 'Kelas 2', 'Kelas 3', 'Kelas 4', 'Kelas 5', 'Kelas 6'].includes(st.kelas_aktif)) {
-                        filterEl.value = st.kelas_aktif;
-                    } else if (st && (st.kelas_aktif === 'Lulus' || st.status_siswa === 'Lulus' || st.status_siswa === 'Alumni')) {
-                        filterEl.value = 'Lulus';
-                    } else {
-                        filterEl.value = 'ALL';
-                    }
+                    filterEl.value = 'ALL';
                 }
             }
             const searchEl = document.getElementById('print-search-siswa');
@@ -4401,24 +4299,6 @@
 
         window.exportStudentsToCSV = function () {
             const klsFilter = document.getElementById('print-filter-kelas')?.value || 'ALL';
-
-            if (klsFilter === 'Lulus') {
-                const headers = ["NISN", "NIS_Lokal", "Nama_Lengkap", "JK", "Tahun_Lulus", "No_Ijazah", "Jenis_Lanjutan", "Sekolah_Lanjutan", "No_HP", "Alamat"];
-                const rows = (state.alumni || []).map(a => [
-                    `'${a.nisn || ''}`, `'${a.nis_lokal || ''}`, `"${a.nama_lengkap || ''}"`, a.jk || '', `"${a.tahun_lulus || ''}"`, `"${a.no_ijazah || ''}"`, `"${a.jenis_lanjutan || ''}"`, `"${a.nama_sekolah_lanjutan || ''}"`, `'${a.no_hp || ''}`, `"${a.alamat || ''}"`
-                ]);
-                const csvContent = "data:text/csv;charset=utf-8," + [headers.join(","), ...rows.map(r => r.join(","))].join("\n");
-                const encodedUri = encodeURI(csvContent);
-                const link = document.createElement("a");
-                link.setAttribute("href", encodedUri);
-                link.setAttribute("download", `Data_Alumni_MIS_Nurul_Islam_Km5.csv`);
-                document.body.appendChild(link);
-                link.click();
-                document.body.removeChild(link);
-                showToast("Ekspor CSV Data Alumni berhasil!", "success");
-                return;
-            }
-
             const headers = ["NISN", "NIS_Lokal", "NIK", "Nama_Lengkap", "JK", "Tempat_Lahir", "Tgl_Lahir", "Kelas", "Status", "Nama_Ayah", "Nama_Ibu", "No_HP_Ortu", "Alamat"];
             let exportList = state.students || [];
             if (klsFilter !== 'ALL') {
@@ -6320,7 +6200,6 @@
                             <i class="fa-solid fa-building-columns text-slate-400 mr-1.5 text-[11px]"></i>${a.nama_sekolah_lanjutan || '-'}
                         </td>
                         <td class="py-3.5 px-5 text-center whitespace-nowrap">
-                            <button onclick="window.previewStudentPrint('${a.id}')" class="p-2 rounded-xl bg-lime-100 hover:bg-lime-200 text-opti-dark text-xs transition mr-1" title="Cetak Lembar Induk Alumni"><i class="fa-solid fa-print"></i></button>
                             <button onclick="window.openAlumniModal('${a.id}')" class="p-2 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-700 text-xs mr-1" title="Edit Alumni"><i class="fa-solid fa-pen-to-square"></i></button>
                             <button onclick="window.handleDeleteAlumni('${a.id}')" class="p-2 rounded-xl bg-red-50 hover:bg-red-100 text-red-600 text-xs" title="Hapus Alumni"><i class="fa-solid fa-trash"></i></button>
                         </td>
