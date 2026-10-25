@@ -797,6 +797,7 @@
                                 <table class="w-full text-left border-collapse">
                                     <thead>
                                         <tr class="bg-slate-900 text-white text-[11px] uppercase tracking-wider">
+                                            <th class="py-4 px-3 font-bold text-center whitespace-nowrap w-12">No.</th>
                                             <th class="py-4 px-4 font-bold text-center whitespace-nowrap min-w-[130px]">
                                                 NIP / ID</th>
                                             <th class="py-4 px-5 font-bold text-center min-w-[200px]">Nama Lengkap &
@@ -909,6 +910,7 @@
                                 <table class="w-full text-left border-collapse">
                                     <thead>
                                         <tr class="bg-slate-900 text-white text-[11px] uppercase tracking-wider">
+                                            <th class="py-4 px-3 font-bold text-center whitespace-nowrap w-12">No.</th>
                                             <th class="py-4 px-4 font-bold text-center whitespace-nowrap min-w-[130px]">NISN / NIS</th>
                                             <th class="py-4 px-5 font-bold min-w-[200px]">Nama Lengkap Alumni</th>
                                             <th class="py-4 px-3 font-bold text-center whitespace-nowrap w-14">L/P</th>
@@ -3737,6 +3739,10 @@
             const klsFilter = document.getElementById('filter-kelas-siswa')?.value || 'ALL';
 
             const filtered = state.students.filter(s => {
+                // Hanya tampilkan siswa yang aktif di madrasah (siswa mutasi keluar atau lulus tidak muncul di menu data siswa)
+                const status = s.status_siswa || 'Aktif';
+                if (status !== 'Aktif') return false;
+
                 const matchText = !q ||
                     (s.nama_lengkap || '').toLowerCase().includes(q) ||
                     String(s.nisn || '').includes(q) ||
@@ -5751,11 +5757,11 @@
             if (!tbody) return;
 
             if (filtered.length === 0) {
-                tbody.innerHTML = `<tr><td colspan="8" class="py-12 text-center text-slate-400 text-sm">Belum ada data guru ditemukan. Silakan tambah data guru baru.</td></tr>`;
+                tbody.innerHTML = `<tr><td colspan="9" class="py-12 text-center text-slate-400 text-sm">Belum ada data guru ditemukan. Silakan tambah data guru baru.</td></tr>`;
                 return;
             }
 
-            tbody.innerHTML = filtered.map(t => {
+            tbody.innerHTML = filtered.map((t, idx) => {
                 const fotoHtml = t.foto_guru
                     ? `<div class="relative group shrink-0">
                          <img src="${t.foto_guru}" onclick="window.viewTeacherDoc('${t.id}')" class="w-9 h-9 rounded-full object-cover border border-slate-200 cursor-pointer shadow-sm hover:scale-105 transition" title="Pas Foto Guru (Klik untuk memperbesar)">
@@ -5771,6 +5777,7 @@
 
                 return `
                     <tr class="hover:bg-slate-50 transition">
+                        <td class="py-3.5 px-3 text-center font-bold text-xs text-slate-500 whitespace-nowrap">${idx + 1}</td>
                         <td class="py-3.5 px-4 font-mono text-xs font-bold text-slate-700 text-center whitespace-nowrap">${t.nip || '-'}</td>
                         <td class="py-3.5 px-5">
                             <div class="flex items-center gap-2.5">
@@ -6449,20 +6456,25 @@
             // Urutkan data alumni sesuai abjad A-Z berdasarkan Nama Lengkap
             filtered.sort((a, b) => (a.nama_lengkap || '').localeCompare(b.nama_lengkap || '', 'id', { sensitivity: 'base' }));
 
+            // STATISTIK: Menyesuaikan filter tahun ajaran/lulus yang dipilih
+            const alumniByYear = thnFilter === 'ALL'
+                ? state.alumni
+                : state.alumni.filter(a => a.tahun_lulus === thnFilter);
+
             const totalEl = document.getElementById('stat-alumni-total');
-            if (totalEl) totalEl.textContent = state.alumni.length;
+            if (totalEl) totalEl.textContent = alumniByYear.length;
             const mtsEl = document.getElementById('stat-alumni-mts');
-            if (mtsEl) mtsEl.textContent = state.alumni.filter(a => a.jenis_lanjutan === 'MTs').length;
+            if (mtsEl) mtsEl.textContent = alumniByYear.filter(a => a.jenis_lanjutan === 'MTs').length;
             const smpEl = document.getElementById('stat-alumni-smp');
-            if (smpEl) smpEl.textContent = state.alumni.filter(a => a.jenis_lanjutan === 'SMP').length;
+            if (smpEl) smpEl.textContent = alumniByYear.filter(a => a.jenis_lanjutan === 'SMP').length;
             const ponpesEl = document.getElementById('stat-alumni-ponpes');
-            if (ponpesEl) ponpesEl.textContent = state.alumni.filter(a => a.jenis_lanjutan === 'Ponpes').length;
+            if (ponpesEl) ponpesEl.textContent = alumniByYear.filter(a => a.jenis_lanjutan === 'Ponpes').length;
 
             const tbody = document.getElementById('alumni-table-body');
             if (!tbody) return;
 
             if (filtered.length === 0) {
-                tbody.innerHTML = `<tr><td colspan="9" class="py-12 text-center text-slate-400 text-sm">Belum ada data alumni ditemukan.</td></tr>`;
+                tbody.innerHTML = `<tr><td colspan="10" class="py-12 text-center text-slate-400 text-sm">Belum ada data alumni ditemukan.</td></tr>`;
                 return;
             }
 
@@ -6473,7 +6485,7 @@
                 'Lainnya': 'bg-slate-100 text-slate-700 border-slate-300'
             };
 
-            tbody.innerHTML = filtered.map(a => {
+            tbody.innerHTML = filtered.map((a, idx) => {
                 // Foto avatar alumni dengan tombol upload langsung di luar
                 const fotoHtml = a.foto_alumni
                     ? `<div class="relative group shrink-0">
@@ -6524,6 +6536,7 @@
 
                 return `
                     <tr class="hover:bg-slate-50 transition">
+                        <td class="py-3.5 px-3 text-center font-bold text-xs text-slate-500 whitespace-nowrap">${idx + 1}</td>
                         <td class="py-3.5 px-4 font-mono text-xs text-center"><b>${a.nisn}</b><br><span class="text-slate-500">${a.nis_lokal || '-'}</span></td>
                         <td class="py-3.5 px-5">
                             <div class="flex items-center gap-2.5">
