@@ -2308,7 +2308,10 @@
                                     <button type="button" onclick="document.getElementById('al-file-foto').click()" class="flex-1 py-1.5 px-2 rounded-lg bg-slate-100 hover:bg-slate-200 text-slate-700 text-[11px] font-bold transition flex items-center justify-center gap-1">
                                         <i class="fa-solid fa-camera text-xs"></i> <span>Pilih Foto</span>
                                     </button>
-                                    <button type="button" id="btn-del-foto-alumni" onclick="window.removeAlumniDoc('foto')" class="hidden py-1.5 px-2 rounded-lg bg-red-50 hover:bg-red-100 text-red-600 text-xs font-bold" title="Hapus Foto">
+                                    <button type="button" id="btn-dl-foto-alumni" onclick="window.downloadCurrentAlumniDoc('foto')" class="hidden py-1.5 px-2.5 rounded-lg bg-emerald-50 hover:bg-emerald-100 text-emerald-700 text-xs font-bold transition shadow-2xs" title="Unduh Pas Foto">
+                                        <i class="fa-solid fa-download"></i>
+                                    </button>
+                                    <button type="button" id="btn-del-foto-alumni" onclick="window.removeAlumniDoc('foto')" class="hidden py-1.5 px-2 rounded-lg bg-red-50 hover:bg-red-100 text-red-600 text-xs font-bold transition shadow-2xs" title="Hapus Foto">
                                         <i class="fa-solid fa-trash-can"></i>
                                     </button>
                                 </div>
@@ -2332,7 +2335,10 @@
                                     <button type="button" onclick="document.getElementById('al-file-ijazah').click()" class="flex-1 py-1.5 px-2 rounded-lg bg-emerald-50 hover:bg-emerald-100 text-emerald-800 border border-emerald-200 text-[11px] font-bold transition flex items-center justify-center gap-1">
                                         <i class="fa-solid fa-file-arrow-up text-xs"></i> <span>Pilih Ijazah</span>
                                     </button>
-                                    <button type="button" id="btn-del-ijazah-alumni" onclick="window.removeAlumniDoc('ijazah')" class="hidden py-1.5 px-2 rounded-lg bg-red-50 hover:bg-red-100 text-red-600 text-xs font-bold" title="Hapus Ijazah">
+                                    <button type="button" id="btn-dl-ijazah-alumni" onclick="window.downloadCurrentAlumniDoc('ijazah')" class="hidden py-1.5 px-2.5 rounded-lg bg-emerald-100 hover:bg-emerald-200 text-emerald-800 text-xs font-bold transition shadow-2xs" title="Unduh Scan Ijazah">
+                                        <i class="fa-solid fa-download"></i>
+                                    </button>
+                                    <button type="button" id="btn-del-ijazah-alumni" onclick="window.removeAlumniDoc('ijazah')" class="hidden py-1.5 px-2 rounded-lg bg-red-50 hover:bg-red-100 text-red-600 text-xs font-bold transition shadow-2xs" title="Hapus Ijazah">
                                         <i class="fa-solid fa-trash-can"></i>
                                     </button>
                                 </div>
@@ -2357,7 +2363,10 @@
                                     <button type="button" onclick="document.getElementById('al-file-transkrip').click()" class="flex-1 py-1.5 px-2 rounded-lg bg-blue-50 hover:bg-blue-100 text-blue-800 border border-blue-200 text-[11px] font-bold transition flex items-center justify-center gap-1">
                                         <i class="fa-solid fa-file-arrow-up text-xs"></i> <span>Pilih Transkrip</span>
                                     </button>
-                                    <button type="button" id="btn-del-transkrip-alumni" onclick="window.removeAlumniDoc('transkrip')" class="hidden py-1.5 px-2 rounded-lg bg-red-50 hover:bg-red-100 text-red-600 text-xs font-bold" title="Hapus Transkrip">
+                                    <button type="button" id="btn-dl-transkrip-alumni" onclick="window.downloadCurrentAlumniDoc('transkrip')" class="hidden py-1.5 px-2.5 rounded-lg bg-blue-100 hover:bg-blue-200 text-blue-800 text-xs font-bold transition shadow-2xs" title="Unduh Transkrip Nilai">
+                                        <i class="fa-solid fa-download"></i>
+                                    </button>
+                                    <button type="button" id="btn-del-transkrip-alumni" onclick="window.removeAlumniDoc('transkrip')" class="hidden py-1.5 px-2 rounded-lg bg-red-50 hover:bg-red-100 text-red-600 text-xs font-bold transition shadow-2xs" title="Hapus Transkrip">
                                         <i class="fa-solid fa-trash-can"></i>
                                     </button>
                                 </div>
@@ -5711,7 +5720,8 @@
                 // Foto avatar alumni dengan tombol upload langsung di luar
                 const fotoHtml = a.foto_alumni
                     ? `<div class="relative group shrink-0">
-                         <img src="${a.foto_alumni}" onclick="window.viewAlumniDoc('${a.id}', 'foto')" class="w-8 h-8 rounded-full object-cover border border-slate-200 cursor-pointer shadow-sm hover:scale-105 transition" title="Pas Foto (Klik untuk memperbesar)">
+                         <img src="${a.foto_alumni}" onclick="window.viewAlumniDoc('${a.id}', 'foto')" class="w-8 h-8 rounded-full object-cover border border-slate-200 cursor-pointer shadow-sm hover:scale-105 transition" title="Pas Foto (Klik untuk melihat)">
+                         <button type="button" onclick="window.downloadAlumniDocDirect('${a.id}', 'foto')" class="absolute -top-1 -right-1 w-4 h-4 rounded-full bg-emerald-600 hover:bg-emerald-700 text-white flex items-center justify-center text-[7px] shadow transition" title="Unduh Pas Foto"><i class="fa-solid fa-download"></i></button>
                          <button type="button" onclick="window.triggerQuickUpload('${a.id}', 'foto')" class="absolute -bottom-1 -right-1 w-4 h-4 rounded-full bg-slate-800 hover:bg-emerald-600 text-white flex items-center justify-center text-[8px] shadow transition" title="Ganti Pas Foto"><i class="fa-solid fa-camera"></i></button>
                        </div>`
                     : `<div class="relative group shrink-0">
@@ -5724,8 +5734,11 @@
                 // Tombol berkas ijazah langsung di luar tabel
                 const ijazahBtn = a.file_ijazah
                     ? `<div class="inline-flex items-center rounded-lg border border-emerald-300 bg-emerald-50 overflow-hidden shadow-2xs">
-                         <button type="button" onclick="window.viewAlumniDoc('${a.id}', 'ijazah')" class="inline-flex items-center gap-1 px-2.5 py-1 text-emerald-700 hover:bg-emerald-100 text-[11px] font-bold transition" title="Lihat / Unduh Scan Ijazah">
+                         <button type="button" onclick="window.viewAlumniDoc('${a.id}', 'ijazah')" class="inline-flex items-center gap-1 px-2.5 py-1 text-emerald-700 hover:bg-emerald-100 text-[11px] font-bold transition" title="Lihat Scan Ijazah">
                            <i class="fa-solid fa-file-invoice text-emerald-600"></i> Ijazah
+                         </button>
+                         <button type="button" onclick="window.downloadAlumniDocDirect('${a.id}', 'ijazah')" class="px-1.5 py-1 text-emerald-700 hover:bg-emerald-200 border-l border-emerald-200 text-[10px] transition" title="Unduh Scan Ijazah">
+                           <i class="fa-solid fa-download"></i>
                          </button>
                          <button type="button" onclick="window.triggerQuickUpload('${a.id}', 'ijazah')" class="px-1.5 py-1 text-emerald-600 hover:bg-emerald-200 border-l border-emerald-200 text-[10px] transition" title="Ganti Berkas Ijazah">
                            <i class="fa-solid fa-arrow-up-from-bracket"></i>
@@ -5738,8 +5751,11 @@
                 // Tombol berkas transkrip langsung di luar tabel
                 const transkripBtn = a.file_transkrip
                     ? `<div class="inline-flex items-center rounded-lg border border-blue-300 bg-blue-50 overflow-hidden shadow-2xs">
-                         <button type="button" onclick="window.viewAlumniDoc('${a.id}', 'transkrip')" class="inline-flex items-center gap-1 px-2.5 py-1 text-blue-700 hover:bg-blue-100 text-[11px] font-bold transition" title="Lihat / Unduh Transkrip Nilai">
+                         <button type="button" onclick="window.viewAlumniDoc('${a.id}', 'transkrip')" class="inline-flex items-center gap-1 px-2.5 py-1 text-blue-700 hover:bg-blue-100 text-[11px] font-bold transition" title="Lihat Transkrip Nilai">
                            <i class="fa-solid fa-file-lines text-blue-600"></i> Transkrip
+                         </button>
+                         <button type="button" onclick="window.downloadAlumniDocDirect('${a.id}', 'transkrip')" class="px-1.5 py-1 text-blue-700 hover:bg-blue-200 border-l border-blue-200 text-[10px] transition" title="Unduh Transkrip Nilai">
+                           <i class="fa-solid fa-download"></i>
                          </button>
                          <button type="button" onclick="window.triggerQuickUpload('${a.id}', 'transkrip')" class="px-1.5 py-1 text-blue-600 hover:bg-blue-200 border-l border-blue-200 text-[10px] transition" title="Ganti Berkas Transkrip">
                            <i class="fa-solid fa-arrow-up-from-bracket"></i>
@@ -5847,10 +5863,12 @@
                 const prevImg = document.getElementById('prev-foto-alumni');
                 const ph = document.getElementById('ph-foto-alumni');
                 const btnDel = document.getElementById('btn-del-foto-alumni');
+                const btnDl = document.getElementById('btn-dl-foto-alumni');
                 if (dataInput) dataInput.value = dataUrl;
                 if (prevImg) { prevImg.src = dataUrl; prevImg.classList.remove('hidden'); }
                 if (ph) ph.classList.add('hidden');
                 if (btnDel) btnDel.classList.remove('hidden');
+                if (btnDl) btnDl.classList.remove('hidden');
             } else if (type === 'ijazah') {
                 const dataInput = document.getElementById('al-data-ijazah');
                 const nameInput = document.getElementById('al-name-ijazah');
@@ -5858,9 +5876,11 @@
                 const ph = document.getElementById('ph-ijazah-alumni');
                 const txt = document.getElementById('txt-ijazah-status');
                 const btnDel = document.getElementById('btn-del-ijazah-alumni');
+                const btnDl = document.getElementById('btn-dl-ijazah-alumni');
                 if (dataInput) dataInput.value = dataUrl;
                 if (nameInput) nameInput.value = file.name;
                 if (btnDel) btnDel.classList.remove('hidden');
+                if (btnDl) btnDl.classList.remove('hidden');
 
                 if (file.type.startsWith('image/')) {
                     if (prevImg) { prevImg.src = dataUrl; prevImg.classList.remove('hidden'); }
@@ -5877,9 +5897,11 @@
                 const ph = document.getElementById('ph-transkrip-alumni');
                 const txt = document.getElementById('txt-transkrip-status');
                 const btnDel = document.getElementById('btn-del-transkrip-alumni');
+                const btnDl = document.getElementById('btn-dl-transkrip-alumni');
                 if (dataInput) dataInput.value = dataUrl;
                 if (nameInput) nameInput.value = file.name;
                 if (btnDel) btnDel.classList.remove('hidden');
+                if (btnDl) btnDl.classList.remove('hidden');
 
                 if (file.type.startsWith('image/')) {
                     if (prevImg) { prevImg.src = dataUrl; prevImg.classList.remove('hidden'); }
@@ -5899,11 +5921,13 @@
                 const prevImg = document.getElementById('prev-foto-alumni');
                 const ph = document.getElementById('ph-foto-alumni');
                 const btnDel = document.getElementById('btn-del-foto-alumni');
+                const btnDl = document.getElementById('btn-dl-foto-alumni');
                 if (fileInp) fileInp.value = '';
                 if (dataInp) dataInp.value = '';
                 if (prevImg) { prevImg.src = ''; prevImg.classList.add('hidden'); }
                 if (ph) ph.classList.remove('hidden');
                 if (btnDel) btnDel.classList.add('hidden');
+                if (btnDl) btnDl.classList.add('hidden');
             } else if (type === 'ijazah') {
                 const fileInp = document.getElementById('al-file-ijazah');
                 const dataInp = document.getElementById('al-data-ijazah');
@@ -5912,6 +5936,7 @@
                 const ph = document.getElementById('ph-ijazah-alumni');
                 const txt = document.getElementById('txt-ijazah-status');
                 const btnDel = document.getElementById('btn-del-ijazah-alumni');
+                const btnDl = document.getElementById('btn-dl-ijazah-alumni');
                 if (fileInp) fileInp.value = '';
                 if (dataInp) dataInp.value = '';
                 if (nameInp) nameInp.value = '';
@@ -5919,6 +5944,7 @@
                 if (ph) ph.classList.remove('hidden');
                 if (txt) txt.textContent = 'Belum ada ijazah';
                 if (btnDel) btnDel.classList.add('hidden');
+                if (btnDl) btnDl.classList.add('hidden');
             } else if (type === 'transkrip') {
                 const fileInp = document.getElementById('al-file-transkrip');
                 const dataInp = document.getElementById('al-data-transkrip');
@@ -5927,6 +5953,7 @@
                 const ph = document.getElementById('ph-transkrip-alumni');
                 const txt = document.getElementById('txt-transkrip-status');
                 const btnDel = document.getElementById('btn-del-transkrip-alumni');
+                const btnDl = document.getElementById('btn-dl-transkrip-alumni');
                 if (fileInp) fileInp.value = '';
                 if (dataInp) dataInp.value = '';
                 if (nameInp) nameInp.value = '';
@@ -5934,6 +5961,7 @@
                 if (ph) ph.classList.remove('hidden');
                 if (txt) txt.textContent = 'Belum ada transkrip';
                 if (btnDel) btnDel.classList.add('hidden');
+                if (btnDl) btnDl.classList.add('hidden');
             }
         };
 
@@ -5942,6 +5970,93 @@
             window.removeAlumniDoc('ijazah');
             window.removeAlumniDoc('transkrip');
         }
+
+        // FITUR UNDUH BERKAS ALUMNI DARI MODAL FORM MAUPUN DARI TABEL
+        window.downloadCurrentAlumniDoc = function (type) {
+            let fileData = '';
+            let fileName = '';
+            const namaAlumni = (document.getElementById('al-nama')?.value || 'Alumni').trim().replace(/[/\\?%*:|"<>]/g, '').replace(/\s+/g, '_');
+            const nisn = (document.getElementById('al-nisn')?.value || '').trim();
+
+            if (type === 'foto') {
+                fileData = document.getElementById('al-data-foto')?.value;
+                fileName = `Foto_${namaAlumni}${nisn && nisn !== '-' ? '_' + nisn : ''}.png`;
+            } else if (type === 'ijazah') {
+                fileData = document.getElementById('al-data-ijazah')?.value;
+                const customName = document.getElementById('al-name-ijazah')?.value;
+                const ext = fileData && fileData.startsWith('data:application/pdf') ? '.pdf' : '.png';
+                fileName = customName || `Ijazah_${namaAlumni}${nisn && nisn !== '-' ? '_' + nisn : ''}${ext}`;
+            } else if (type === 'transkrip') {
+                fileData = document.getElementById('al-data-transkrip')?.value;
+                const customName = document.getElementById('al-name-transkrip')?.value;
+                const ext = fileData && fileData.startsWith('data:application/pdf') ? '.pdf' : '.png';
+                fileName = customName || `Transkrip_${namaAlumni}${nisn && nisn !== '-' ? '_' + nisn : ''}${ext}`;
+            }
+
+            if (!fileData) {
+                const docId = document.getElementById('al-doc-id')?.value;
+                if (docId) {
+                    const a = state.alumni.find(item => item.id === docId);
+                    if (a) {
+                        if (type === 'foto') fileData = a.foto_alumni;
+                        else if (type === 'ijazah') fileData = a.file_ijazah;
+                        else if (type === 'transkrip') fileData = a.file_transkrip;
+                    }
+                }
+            }
+
+            if (!fileData) {
+                showToast("Belum ada berkas untuk diunduh.", "info");
+                return;
+            }
+
+            const link = document.createElement('a');
+            link.href = fileData;
+            link.download = fileName;
+            document.body.appendChild(link);
+            link.click();
+            document.body.removeChild(link);
+            showToast(`Mengunduh ${fileName}...`, "success");
+        };
+
+        window.downloadAlumniDocDirect = function (alumniId, type) {
+            const a = state.alumni.find(item => item.id === alumniId);
+            if (!a) {
+                showToast("Data alumni tidak ditemukan.", "error");
+                return;
+            }
+
+            let fileData = '';
+            let fileName = '';
+            const cleanName = (a.nama_lengkap || 'Alumni').trim().replace(/[/\\?%*:|"<>]/g, '').replace(/\s+/g, '_');
+            const nisn = a.nisn && a.nisn !== '-' ? `_${a.nisn}` : '';
+
+            if (type === 'foto') {
+                fileData = a.foto_alumni;
+                fileName = `Foto_${cleanName}${nisn}.png`;
+            } else if (type === 'ijazah') {
+                fileData = a.file_ijazah;
+                const ext = fileData && fileData.startsWith('data:application/pdf') ? '.pdf' : '.png';
+                fileName = a.nama_file_ijazah || `Ijazah_${cleanName}${nisn}${ext}`;
+            } else if (type === 'transkrip') {
+                fileData = a.file_transkrip;
+                const ext = fileData && fileData.startsWith('data:application/pdf') ? '.pdf' : '.png';
+                fileName = a.nama_file_transkrip || `Transkrip_${cleanName}${nisn}${ext}`;
+            }
+
+            if (!fileData) {
+                showToast("Berkas belum diunggah untuk alumni ini.", "info");
+                return;
+            }
+
+            const link = document.createElement('a');
+            link.href = fileData;
+            link.download = fileName;
+            document.body.appendChild(link);
+            link.click();
+            document.body.removeChild(link);
+            showToast(`Mengunduh ${fileName}...`, "success");
+        };
 
         // FITUR UPLOAD CEPAT BERKAS ALUMNI LANGSUNG DARI TABEL
         let activeQuickUploadTarget = { alumniId: null, type: null };
@@ -6061,10 +6176,12 @@
                         const prevImg = document.getElementById('prev-foto-alumni');
                         const ph = document.getElementById('ph-foto-alumni');
                         const btnDel = document.getElementById('btn-del-foto-alumni');
+                        const btnDl = document.getElementById('btn-dl-foto-alumni');
                         if (dataInp) dataInp.value = a.foto_alumni;
                         if (prevImg) { prevImg.src = a.foto_alumni; prevImg.classList.remove('hidden'); }
                         if (ph) ph.classList.add('hidden');
                         if (btnDel) btnDel.classList.remove('hidden');
+                        if (btnDl) btnDl.classList.remove('hidden');
                     }
 
                     if (a.file_ijazah) {
@@ -6074,9 +6191,11 @@
                         const ph = document.getElementById('ph-ijazah-alumni');
                         const txt = document.getElementById('txt-ijazah-status');
                         const btnDel = document.getElementById('btn-del-ijazah-alumni');
+                        const btnDl = document.getElementById('btn-dl-ijazah-alumni');
                         if (dataInp) dataInp.value = a.file_ijazah;
                         if (nameInp) nameInp.value = a.nama_file_ijazah || 'Scan_Ijazah';
                         if (btnDel) btnDel.classList.remove('hidden');
+                        if (btnDl) btnDl.classList.remove('hidden');
 
                         if (a.file_ijazah.startsWith('data:image/')) {
                             if (prevImg) { prevImg.src = a.file_ijazah; prevImg.classList.remove('hidden'); }
@@ -6095,9 +6214,11 @@
                         const ph = document.getElementById('ph-transkrip-alumni');
                         const txt = document.getElementById('txt-transkrip-status');
                         const btnDel = document.getElementById('btn-del-transkrip-alumni');
+                        const btnDl = document.getElementById('btn-dl-transkrip-alumni');
                         if (dataInp) dataInp.value = a.file_transkrip;
                         if (nameInp) nameInp.value = a.nama_file_transkrip || 'Scan_Transkrip';
                         if (btnDel) btnDel.classList.remove('hidden');
+                        if (btnDl) btnDl.classList.remove('hidden');
 
                         if (a.file_transkrip.startsWith('data:image/')) {
                             if (prevImg) { prevImg.src = a.file_transkrip; prevImg.classList.remove('hidden'); }
