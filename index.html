@@ -1481,26 +1481,35 @@
 
                             <!-- Card 3: Cadangan & Pemulihan Database (Backup & Restore) -->
                             <div class="lg:col-span-12 bg-white rounded-3xl p-6 border border-slate-200/80 shadow-sm">
-                                <div class="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 mb-4">
+                                <div
+                                    class="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 mb-4">
                                     <div>
-                                        <span class="text-[11px] font-bold uppercase tracking-wider px-2.5 py-1 rounded-full bg-emerald-100 text-emerald-900">Keamanan Data</span>
-                                        <h3 class="text-lg font-extrabold text-slate-900 mt-1">Cadangan & Pemulihan Database (Backup & Restore)</h3>
-                                        <p class="text-xs text-slate-500">Amankan seluruh data buku induk siswa, guru, nilai, dan pengaturan ke dalam file cadangan agar data tidak pernah hilang saat file HTML di-update atau berpindah perangkat.</p>
+                                        <span
+                                            class="text-[11px] font-bold uppercase tracking-wider px-2.5 py-1 rounded-full bg-emerald-100 text-emerald-900">Keamanan
+                                            Data</span>
+                                        <h3 class="text-lg font-extrabold text-slate-900 mt-1">Cadangan & Pemulihan
+                                            Database (Backup & Restore)</h3>
+                                        <p class="text-xs text-slate-500">Amankan seluruh data buku induk siswa, guru,
+                                            nilai, dan pengaturan ke dalam file cadangan agar data tidak pernah hilang
+                                            saat file HTML di-update atau berpindah perangkat.</p>
                                     </div>
-                                    <div class="w-10 h-10 rounded-2xl bg-emerald-50 text-emerald-700 flex items-center justify-center text-lg shrink-0">
+                                    <div
+                                        class="w-10 h-10 rounded-2xl bg-emerald-50 text-emerald-700 flex items-center justify-center text-lg shrink-0">
                                         <i class="fa-solid fa-database"></i>
                                     </div>
                                 </div>
 
                                 <div class="grid grid-cols-1 md:grid-cols-3 gap-4 pt-2">
                                     <!-- Tombol 1: Unduh Backup -->
-                                    <div class="p-4 rounded-2xl bg-slate-50 border border-slate-200 flex flex-col justify-between">
+                                    <div
+                                        class="p-4 rounded-2xl bg-slate-50 border border-slate-200 flex flex-col justify-between">
                                         <div>
                                             <div class="font-bold text-xs text-slate-800 flex items-center gap-2 mb-1">
                                                 <i class="fa-solid fa-download text-emerald-600"></i>
                                                 <span>1. Unduh Cadangan Data</span>
                                             </div>
-                                            <p class="text-[11px] text-slate-500 mb-3">Simpan file cadangan (.json) ke komputer Anda sebelum mengganti file HTML atau berpindah laptop.</p>
+                                            <p class="text-[11px] text-slate-500 mb-3">Simpan file cadangan (.json) ke
+                                                komputer Anda sebelum mengganti file HTML atau berpindah laptop.</p>
                                         </div>
                                         <button type="button" onclick="window.exportDatabaseBackup()"
                                             class="w-full py-2.5 px-4 rounded-xl bg-opti-dark text-opti-lime hover:bg-slate-800 font-bold text-xs transition flex items-center justify-center gap-2 shadow-sm">
@@ -1510,16 +1519,21 @@
                                     </div>
 
                                     <!-- Tombol 2: Pulihkan Data -->
-                                    <div class="p-4 rounded-2xl bg-slate-50 border border-slate-200 flex flex-col justify-between">
+                                    <div
+                                        class="p-4 rounded-2xl bg-slate-50 border border-slate-200 flex flex-col justify-between">
                                         <div>
                                             <div class="font-bold text-xs text-slate-800 flex items-center gap-2 mb-1">
                                                 <i class="fa-solid fa-upload text-blue-600"></i>
                                                 <span>2. Pulihkan Data (Restore)</span>
                                             </div>
-                                            <p class="text-[11px] text-slate-500 mb-3">Pilih file cadangan (.json) yang sudah diunduh sebelumnya untuk mengembalikan seluruh data dalam 1 detik.</p>
+                                            <p class="text-[11px] text-slate-500 mb-3">Pilih file cadangan (.json) yang
+                                                sudah diunduh sebelumnya untuk mengembalikan seluruh data dalam 1 detik.
+                                            </p>
                                         </div>
-                                        <input type="file" id="backup-file-input" accept=".json" class="hidden" onchange="window.restoreDatabaseBackup(event)">
-                                        <button type="button" onclick="document.getElementById('backup-file-input').click()"
+                                        <input type="file" id="backup-file-input" accept=".json" class="hidden"
+                                            onchange="window.restoreDatabaseBackup(event)">
+                                        <button type="button"
+                                            onclick="document.getElementById('backup-file-input').click()"
                                             class="w-full py-2.5 px-4 rounded-xl bg-blue-600 hover:bg-blue-700 text-white font-bold text-xs transition flex items-center justify-center gap-2 shadow-sm">
                                             <i class="fa-solid fa-file-import"></i>
                                             <span>Pilih File Pemulihan (.json)</span>
@@ -1527,13 +1541,15 @@
                                     </div>
 
                                     <!-- Tombol 3: Bersihkan Data Dummy -->
-                                    <div class="p-4 rounded-2xl bg-amber-50/60 border border-amber-200 flex flex-col justify-between">
+                                    <div
+                                        class="p-4 rounded-2xl bg-amber-50/60 border border-amber-200 flex flex-col justify-between">
                                         <div>
                                             <div class="font-bold text-xs text-amber-900 flex items-center gap-2 mb-1">
                                                 <i class="fa-solid fa-broom text-amber-600"></i>
                                                 <span>3. Bersihkan Data Dummy</span>
                                             </div>
-                                            <p class="text-[11px] text-slate-500 mb-3">Hapus sisa data siswa contoh bawaan dari sistem sehingga daftar buku induk menjadi bersih 100%.</p>
+                                            <p class="text-[11px] text-slate-500 mb-3">Hapus sisa data siswa contoh
+                                                bawaan dari sistem sehingga daftar buku induk menjadi bersih 100%.</p>
                                         </div>
                                         <button type="button" onclick="window.clearAllDummyData()"
                                             class="w-full py-2.5 px-4 rounded-xl bg-amber-600 hover:bg-amber-700 text-white font-bold text-xs transition flex items-center justify-center gap-2 shadow-sm">
@@ -1730,26 +1746,35 @@
                         class="form-tab-panel hidden grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
                         <div class="sm:col-span-2 lg:col-span-3">
                             <label class="block text-xs font-bold text-slate-700 mb-1">Status / Jalur Masuk *</label>
-                            <select id="f-jenis-masuk"
-                                class="w-full px-3.5 py-2.5 rounded-xl border border-slate-300 text-xs bg-white font-bold">
+                            <select id="f-jenis-masuk" onchange="window.updateJenisMasukFields(true)"
+                                class="w-full px-3.5 py-2.5 rounded-xl border border-slate-300 text-xs bg-white font-bold cursor-pointer transition focus:border-emerald-500 focus:ring-1 focus:ring-emerald-500">
                                 <option value="Siswa Baru (TK/RA)">Siswa Baru (dari TK / RA)</option>
                                 <option value="Pindahan">Siswa Pindahan (dari MI / SD / Sekolah Lain)</option>
                             </select>
                         </div>
                         <div>
-                            <label class="block text-xs font-bold text-slate-700 mb-1">Asal TK / RA</label>
+                            <div class="flex items-center justify-between mb-1">
+                                <label class="block text-xs font-bold text-slate-700">Asal TK / RA</label>
+                                <span id="badge-asal-tk" class="text-[10px]"></span>
+                            </div>
                             <input type="text" id="f-asal-tk" placeholder="Contoh: RA Nurul Islam"
-                                class="w-full px-3.5 py-2.5 rounded-xl border border-slate-300 text-xs">
+                                class="w-full px-3.5 py-2.5 rounded-xl border border-slate-300 text-xs transition duration-200">
                         </div>
                         <div>
-                            <label class="block text-xs font-bold text-slate-700 mb-1">Asal Sekolah Pindahan</label>
+                            <div class="flex items-center justify-between mb-1">
+                                <label class="block text-xs font-bold text-slate-700">Asal Sekolah Pindahan</label>
+                                <span id="badge-asal-pindahan" class="text-[10px]"></span>
+                            </div>
                             <input type="text" id="f-asal-pindahan" placeholder="Nama MI / SD asal jika pindahan"
-                                class="w-full px-3.5 py-2.5 rounded-xl border border-slate-300 text-xs">
+                                class="w-full px-3.5 py-2.5 rounded-xl border border-slate-300 text-xs transition duration-200">
                         </div>
                         <div>
-                            <label class="block text-xs font-bold text-slate-700 mb-1">Surat Keterangan Pindah</label>
+                            <div class="flex items-center justify-between mb-1">
+                                <label class="block text-xs font-bold text-slate-700">Surat Keterangan Pindah</label>
+                                <span id="badge-surat-pindah" class="text-[10px]"></span>
+                            </div>
                             <input type="text" id="f-surat-pindah" placeholder="No. surat pindah (opsional)"
-                                class="w-full px-3.5 py-2.5 rounded-xl border border-slate-300 text-xs font-mono">
+                                class="w-full px-3.5 py-2.5 rounded-xl border border-slate-300 text-xs font-mono transition duration-200">
                         </div>
                         <div>
                             <label class="block text-xs font-bold text-slate-700 mb-1">Tanggal Diterima</label>
@@ -1885,8 +1910,10 @@
                     </div>
 
                     <!-- Pilihan Ganti Data Lama -->
-                    <div class="p-3.5 rounded-2xl bg-amber-50/70 border border-amber-200 text-xs text-amber-900 flex items-center gap-3">
-                        <input type="checkbox" id="import-replace-dummy" checked class="w-4 h-4 rounded text-opti-dark accent-opti-dark cursor-pointer shrink-0">
+                    <div
+                        class="p-3.5 rounded-2xl bg-amber-50/70 border border-amber-200 text-xs text-amber-900 flex items-center gap-3">
+                        <input type="checkbox" id="import-replace-dummy" checked
+                            class="w-4 h-4 rounded text-opti-dark accent-opti-dark cursor-pointer shrink-0">
                         <label for="import-replace-dummy" class="cursor-pointer font-semibold leading-relaxed">
                             Bersihkan data dummy lama & ganti sepenuhnya dengan data siswa dari file ini
                         </label>
@@ -3049,6 +3076,54 @@
             }
         };
 
+        window.updateJenisMasukFields = function (clearInactive = true) {
+            const selectEl = document.getElementById('f-jenis-masuk');
+            const asalTkEl = document.getElementById('f-asal-tk');
+            const asalPindahanEl = document.getElementById('f-asal-pindahan');
+            const suratPindahEl = document.getElementById('f-surat-pindah');
+            const badgeTk = document.getElementById('badge-asal-tk');
+            const badgePindahan = document.getElementById('badge-asal-pindahan');
+            const badgeSurat = document.getElementById('badge-surat-pindah');
+
+            if (!selectEl || !asalTkEl || !asalPindahanEl || !suratPindahEl) return;
+
+            const val = selectEl.value;
+            const isPindahan = val.includes('Pindahan');
+
+            const applyLockStyle = (el, isLocked, placeholderLocked, placeholderActive, badgeEl) => {
+                if (isLocked) {
+                    el.disabled = true;
+                    if (clearInactive) el.value = '';
+                    el.classList.add('bg-slate-100', 'text-slate-400', 'border-slate-200', 'cursor-not-allowed');
+                    el.classList.remove('bg-white', 'text-slate-800', 'border-slate-300');
+                    el.placeholder = placeholderLocked;
+                    if (badgeEl) {
+                        badgeEl.innerHTML = '<span class="inline-flex items-center gap-1 text-[10px] font-semibold text-slate-400 bg-slate-100 border border-slate-200 px-2 py-0.5 rounded-full"><i class="fa-solid fa-lock text-[9px]"></i> Terkunci</span>';
+                    }
+                } else {
+                    el.disabled = false;
+                    el.classList.remove('bg-slate-100', 'text-slate-400', 'border-slate-200', 'cursor-not-allowed');
+                    el.classList.add('bg-white', 'text-slate-800', 'border-slate-300');
+                    el.placeholder = placeholderActive;
+                    if (badgeEl) {
+                        badgeEl.innerHTML = '<span class="inline-flex items-center gap-1 text-[10px] font-semibold text-emerald-700 bg-emerald-50 border border-emerald-200 px-2 py-0.5 rounded-full"><i class="fa-solid fa-pen text-[9px]"></i> Aktif</span>';
+                    }
+                }
+            };
+
+            if (isPindahan) {
+                // Siswa Pindahan: Asal TK/RA terkunci; Asal Sekolah Pindahan & Surat Pindah terbuka
+                applyLockStyle(asalTkEl, true, 'Terkunci (Hanya untuk Siswa Baru TK/RA)', 'Contoh: RA Nurul Islam', badgeTk);
+                applyLockStyle(asalPindahanEl, false, 'Terkunci (Hanya untuk Siswa Pindahan)', 'Nama MI / SD asal jika pindahan', badgePindahan);
+                applyLockStyle(suratPindahEl, false, 'Terkunci (Hanya untuk Siswa Pindahan)', 'No. surat pindah (opsional)', badgeSurat);
+            } else {
+                // Siswa Baru: Asal TK/RA terbuka; Asal Sekolah Pindahan & Surat Pindah terkunci
+                applyLockStyle(asalTkEl, false, 'Terkunci (Hanya untuk Siswa Baru TK/RA)', 'Contoh: RA Nurul Islam', badgeTk);
+                applyLockStyle(asalPindahanEl, true, 'Terkunci (Hanya untuk Siswa Pindahan)', 'Nama MI / SD asal jika pindahan', badgePindahan);
+                applyLockStyle(suratPindahEl, true, 'Terkunci (Hanya untuk Siswa Pindahan)', 'No. surat pindah (opsional)', badgeSurat);
+            }
+        };
+
         window.openStudentModal = function (studentId = null) {
             document.getElementById('modal-form-siswa').classList.remove('hidden');
             document.getElementById('form-buku-induk').reset();
@@ -3102,6 +3177,7 @@
                 document.getElementById('f-surat-pindah').value = (s.pendidikan?.surat_pindah && s.pendidikan?.surat_pindah !== '-') ? s.pendidikan?.surat_pindah : '';
                 document.getElementById('f-tgl-masuk').value = s.pendidikan?.tgl_masuk || '2024-07-15';
                 document.getElementById('f-diterima-kelas').value = s.pendidikan?.diterima_kelas || 'Kelas 1';
+                window.updateJenisMasukFields(false);
 
                 document.getElementById('f-status-siswa').value = s.status_siswa || 'Aktif';
                 document.getElementById('f-tahun-lulus').value = s.pendidikan?.tahun_lulus || '';
@@ -3116,6 +3192,8 @@
                 document.getElementById('f-penghasilan-ortu').value = "Rp 1.000.000 - Rp 2.500.000";
                 document.getElementById('f-penghasilan-custom').classList.add('hidden');
                 document.getElementById('f-penghasilan-custom').value = "";
+                document.getElementById('f-jenis-masuk').value = "Siswa Baru (TK/RA)";
+                window.updateJenisMasukFields(true);
             }
         };
 
@@ -3142,6 +3220,7 @@
                 const rawJs = document.getElementById('f-jml-saudara').value.trim();
                 const anakKe = (rawAk === '-') ? '' : rawAk;
                 const jmlSaudara = (rawJs === '-') ? '' : rawJs;
+                const isPindahan = (document.getElementById('f-jenis-masuk')?.value || '').includes('Pindahan');
 
                 const studentPayload = {
                     id: docId,
@@ -3168,10 +3247,10 @@
                         penghasilan_ortu: savedPenghasilan || '-'
                     },
                     pendidikan: {
-                        jenis_masuk: document.getElementById('f-jenis-masuk')?.value || 'Siswa Baru (TK/RA)',
-                        asal_tk_ra: document.getElementById('f-asal-tk')?.value.trim() || '-',
-                        asal_sekolah_pindahan: document.getElementById('f-asal-pindahan')?.value.trim() || '-',
-                        surat_pindah: document.getElementById('f-surat-pindah')?.value.trim() || '-',
+                        jenis_masuk: isPindahan ? 'Pindahan' : 'Siswa Baru (TK/RA)',
+                        asal_tk_ra: isPindahan ? '-' : (document.getElementById('f-asal-tk')?.value.trim() || '-'),
+                        asal_sekolah_pindahan: isPindahan ? (document.getElementById('f-asal-pindahan')?.value.trim() || '-') : '-',
+                        surat_pindah: isPindahan ? (document.getElementById('f-surat-pindah')?.value.trim() || '-') : '-',
                         tgl_masuk: document.getElementById('f-tgl-masuk')?.value || '2024-07-15',
                         diterima_kelas: document.getElementById('f-diterima-kelas')?.value || 'Kelas 1',
                         tahun_lulus: document.getElementById('f-tahun-lulus')?.value.trim() || '',
