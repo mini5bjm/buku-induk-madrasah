@@ -797,14 +797,14 @@
                                 <table class="w-full text-left border-collapse">
                                     <thead>
                                         <tr class="bg-slate-900 text-white text-[11px] uppercase tracking-wider">
-                                            <th class="py-4 px-5 font-bold">NIP / ID</th>
-                                            <th class="py-4 px-5 font-bold">Nama Lengkap & Gelar</th>
-                                            <th class="py-4 px-4 font-bold">L/P</th>
-                                            <th class="py-4 px-4 font-bold">Jabatan / Tugas</th>
-                                            <th class="py-4 px-4 font-bold">Mata Pelajaran</th>
-                                            <th class="py-4 px-4 font-bold">No. WhatsApp</th>
-                                            <th class="py-4 px-4 font-bold">Status</th>
-                                            <th class="py-4 px-5 font-bold text-right">Aksi</th>
+                                            <th class="py-4 px-4 font-bold text-center whitespace-nowrap min-w-[130px]">NIP / ID</th>
+                                            <th class="py-4 px-5 font-bold text-center min-w-[200px]">Nama Lengkap & Gelar</th>
+                                            <th class="py-4 px-3 font-bold text-center whitespace-nowrap w-14">L/P</th>
+                                            <th class="py-4 px-4 font-bold text-center whitespace-nowrap min-w-[150px]">Jabatan / Tugas</th>
+                                            <th class="py-4 px-4 font-bold text-center min-w-[180px]">Mata Pelajaran</th>
+                                            <th class="py-4 px-4 font-bold text-center whitespace-nowrap min-w-[130px]">No. WhatsApp</th>
+                                            <th class="py-4 px-4 font-bold text-center whitespace-nowrap w-24">Status</th>
+                                            <th class="py-4 px-5 font-bold text-center whitespace-nowrap w-28">Aksi</th>
                                         </tr>
                                     </thead>
                                     <tbody id="teachers-table-body" class="divide-y divide-slate-200 text-sm">
@@ -3455,6 +3455,9 @@
                 return matchText && matchKelas && matchJenis;
             });
 
+            // Urutkan data mutasi sesuai abjad A-Z berdasarkan Nama Siswa
+            filtered.sort((a, b) => (a.nama_siswa || '').localeCompare(b.nama_siswa || '', 'id', { sensitivity: 'base' }));
+
             const countBadge = document.getElementById('stat-mutasi-count');
             if (countBadge) countBadge.textContent = `${filtered.length} Data Mutasi`;
 
@@ -3495,7 +3498,8 @@
         window.filterMutationFormStudents = function (kls) {
             const selectEl = document.getElementById('mutasi-siswa-id');
             if (!selectEl) return;
-            const studentsToDisplay = (kls === 'ALL') ? state.students : state.students.filter(s => s.kelas_aktif === kls);
+            let studentsToDisplay = (kls === 'ALL') ? [...state.students] : state.students.filter(s => s.kelas_aktif === kls);
+            studentsToDisplay.sort((a, b) => (a.nama_lengkap || '').localeCompare(b.nama_lengkap || '', 'id', { sensitivity: 'base' }));
             if (studentsToDisplay.length === 0) {
                 selectEl.innerHTML = `<option value="">-- Tidak ada siswa di kelas ini --</option>`;
                 return;
@@ -4750,10 +4754,13 @@
             const jbtFilter = document.getElementById('filter-jabatan-guru')?.value || 'ALL';
 
             const filtered = state.teachers.filter(t => {
-                const matchText = t.nama_lengkap.toLowerCase().includes(q) || String(t.nip).toLowerCase().includes(q) || (t.mapel || '').toLowerCase().includes(q);
+                const matchText = (t.nama_lengkap || '').toLowerCase().includes(q) || String(t.nip || '').toLowerCase().includes(q) || (t.mapel || '').toLowerCase().includes(q);
                 const matchJabatan = jbtFilter === 'ALL' || (t.jabatan || '').includes(jbtFilter);
                 return matchText && matchJabatan;
             });
+
+            // Urutkan data guru sesuai abjad A-Z berdasarkan Nama Lengkap
+            filtered.sort((a, b) => (a.nama_lengkap || '').localeCompare(b.nama_lengkap || '', 'id', { sensitivity: 'base' }));
 
             const totalEl = document.getElementById('stat-guru-total');
             if (totalEl) totalEl.textContent = state.teachers.length;
@@ -4772,16 +4779,16 @@
 
             tbody.innerHTML = filtered.map(t => `
                 <tr class="hover:bg-slate-50 transition">
-                    <td class="py-3.5 px-5 font-mono text-xs font-bold text-slate-700">${t.nip || '-'}</td>
+                    <td class="py-3.5 px-4 font-mono text-xs font-bold text-slate-700 text-center whitespace-nowrap">${t.nip || '-'}</td>
                     <td class="py-3.5 px-5 font-bold text-slate-900 text-xs">${t.nama_lengkap}</td>
-                    <td class="py-3.5 px-4"><span class="px-2 py-0.5 rounded bg-slate-100 text-xs font-bold">${t.jk}</span></td>
-                    <td class="py-3.5 px-4 font-semibold text-xs text-slate-800">${t.jabatan || '-'}</td>
-                    <td class="py-3.5 px-4 text-xs text-slate-600">${t.mapel || '-'}</td>
-                    <td class="py-3.5 px-4 font-mono text-xs">${t.no_hp || '-'}</td>
-                    <td class="py-3.5 px-4"><span class="px-2.5 py-1 rounded-full text-[11px] font-bold bg-emerald-100 text-emerald-800">${t.status || 'Aktif'}</span></td>
-                    <td class="py-3.5 px-5 text-right whitespace-nowrap">
-                        <button onclick="window.openTeacherModal('${t.id}')" class="p-2 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-700 text-xs mr-1"><i class="fa-solid fa-pen-to-square"></i></button>
-                        <button onclick="window.handleDeleteTeacher('${t.id}')" class="p-2 rounded-xl bg-red-50 hover:bg-red-100 text-red-600 text-xs"><i class="fa-solid fa-trash"></i></button>
+                    <td class="py-3.5 px-3 text-center whitespace-nowrap"><span class="px-2 py-0.5 rounded bg-slate-100 text-xs font-bold text-slate-700">${t.jk}</span></td>
+                    <td class="py-3.5 px-4 font-semibold text-xs text-slate-800 text-center">${t.jabatan || '-'}</td>
+                    <td class="py-3.5 px-4 text-xs text-slate-600 text-center">${t.mapel || '-'}</td>
+                    <td class="py-3.5 px-4 font-mono text-xs text-center">${t.no_hp || '-'}</td>
+                    <td class="py-3.5 px-4 text-center whitespace-nowrap"><span class="px-2.5 py-1 rounded-full text-[11px] font-bold bg-emerald-100 text-emerald-800">${t.status || 'Aktif'}</span></td>
+                    <td class="py-3.5 px-5 text-center whitespace-nowrap">
+                        <button onclick="window.openTeacherModal('${t.id}')" class="p-2 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-700 text-xs mr-1" title="Edit"><i class="fa-solid fa-pen-to-square"></i></button>
+                        <button onclick="window.handleDeleteTeacher('${t.id}')" class="p-2 rounded-xl bg-red-50 hover:bg-red-100 text-red-600 text-xs" title="Hapus"><i class="fa-solid fa-trash"></i></button>
                     </td>
                 </tr>
             `).join('');
@@ -5191,11 +5198,14 @@
             const ljtFilter = document.getElementById('filter-lanjutan-alumni')?.value || 'ALL';
 
             const filtered = state.alumni.filter(a => {
-                const matchText = a.nama_lengkap.toLowerCase().includes(q) || String(a.nisn).includes(q) || (a.nama_sekolah_lanjutan || '').toLowerCase().includes(q);
+                const matchText = (a.nama_lengkap || '').toLowerCase().includes(q) || String(a.nisn || '').includes(q) || (a.nama_sekolah_lanjutan || '').toLowerCase().includes(q);
                 const matchThn = thnFilter === 'ALL' || a.tahun_lulus === thnFilter;
                 const matchLjt = ljtFilter === 'ALL' || a.jenis_lanjutan === ljtFilter;
                 return matchText && matchThn && matchLjt;
             });
+
+            // Urutkan data alumni sesuai abjad A-Z berdasarkan Nama Lengkap
+            filtered.sort((a, b) => (a.nama_lengkap || '').localeCompare(b.nama_lengkap || '', 'id', { sensitivity: 'base' }));
 
             const totalEl = document.getElementById('stat-alumni-total');
             if (totalEl) totalEl.textContent = state.alumni.length;
