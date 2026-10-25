@@ -2590,6 +2590,33 @@
             } catch (e) { }
         };
 
+        window.getDeletedAlumniIds = function () {
+            try {
+                const raw = localStorage.getItem('mis_deleted_alumni');
+                return raw ? JSON.parse(raw) : [];
+            } catch (e) {
+                return [];
+            }
+        };
+        window.trackDeletedAlumniId = function (id) {
+            if (!id) return;
+            try {
+                const list = window.getDeletedAlumniIds();
+                if (!list.includes(id)) {
+                    list.push(id);
+                    localStorage.setItem('mis_deleted_alumni', JSON.stringify(list));
+                }
+            } catch (e) { }
+        };
+        window.uncheckDeletedAlumniId = function (id) {
+            if (!id) return;
+            try {
+                let list = window.getDeletedAlumniIds();
+                list = list.filter(item => item !== id);
+                localStorage.setItem('mis_deleted_alumni', JSON.stringify(list));
+            } catch (e) { }
+        };
+
         window.normalizeStudentData = function (s) {
             if (!s) return s;
             let ak = String(s.anak_ke !== undefined && s.anak_ke !== null ? s.anak_ke : '').trim();
@@ -2643,6 +2670,28 @@
             }
         };
         const withButtonFeedback = window.withButtonFeedback;
+
+        // HELPER PENYIMPANAN OFFLINE ALUMNI YANG AMAN DARI BATAS KUOTA LOCALSTORAGE
+        function saveOfflineAlumni() {
+            try {
+                localStorage.setItem('mis_offline_alumni', JSON.stringify(state.alumni));
+            } catch (quotaErr) {
+                console.warn("LocalStorage penuh karena berkas gambar, menyimpan metadata alumni:", quotaErr);
+                try {
+                    // Simpan metadata teks saja jika gambar/pdf base64 melebihi kuota 5MB browser
+                    const lightAlumni = state.alumni.map(a => ({
+                        ...a,
+                        file_ijazah: a.file_ijazah && a.file_ijazah.length > 2000 ? '' : a.file_ijazah,
+                        file_transkrip: a.file_transkrip && a.file_transkrip.length > 2000 ? '' : a.file_transkrip,
+                        foto_alumni: a.foto_alumni && a.foto_alumni.length > 50000 ? '' : a.foto_alumni
+                    }));
+                    localStorage.setItem('mis_offline_alumni', JSON.stringify(lightAlumni));
+                } catch (e2) {
+                    console.error("Gagal menyimpan cadangan offline alumni:", e2);
+                }
+            }
+        }
+        window.saveOfflineAlumni = saveOfflineAlumni;
 
         async function startCloudSync() {
             if (!db) return;
@@ -2703,16 +2752,47 @@
                 }, err => console.warn("Firestore listener error (siswa):", err));
 
                 getColRef('data_guru').onSnapshot(snap => {
-                    if (!snap.empty) {
-                        state.teachers = snap.docs.map(d => ({ id: d.id, ...d.data() }));
+                    if (snap) {
+                        const cloudTeachers = snap.docs.map(d => ({ id: d.id, ...d.data() }));
+                        const combined = [...cloudTeachers];
+                        for (const localT of state.teachers) {
+                            if (!combined.some(c => c.id === localT.id || (localT.nip && c.nip === localT.nip))) {
+                                combined.push(localT);
+                            }
+                        }
+                        combined.sort((a, b) => (a.nama_lengkap || '').localeCompare(b.nama_lengkap || '', 'id', { sensitivity: 'base' }));
+                        state.teachers = combined;
+                        try { localStorage.setItem('mis_offline_teachers', JSON.stringify(state.teachers)); } catch (e) { }
                         window.renderTeachersTable();
                     }
                 }, err => console.warn("Firestore listener error (guru):", err));
 
                 getColRef('data_alumni').onSnapshot(snap => {
-                    if (!snap.empty) {
-                        state.alumni = snap.docs.map(d => ({ id: d.id, ...d.data() }));
-                        try { localStorage.setItem('mis_offline_alumni', JSON.stringify(state.alumni)); } catch (e) { }
+                    if (snap) {
+                        const deletedAlumniIds = window.getDeletedAlumniIds();
+                        const cloudAlumni = snap.docs.map(d => ({ id: d.id, ...d.data() })).filter(a => !deletedAlumniIds.includes(a.id));
+                        const combined = [...cloudAlumni];
+                        for (const localA of state.alumni) {
+                            if (deletedAlumniIds.includes(localA.id)) continue;
+                            const hasValidNisn = localA.nisn && localA.nisn !== '-' && localA.nisn !== '0' && String(localA.nisn).length >= 6;
+                            const existingIdx = combined.findIndex(c => c.id === localA.id || (hasValidNisn && c.nisn === localA.nisn) || (localA.nama_lengkap && c.nama_lengkap && c.nama_lengkap.toLowerCase() === localA.nama_lengkap.toLowerCase()));
+                            if (existingIdx >= 0) {
+                                combined[existingIdx] = {
+                                    ...localA,
+                                    ...combined[existingIdx],
+                                    foto_alumni: combined[existingIdx].foto_alumni || localA.foto_alumni || '',
+                                    file_ijazah: combined[existingIdx].file_ijazah || localA.file_ijazah || '',
+                                    nama_file_ijazah: combined[existingIdx].nama_file_ijazah || localA.nama_file_ijazah || '',
+                                    file_transkrip: combined[existingIdx].file_transkrip || localA.file_transkrip || '',
+                                    nama_file_transkrip: combined[existingIdx].nama_file_transkrip || localA.nama_file_transkrip || ''
+                                };
+                            } else {
+                                combined.push(localA);
+                            }
+                        }
+                        combined.sort((a, b) => (a.nama_lengkap || '').localeCompare(b.nama_lengkap || '', 'id', { sensitivity: 'base' }));
+                        state.alumni = combined;
+                        saveOfflineAlumni();
                         window.renderAlumniTable();
                     }
                 }, err => console.warn("Firestore listener error (alumni):", err));
@@ -2751,8 +2831,13 @@
                 }
                 const cachedTeachers = localStorage.getItem('mis_offline_teachers');
                 if (cachedTeachers) state.teachers = JSON.parse(cachedTeachers);
+                const deletedAlumniIds = window.getDeletedAlumniIds();
                 const cachedAlumni = localStorage.getItem('mis_offline_alumni');
-                if (cachedAlumni) state.alumni = JSON.parse(cachedAlumni);
+                if (cachedAlumni) {
+                    state.alumni = JSON.parse(cachedAlumni).filter(a => !deletedAlumniIds.includes(a.id));
+                } else {
+                    state.alumni = state.alumni.filter(a => !deletedAlumniIds.includes(a.id));
+                }
                 const cachedAcademics = localStorage.getItem('mis_offline_academics');
                 if (cachedAcademics) state.academics = JSON.parse(cachedAcademics);
                 const cachedMutations = localStorage.getItem('mis_offline_mutations');
@@ -5623,19 +5708,46 @@
             };
 
             tbody.innerHTML = filtered.map(a => {
-                // Foto avatar alumni
+                // Foto avatar alumni dengan tombol upload langsung di luar
                 const fotoHtml = a.foto_alumni
-                    ? `<img src="${a.foto_alumni}" onclick="window.viewAlumniDoc('${a.id}', 'foto')" class="w-8 h-8 rounded-full object-cover border border-slate-200 cursor-pointer shadow-sm hover:scale-105 transition shrink-0" title="Klik untuk memperbesar foto">`
-                    : `<div class="w-8 h-8 rounded-full ${a.jk === 'P' ? 'bg-pink-100 text-pink-700 border-pink-200' : 'bg-blue-100 text-blue-700 border-blue-200'} border flex items-center justify-center font-bold text-xs shrink-0">${(a.nama_lengkap || 'A').charAt(0).toUpperCase()}</div>`;
+                    ? `<div class="relative group shrink-0">
+                         <img src="${a.foto_alumni}" onclick="window.viewAlumniDoc('${a.id}', 'foto')" class="w-8 h-8 rounded-full object-cover border border-slate-200 cursor-pointer shadow-sm hover:scale-105 transition" title="Pas Foto (Klik untuk memperbesar)">
+                         <button type="button" onclick="window.triggerQuickUpload('${a.id}', 'foto')" class="absolute -bottom-1 -right-1 w-4 h-4 rounded-full bg-slate-800 hover:bg-emerald-600 text-white flex items-center justify-center text-[8px] shadow transition" title="Ganti Pas Foto"><i class="fa-solid fa-camera"></i></button>
+                       </div>`
+                    : `<div class="relative group shrink-0">
+                         <div onclick="window.triggerQuickUpload('${a.id}', 'foto')" class="w-8 h-8 rounded-full ${a.jk === 'P' ? 'bg-pink-100 text-pink-700 border-pink-200' : 'bg-blue-100 text-blue-700 border-blue-200'} border flex items-center justify-center font-bold text-xs cursor-pointer hover:ring-2 hover:ring-opti-lime transition" title="Klik untuk Upload Pas Foto">
+                           ${(a.nama_lengkap || 'A').charAt(0).toUpperCase()}
+                         </div>
+                         <button type="button" onclick="window.triggerQuickUpload('${a.id}', 'foto')" class="absolute -bottom-1 -right-1 w-4 h-4 rounded-full bg-slate-700 hover:bg-emerald-600 text-white flex items-center justify-center text-[8px] shadow transition" title="Upload Pas Foto"><i class="fa-solid fa-camera"></i></button>
+                       </div>`;
 
-                // Tombol berkas (ijazah & transkrip)
+                // Tombol berkas ijazah langsung di luar tabel
                 const ijazahBtn = a.file_ijazah
-                    ? `<button type="button" onclick="window.viewAlumniDoc('${a.id}', 'ijazah')" class="inline-flex items-center gap-1 px-2.5 py-1 rounded-lg bg-emerald-50 hover:bg-emerald-100 text-emerald-700 border border-emerald-200 text-[11px] font-bold transition shadow-2xs" title="Lihat / Unduh Scan Ijazah"><i class="fa-solid fa-file-invoice text-emerald-600"></i> Ijazah</button>`
-                    : `<span class="inline-flex items-center px-2 py-1 rounded-lg bg-slate-100 text-slate-400 text-[10px]" title="Belum ada berkas ijazah">-</span>`;
+                    ? `<div class="inline-flex items-center rounded-lg border border-emerald-300 bg-emerald-50 overflow-hidden shadow-2xs">
+                         <button type="button" onclick="window.viewAlumniDoc('${a.id}', 'ijazah')" class="inline-flex items-center gap-1 px-2.5 py-1 text-emerald-700 hover:bg-emerald-100 text-[11px] font-bold transition" title="Lihat / Unduh Scan Ijazah">
+                           <i class="fa-solid fa-file-invoice text-emerald-600"></i> Ijazah
+                         </button>
+                         <button type="button" onclick="window.triggerQuickUpload('${a.id}', 'ijazah')" class="px-1.5 py-1 text-emerald-600 hover:bg-emerald-200 border-l border-emerald-200 text-[10px] transition" title="Ganti Berkas Ijazah">
+                           <i class="fa-solid fa-arrow-up-from-bracket"></i>
+                         </button>
+                       </div>`
+                    : `<button type="button" onclick="window.triggerQuickUpload('${a.id}', 'ijazah')" class="inline-flex items-center gap-1 px-2 py-1 rounded-lg bg-slate-50 hover:bg-emerald-50 text-slate-600 hover:text-emerald-700 border border-dashed border-slate-300 hover:border-emerald-400 text-[11px] font-semibold transition shadow-2xs" title="Upload Scan Ijazah dari Komputer">
+                         <i class="fa-solid fa-cloud-arrow-up text-emerald-600"></i> + Ijazah
+                       </button>`;
 
+                // Tombol berkas transkrip langsung di luar tabel
                 const transkripBtn = a.file_transkrip
-                    ? `<button type="button" onclick="window.viewAlumniDoc('${a.id}', 'transkrip')" class="inline-flex items-center gap-1 px-2.5 py-1 rounded-lg bg-blue-50 hover:bg-blue-100 text-blue-700 border border-blue-200 text-[11px] font-bold transition shadow-2xs" title="Lihat / Unduh Transkrip Nilai"><i class="fa-solid fa-file-lines text-blue-600"></i> Transkrip</button>`
-                    : `<span class="inline-flex items-center px-2 py-1 rounded-lg bg-slate-100 text-slate-400 text-[10px]" title="Belum ada berkas transkrip">-</span>`;
+                    ? `<div class="inline-flex items-center rounded-lg border border-blue-300 bg-blue-50 overflow-hidden shadow-2xs">
+                         <button type="button" onclick="window.viewAlumniDoc('${a.id}', 'transkrip')" class="inline-flex items-center gap-1 px-2.5 py-1 text-blue-700 hover:bg-blue-100 text-[11px] font-bold transition" title="Lihat / Unduh Transkrip Nilai">
+                           <i class="fa-solid fa-file-lines text-blue-600"></i> Transkrip
+                         </button>
+                         <button type="button" onclick="window.triggerQuickUpload('${a.id}', 'transkrip')" class="px-1.5 py-1 text-blue-600 hover:bg-blue-200 border-l border-blue-200 text-[10px] transition" title="Ganti Berkas Transkrip">
+                           <i class="fa-solid fa-arrow-up-from-bracket"></i>
+                         </button>
+                       </div>`
+                    : `<button type="button" onclick="window.triggerQuickUpload('${a.id}', 'transkrip')" class="inline-flex items-center gap-1 px-2 py-1 rounded-lg bg-slate-50 hover:bg-blue-50 text-slate-600 hover:text-blue-700 border border-dashed border-slate-300 hover:border-blue-400 text-[11px] font-semibold transition shadow-2xs" title="Upload Transkrip Nilai dari Komputer">
+                         <i class="fa-solid fa-cloud-arrow-up text-blue-600"></i> + Transkrip
+                       </button>`;
 
                 return `
                     <tr class="hover:bg-slate-50 transition">
@@ -5831,6 +5943,96 @@
             window.removeAlumniDoc('transkrip');
         }
 
+        // FITUR UPLOAD CEPAT BERKAS ALUMNI LANGSUNG DARI TABEL
+        let activeQuickUploadTarget = { alumniId: null, type: null };
+
+        window.triggerQuickUpload = function (alumniId, type) {
+            activeQuickUploadTarget = { alumniId, type };
+            let inputEl = document.getElementById('global-alumni-quick-file-input');
+            if (!inputEl) {
+                inputEl = document.createElement('input');
+                inputEl.type = 'file';
+                inputEl.id = 'global-alumni-quick-file-input';
+                inputEl.className = 'hidden';
+                inputEl.onchange = window.handleQuickUploadSelected;
+                document.body.appendChild(inputEl);
+            }
+            if (type === 'foto') {
+                inputEl.accept = 'image/*';
+            } else {
+                inputEl.accept = 'image/*,application/pdf';
+            }
+            inputEl.value = '';
+            inputEl.click();
+        };
+
+        window.handleQuickUploadSelected = async function (e) {
+            const file = e.target.files && e.target.files[0];
+            if (!file) return;
+
+            const { alumniId, type } = activeQuickUploadTarget;
+            if (!alumniId || !type) return;
+
+            const alumni = state.alumni.find(a => a.id === alumniId);
+            if (!alumni) {
+                showToast("Data alumni tidak ditemukan.", "error");
+                return;
+            }
+
+            if (file.size > 5 * 1024 * 1024) {
+                showToast("Ukuran berkas maksimal 5MB!", "error");
+                return;
+            }
+
+            const labelType = type === 'foto' ? 'Pas Foto' : (type === 'ijazah' ? 'Scan Ijazah' : 'Transkrip Nilai');
+            window.showTransitionLoading("Menyimpan Berkas...", `Mengunggah ${labelType} untuk ${alumni.nama_lengkap}`);
+
+            try {
+                let dataUrl = '';
+                if (file.type.startsWith('image/')) {
+                    const maxDim = type === 'foto' ? [600, 800, 0.8] : [1400, 2000, 0.78];
+                    dataUrl = await compressAlumniImage(file, maxDim[0], maxDim[1], maxDim[2]);
+                } else {
+                    dataUrl = await new Promise((resolve) => {
+                        const reader = new FileReader();
+                        reader.onload = (evt) => resolve(evt.target.result);
+                        reader.readAsDataURL(file);
+                    });
+                }
+
+                if (type === 'foto') {
+                    alumni.foto_alumni = dataUrl;
+                } else if (type === 'ijazah') {
+                    alumni.file_ijazah = dataUrl;
+                    alumni.nama_file_ijazah = file.name;
+                } else if (type === 'transkrip') {
+                    alumni.file_transkrip = dataUrl;
+                    alumni.nama_file_transkrip = file.name;
+                }
+
+                const idx = state.alumni.findIndex(a => a.id === alumniId);
+                if (idx >= 0) {
+                    state.alumni[idx] = alumni;
+                }
+
+                // Simpan offline dengan aman
+                saveOfflineAlumni();
+
+                // Simpan ke Firestore
+                if (isCloudConnected && db) {
+                    await getDocRef('data_alumni', alumniId).set(alumni, { merge: true }).catch(err => console.warn(err));
+                }
+
+                window.renderAlumniTable();
+                showToast(`${labelType} untuk ${alumni.nama_lengkap} berhasil diunggah!`, "success");
+            } catch (err) {
+                console.error("Quick upload error:", err);
+                showToast("Gagal mengunggah berkas: " + err.message, "error");
+            } finally {
+                window.hideTransitionLoading();
+            }
+        };
+
         window.openAlumniModal = function (alumniId = null) {
             document.getElementById('form-data-alumni').reset();
             document.getElementById('al-doc-id').value = '';
@@ -5943,6 +6145,7 @@
                     nama_file_transkrip: document.getElementById('al-name-transkrip')?.value || ''
                 };
 
+                window.uncheckDeletedAlumniId(id);
                 const idx = state.alumni.findIndex(a => a.id === id);
                 if (idx >= 0) state.alumni[idx] = alumniData;
                 else state.alumni.unshift(alumniData);
@@ -5950,7 +6153,7 @@
                 if (isCloudConnected && db) {
                     await getDocRef('data_alumni', id).set(alumniData).catch(err => console.warn(err));
                 }
-                try { localStorage.setItem('mis_offline_alumni', JSON.stringify(state.alumni)); } catch (e) { }
+                saveOfflineAlumni();
 
                 window.renderAlumniTable();
             }, "Data Alumni Tersimpan!");
@@ -5967,11 +6170,12 @@
                 `Hapus Alumni ${a.nama_lengkap}?`,
                 "Data alumni yang dihapus tidak dapat dipulihkan.",
                 async () => {
+                    window.trackDeletedAlumniId(id);
                     state.alumni = state.alumni.filter(item => item.id !== id);
                     if (isCloudConnected && db) {
                         await getDocRef('data_alumni', id).delete().catch(err => console.warn(err));
                     }
-                    try { localStorage.setItem('mis_offline_alumni', JSON.stringify(state.alumni)); } catch (e) { }
+                    saveOfflineAlumni();
                     window.renderAlumniTable();
                     showToast("Data alumni dihapus.", "info");
                 }
@@ -6441,6 +6645,7 @@
                 let countAdded = 0;
 
                 for (const a of parsedAlumniRows) {
+                    window.uncheckDeletedAlumniId(a.id);
                     const hasValidNisn = a.nisn && a.nisn !== '-' && a.nisn.length >= 6;
                     const existingIdx = hasValidNisn
                         ? currentAlumni.findIndex(item => item.nisn === a.nisn)
@@ -6457,9 +6662,7 @@
                 currentAlumni.sort((a, b) => (a.nama_lengkap || '').localeCompare(b.nama_lengkap || '', 'id', { sensitivity: 'base' }));
                 state.alumni = currentAlumni;
 
-                try {
-                    localStorage.setItem('mis_offline_alumni', JSON.stringify(state.alumni));
-                } catch (e) { }
+                saveOfflineAlumni();
 
                 if (isCloudConnected && db) {
                     try {
