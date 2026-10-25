@@ -1608,20 +1608,10 @@
                 </div>
 
                 <div class="p-6 space-y-4 overflow-y-auto">
-                    <!-- Petunjuk / Unduh Template -->
-                    <div class="p-4 rounded-2xl bg-slate-50 border border-slate-200 flex flex-col sm:flex-row sm:items-center justify-between gap-3 text-xs">
-                        <div class="flex items-start gap-2.5">
-                            <i class="fa-solid fa-circle-info text-opti-dark mt-0.5 text-base"></i>
-                            <div>
-                                <span class="font-bold text-slate-900 block">Belum punya format tabelnya?</span>
-                                <span class="text-slate-600">Gunakan template resmi (.xlsx). Kolom A adalah No, Kolom B adalah Nama Siswa, dsb.</span>
-                            </div>
-                        </div>
-                        <button type="button" onclick="window.downloadStudentTemplate()"
-                            class="px-3.5 py-2 rounded-xl bg-opti-dark hover:bg-slate-800 text-opti-lime font-bold shrink-0 flex items-center gap-2">
-                            <i class="fa-solid fa-file-excel"></i>
-                            <span>Unduh Template Excel (.xlsx)</span>
-                        </button>
+                    <!-- Petunjuk Ringkas -->
+                    <div class="p-3.5 rounded-2xl bg-slate-50 border border-slate-200 flex items-center gap-3 text-xs text-slate-600">
+                        <i class="fa-solid fa-circle-info text-opti-dark text-base shrink-0"></i>
+                        <span>Pilih file <b>Excel (.xlsx, .xls)</b> atau <b>CSV</b> yang berisi data siswa. Sistem akan otomatis mendeteksi kolom No, Nama Siswa, NISN, Kelas, dan Data Orang Tua.</span>
                     </div>
 
                     <!-- Dropzone / File Picker -->
@@ -2067,8 +2057,18 @@
                 }, err => console.warn("Firestore listener error (pengaturan):", err));
 
                 getColRef('buku_induk_siswa').onSnapshot(snap => {
-                    if (!snap.empty) {
-                        state.students = snap.docs.map(d => ({ id: d.id, ...d.data() }));
+                    if (snap && !snap.empty) {
+                        const cloudStudents = snap.docs.map(d => ({ id: d.id, ...d.data() }));
+                        const combined = [...cloudStudents];
+                        for (const localSt of state.students) {
+                            const hasValidNisn = localSt.nisn && localSt.nisn !== '-' && localSt.nisn !== '0' && String(localSt.nisn).length >= 6;
+                            const alreadyInCloud = combined.some(c => c.id === localSt.id || (hasValidNisn && c.nisn === localSt.nisn));
+                            if (!alreadyInCloud) {
+                                combined.push(localSt);
+                            }
+                        }
+                        state.students = combined;
+                        try { localStorage.setItem('mis_offline_students', JSON.stringify(state.students)); } catch (e) { }
                         refreshAllUI();
                     }
                 }, err => console.warn("Firestore listener error (siswa):", err));
@@ -3178,6 +3178,53 @@
             document.getElementById('modal-import-siswa').classList.add('hidden');
         };
 
+        // SANITASI DATA SISWA AGAR TIDAK ADA NILAI UNDEFINED (MENCEGAH ERROR FIRESTORE)
+        function sanitizeStudent(s, idx = 0) {
+            const rawNisn = String(s.nisn || '').trim();
+            const hasValidNisn = rawNisn && rawNisn !== '-' && rawNisn !== '0' && rawNisn.length >= 6;
+            const nisn = hasValidNisn ? rawNisn : ('0' + Math.floor(100000000 + Math.random() * 900000000));
+            const sId = (s.id && s.id.length > 5) ? s.id : `SISWA-${nisn}`;
+
+            return {
+                id: sId,
+                nisn: nisn,
+                role: 'siswa',
+                nis_lokal: String(s.nis_lokal || '').trim() || '-',
+                nik: String(s.nik || '').trim() || '-',
+                nama_lengkap: String(s.nama_lengkap || '').trim(),
+                jk: (String(s.jk || 'L').toUpperCase().trim().startsWith('P') ? 'P' : 'L'),
+                tempat_lahir: String(s.tempat_lahir || '').trim() || 'Banjarmasin',
+                tgl_lahir: String(s.tgl_lahir || '').trim() || '2016-01-01',
+                agama: String(s.agama || '').trim() || 'Islam',
+                anak_ke: Number(s.anak_ke) || 1,
+                jml_saudara: Number(s.jml_saudara) || 1,
+                alamat: String(s.alamat || '').trim() || 'Banjarmasin',
+                kelas_aktif: String(s.kelas_aktif || '').trim() || 'Kelas 1',
+                status_siswa: String(s.status_siswa || '').trim() || 'Aktif',
+                orang_tua: {
+                    nama_ayah: String(s.orang_tua?.nama_ayah || '').trim() || '-',
+                    pekerjaan_ayah: String(s.orang_tua?.pekerjaan_ayah || '').trim() || '-',
+                    nama_ibu: String(s.orang_tua?.nama_ibu || '').trim() || '-',
+                    pekerjaan_ibu: String(s.orang_tua?.pekerjaan_ibu || '').trim() || '-',
+                    no_hp_ortu: String(s.orang_tua?.no_hp_ortu || '').trim() || '-',
+                    penghasilan_ortu: String(s.orang_tua?.penghasilan_ortu || '').trim() || '-'
+                },
+                jasmani: {
+                    tb_cm: Number(s.jasmani?.tb_cm) || 130,
+                    bb_kg: Number(s.jasmani?.bb_kg) || 28,
+                    gol_darah: String(s.jasmani?.gol_darah || '-'),
+                    riwayat_penyakit: String(s.jasmani?.riwayat_penyakit || 'Sehat')
+                },
+                pendidikan: {
+                    asal_tk_ra: String(s.pendidikan?.asal_tk_ra || '-'),
+                    tgl_masuk: String(s.pendidikan?.tgl_masuk || '2024-07-15'),
+                    diterima_kelas: String(s.pendidikan?.diterima_kelas || s.kelas_aktif || 'Kelas 1'),
+                    tahun_lulus: String(s.pendidikan?.tahun_lulus || ''),
+                    no_ijazah: String(s.pendidikan?.no_ijazah || '')
+                }
+            };
+        }
+
         // MEMPROSES FILE TERPILIH (EXCEL .XLSX / .XLS / .CSV)
         window.handleCsvFileSelected = function (e) {
             const file = e.target.files[0];
@@ -3198,10 +3245,7 @@
                     try {
                         const data = new Uint8Array(evt.target.result);
                         const workbook = XLSX.read(data, { type: 'array' });
-                        const firstSheetName = workbook.SheetNames[0];
-                        const worksheet = workbook.Sheets[firstSheetName];
-                        const rows = XLSX.utils.sheet_to_json(worksheet, { header: 1, defval: '' });
-                        parseSpreadsheetRows(rows);
+                        processWorkbook(workbook);
                     } catch (err) {
                         console.error("Gagal membaca file Excel:", err);
                         showToast("Gagal membaca file Excel. Pastikan file tidak terkunci/rusak.", "error");
@@ -3211,69 +3255,108 @@
                 return;
             }
 
-            // 2. Jika file CSV atau SheetJS belum siap, baca via teks
+            // 2. Jika file CSV
             const reader = new FileReader();
             reader.onload = function (evt) {
                 const text = evt.target.result;
-                if (typeof XLSX !== 'undefined') {
-                    try {
-                        const workbook = XLSX.read(text, { type: 'string' });
-                        const firstSheetName = workbook.SheetNames[0];
-                        const worksheet = workbook.Sheets[firstSheetName];
-                        const rows = XLSX.utils.sheet_to_json(worksheet, { header: 1, defval: '' });
-                        parseSpreadsheetRows(rows);
-                        return;
-                    } catch (e) { }
-                }
                 parseCsvTextFallback(text);
             };
             reader.readAsText(file, "UTF-8");
         };
 
-        // PARSER UNTUK BARIS SHEETJS (ARRAY OF ARRAYS) DENGAN SMART COLUMN DETECTION
-        function parseSpreadsheetRows(rows) {
-            if (!rows || rows.length <= 1) {
-                showToast("File Excel/tabel kosong atau hanya berisi judul.", "error");
+        // PARSE SELURUH LEMBAR KERJA (SHEET) DI WORKBOOK
+        function processWorkbook(workbook) {
+            if (!workbook || !workbook.SheetNames || workbook.SheetNames.length === 0) {
+                showToast("File Excel tidak memiliki lembar kerja (sheet).", "error");
                 return;
             }
 
-            // Cari baris header (biasanya baris ke-0, atau baris pertama yang mengandung kata nama/nisn/no)
-            let headerIdx = 0;
-            for (let r = 0; r < Math.min(rows.length, 5); r++) {
+            parsedCsvStudents = [];
+
+            // Telusuri seluruh sheet (misal file memiliki sheet per kelas atau sheet Data Siswa)
+            for (const sheetName of workbook.SheetNames) {
+                const ws = workbook.Sheets[sheetName];
+                if (!ws) continue;
+
+                // Perbaiki rentang !ref agar SheetJS tidak memotong baris yang ada
+                const keys = Object.keys(ws).filter(k => k && !k.startsWith('!'));
+                if (keys.length === 0) continue;
+
+                let maxR = 0, maxC = 0;
+                for (const k of keys) {
+                    try {
+                        const dec = XLSX.utils.decode_cell(k);
+                        if (dec.r > maxR) maxR = dec.r;
+                        if (dec.c > maxC) maxC = dec.c;
+                    } catch (e) { }
+                }
+                ws['!ref'] = XLSX.utils.encode_range({ s: { r: 0, c: 0 }, e: { r: maxR, c: maxC } });
+
+                const rows = XLSX.utils.sheet_to_json(ws, { header: 1, defval: '' });
+                if (rows && rows.length > 0) {
+                    extractStudentsFromRows(rows, sheetName);
+                }
+            }
+
+            renderImportPreviewTable();
+        }
+
+        // EKSTRAK DATA SISWA DARI BARIS DENGAN DETEKSI HEADER FLEKSIBEL
+        function extractStudentsFromRows(rows, sheetName = '') {
+            if (!rows || rows.length === 0) return;
+
+            // Cari baris header tabel (cek hingga baris ke-25 untuk mengantisipasi judul/kop di atas tabel)
+            let headerIdx = -1;
+            for (let r = 0; r < Math.min(rows.length, 25); r++) {
                 const rowStr = (rows[r] || []).map(c => String(c).toLowerCase()).join(' ');
-                if (rowStr.includes('nama') || rowStr.includes('nisn') || (rowStr.includes('no') && rowStr.includes('kelas'))) {
+                const hasNama = rowStr.includes('nama') || rowStr.includes('peserta') || rowStr.includes('siswa') || rowStr.includes('murid');
+                const hasOther = rowStr.includes('nisn') || rowStr.includes('nik') || rowStr.includes('jk') || rowStr.includes('kelas') || rowStr.includes('ttl') || rowStr.includes('lahir') || rowStr.includes('no');
+                if (hasNama && hasOther) {
                     headerIdx = r;
                     break;
                 }
             }
 
-            const headerRow = (rows[headerIdx] || []).map(c => String(c || '').trim());
             const colMap = {};
+            if (headerIdx >= 0) {
+                const headerRow = (rows[headerIdx] || []).map(c => String(c || '').trim());
+                headerRow.forEach((colName, idx) => {
+                    const clean = colName.toLowerCase().replace(/[^a-z0-9]/g, '');
+                    if (clean === 'no' || clean === 'nomor' || clean === 'nourut') colMap.no = idx;
+                    else if ((clean.includes('nama') && !clean.includes('ayah') && !clean.includes('ibu') && !clean.includes('wali') && !clean.includes('sekolah') && !clean.includes('madrasah')) || clean.includes('pesertadidik') || clean.includes('namasiswa') || clean.includes('namamurid') || clean.includes('namasantri')) {
+                        if (colMap.nama === undefined) colMap.nama = idx;
+                    }
+                    else if (clean.includes('nisn') || clean.includes('induksiswanasional')) colMap.nisn = idx;
+                    else if (clean.includes('nislokal') || clean === 'nis' || clean.includes('nomorinduk')) colMap.nis_lokal = idx;
+                    else if (clean.includes('nik') || clean.includes('noktp') || clean.includes('kartukeluarga')) colMap.nik = idx;
+                    else if (clean === 'jk' || clean.includes('jeniskelamin') || clean === 'lp' || clean === 'gender') colMap.jk = idx;
+                    else if (clean === 'ttl' || clean.includes('tempattanggal') || clean.includes('tempattgl')) colMap.ttl = idx;
+                    else if (clean.includes('tempatlahir') || clean === 'tempat' || clean === 'tmplahir') colMap.tempat_lahir = idx;
+                    else if (clean.includes('tanggallahir') || clean.includes('tgllahir') || clean === 'tanggal') colMap.tgl_lahir = idx;
+                    else if (clean.includes('kelas') || clean.includes('rombel') || clean.includes('tingkat')) colMap.kelas = idx;
+                    else if (clean.includes('status') || clean.includes('keaktifan')) colMap.status = idx;
+                    else if (clean.includes('agama')) colMap.agama = idx;
+                    else if (clean.includes('namaayah') || clean === 'ayah' || clean === 'bapak') colMap.nama_ayah = idx;
+                    else if (clean.includes('pekerjaanayah') || clean === 'pekayah') colMap.pekerjaan_ayah = idx;
+                    else if (clean.includes('namaibu') || clean === 'ibu') colMap.nama_ibu = idx;
+                    else if (clean.includes('pekerjaanibu') || clean === 'pekibu') colMap.pekerjaan_ibu = idx;
+                    else if (clean.includes('nohp') || clean.includes('telepon') || clean.includes('telp') || clean.includes('wa') || clean.includes('hp')) colMap.no_hp = idx;
+                    else if (clean.includes('alamat') || clean.includes('domisili')) colMap.alamat = idx;
+                });
+            }
 
-            headerRow.forEach((colName, idx) => {
-                const clean = colName.toLowerCase().replace(/[^a-z0-9]/g, '');
-                if (clean === 'no' || clean === 'nomor' || clean === 'nourut') colMap.no = idx;
-                else if (clean.includes('namalengkap') || clean === 'nama' || clean.includes('namasiswa')) colMap.nama = idx;
-                else if (clean.includes('nisn')) colMap.nisn = idx;
-                else if (clean.includes('nislokal') || clean === 'nis') colMap.nis_lokal = idx;
-                else if (clean.includes('nik')) colMap.nik = idx;
-                else if (clean === 'jk' || clean.includes('jeniskelamin') || clean === 'lp') colMap.jk = idx;
-                else if (clean.includes('tempatlahir') || clean === 'tempat' || clean === 'tmplahir') colMap.tempat_lahir = idx;
-                else if (clean.includes('tanggallahir') || clean.includes('tgllahir') || clean === 'tanggal') colMap.tgl_lahir = idx;
-                else if (clean.includes('kelas')) colMap.kelas = idx;
-                else if (clean.includes('status')) colMap.status = idx;
-                else if (clean.includes('agama')) colMap.agama = idx;
-                else if (clean.includes('namaayah') || clean === 'ayah') colMap.nama_ayah = idx;
-                else if (clean.includes('pekerjaanayah') || clean === 'pekayah') colMap.pekerjaan_ayah = idx;
-                else if (clean.includes('namaibu') || clean === 'ibu') colMap.nama_ibu = idx;
-                else if (clean.includes('pekerjaanibu') || clean === 'pekibu') colMap.pekerjaan_ibu = idx;
-                else if (clean.includes('nohp') || clean.includes('telepon') || clean.includes('wa') || clean.includes('hp')) colMap.no_hp = idx;
-                else if (clean.includes('alamat')) colMap.alamat = idx;
-            });
+            // Default kelas jika sheet dinamai misal "Kelas 6"
+            let defaultKelas = 'Kelas 1';
+            const klsMatch = sheetName.match(/kelas\s*([1-6])/i);
+            if (klsMatch) {
+                defaultKelas = `Kelas ${klsMatch[1]}`;
+            }
 
-            // Helper format tanggal Excel (serial number atau teks)
             function formatExcelDate(val) {
                 if (!val) return '2016-01-01';
+                if (val instanceof Date) {
+                    return val.toISOString().split('T')[0];
+                }
                 if (typeof val === 'number' && val > 20000 && val < 60000) {
                     const d = new Date(Math.round((val - 25569) * 86400 * 1000));
                     return d.toISOString().split('T')[0];
@@ -3286,46 +3369,95 @@
                 return str;
             }
 
-            parsedCsvStudents = [];
-            for (let i = headerIdx + 1; i < rows.length; i++) {
+            const startIdx = headerIdx >= 0 ? headerIdx + 1 : 0;
+            for (let i = startIdx; i < rows.length; i++) {
                 const cols = rows[i] || [];
                 if (cols.length === 0 || cols.every(c => String(c).trim() === '')) continue;
 
-                // Ambil nilai berdasarkan nama kolom terdeteksi, atau fallback posisi
-                let nama = colMap.nama !== undefined ? cols[colMap.nama] : (cols[1] || cols[3] || '');
-                let nisn = colMap.nisn !== undefined ? cols[colMap.nisn] : (cols[2] || cols[0] || '');
+                // Ambil nilai nama
+                let nama = '';
+                if (colMap.nama !== undefined) {
+                    nama = String(cols[colMap.nama] || '').trim();
+                } else {
+                    // Fallback posisi: cari kolom pertama yang berisi teks nama (bukan angka murni)
+                    for (let c = 0; c < Math.min(cols.length, 5); c++) {
+                        const val = String(cols[c] || '').trim();
+                        if (val.length >= 3 && isNaN(val) && !val.toLowerCase().includes('kelas') && !val.toLowerCase().includes('no')) {
+                            nama = val;
+                            break;
+                        }
+                    }
+                }
 
-                // Bersihkan string
-                nama = String(nama || '').trim();
-                nisn = String(nisn || '').trim();
+                // Abaikan jika bukan nama siswa
+                if (!nama || nama.toLowerCase().includes('jumlah') || nama.toLowerCase().includes('total') || nama.toLowerCase() === 'nama') continue;
 
-                if (!nama) continue; // Baris tanpa nama diabaikan
-                if (!nisn) nisn = '0' + Math.floor(100000000 + Math.random() * 900000000);
+                let nisn = colMap.nisn !== undefined ? String(cols[colMap.nisn] || '').trim() : '';
+                if (!nisn) {
+                    for (let c = 0; c < cols.length; c++) {
+                        const val = String(cols[c] || '').trim();
+                        if (/^\d{10}$/.test(val)) { nisn = val; break; }
+                    }
+                }
+                if (!nisn || nisn === '-' || nisn === '0') {
+                    nisn = '0' + Math.floor(100000000 + Math.random() * 900000000);
+                }
 
-                const nisLokal = String(colMap.nis_lokal !== undefined ? cols[colMap.nis_lokal] : (cols[3] || cols[1] || '1112' + Math.floor(1000000000 + Math.random() * 9000000000))).trim();
-                const nik = String(colMap.nik !== undefined ? cols[colMap.nik] : (cols[4] || cols[2] || '6371' + Math.floor(100000000000 + Math.random() * 900000000000))).trim();
-                const rawJk = String(colMap.jk !== undefined ? cols[colMap.jk] : (cols[5] || cols[4] || 'L')).toUpperCase().trim();
-                const jk = rawJk.startsWith('P') ? 'P' : 'L';
-                const tempatLahir = String(colMap.tempat_lahir !== undefined ? cols[colMap.tempat_lahir] : (cols[6] || cols[5] || 'Banjarmasin')).trim();
-                const rawTgl = colMap.tgl_lahir !== undefined ? cols[colMap.tgl_lahir] : (cols[7] || cols[6] || '2016-01-01');
-                const tglLahir = formatExcelDate(rawTgl);
-                const kelas = String(colMap.kelas !== undefined ? cols[colMap.kelas] : (cols[8] || 'Kelas 1')).trim();
-                const status = String(colMap.status !== undefined ? cols[colMap.status] : (cols[9] || 'Aktif')).trim();
-                const agama = String(colMap.agama !== undefined ? cols[colMap.agama] : (cols[10] || cols[7] || 'Islam')).trim();
+                const nisLokal = colMap.nis_lokal !== undefined ? String(cols[colMap.nis_lokal] || '').trim() : '';
+                let nik = colMap.nik !== undefined ? String(cols[colMap.nik] || '').trim() : '';
+                if (!nik) {
+                    for (let c = 0; c < cols.length; c++) {
+                        const val = String(cols[c] || '').trim();
+                        if (/^\d{16}$/.test(val)) { nik = val; break; }
+                    }
+                }
 
-                const namaAyah = String(colMap.nama_ayah !== undefined ? cols[colMap.nama_ayah] : (cols[11] || cols[10] || '-')).trim();
-                const pekAyah = String(colMap.pekerjaan_ayah !== undefined ? cols[colMap.pekerjaan_ayah] : (cols[12] || cols[11] || '-')).trim();
-                const namaIbu = String(colMap.nama_ibu !== undefined ? cols[colMap.nama_ibu] : (cols[13] || cols[12] || '-')).trim();
-                const pekIbu = String(colMap.pekerjaan_ibu !== undefined ? cols[colMap.pekerjaan_ibu] : (cols[14] || cols[13] || '-')).trim();
-                const noHp = String(colMap.no_hp !== undefined ? cols[colMap.no_hp] : (cols[15] || cols[14] || '-')).trim();
-                const alamat = String(colMap.alamat !== undefined ? cols[colMap.alamat] : (cols[16] || cols[15] || 'Banjarmasin')).trim();
+                let jk = 'L';
+                if (colMap.jk !== undefined) {
+                    const rawJk = String(cols[colMap.jk] || '').toUpperCase().trim();
+                    jk = rawJk.startsWith('P') ? 'P' : 'L';
+                }
+
+                let tempatLahir = 'Banjarmasin';
+                let tglLahir = '2016-01-01';
+                if (colMap.ttl !== undefined && cols[colMap.ttl]) {
+                    const ttlStr = String(cols[colMap.ttl]).trim();
+                    if (ttlStr.includes(',')) {
+                        const parts = ttlStr.split(',');
+                        tempatLahir = parts[0].trim() || 'Banjarmasin';
+                        tglLahir = formatExcelDate(parts[1].trim());
+                    } else {
+                        tempatLahir = ttlStr;
+                    }
+                } else {
+                    if (colMap.tempat_lahir !== undefined) tempatLahir = String(cols[colMap.tempat_lahir] || 'Banjarmasin').trim();
+                    if (colMap.tgl_lahir !== undefined) tglLahir = formatExcelDate(cols[colMap.tgl_lahir]);
+                }
+
+                let kelas = colMap.kelas !== undefined ? String(cols[colMap.kelas] || '').trim() : '';
+                if (!kelas) kelas = defaultKelas;
+                if (!kelas.toLowerCase().startsWith('kelas')) {
+                    const kNum = kelas.match(/\d+/);
+                    kelas = kNum ? `Kelas ${kNum[0]}` : defaultKelas;
+                }
+
+                let status = colMap.status !== undefined ? String(cols[colMap.status] || 'Aktif').trim() : 'Aktif';
+                if (!['Aktif', 'Lulus', 'Mutasi Keluar'].includes(status)) status = 'Aktif';
+
+                const agama = colMap.agama !== undefined ? String(cols[colMap.agama] || 'Islam').trim() : 'Islam';
+                const namaAyah = colMap.nama_ayah !== undefined ? String(cols[colMap.nama_ayah] || '-').trim() : '-';
+                const pekAyah = colMap.pekerjaan_ayah !== undefined ? String(cols[colMap.pekerjaan_ayah] || '-').trim() : '-';
+                const namaIbu = colMap.nama_ibu !== undefined ? String(cols[colMap.nama_ibu] || '-').trim() : '-';
+                const pekIbu = colMap.pekerjaan_ibu !== undefined ? String(cols[colMap.pekerjaan_ibu] || '-').trim() : '-';
+                const noHp = colMap.no_hp !== undefined ? String(cols[colMap.no_hp] || '-').trim() : '-';
+                const alamat = colMap.alamat !== undefined ? String(cols[colMap.alamat] || 'Banjarmasin').trim() : 'Banjarmasin';
 
                 parsedCsvStudents.push({
                     id: `SISWA-${nisn}`,
                     nisn: nisn,
                     role: 'siswa',
-                    nis_lokal: nisLokal,
-                    nik: nik,
+                    nis_lokal: nisLokal || '-',
+                    nik: nik || '-',
                     nama_lengkap: nama,
                     jk: jk,
                     tempat_lahir: tempatLahir,
@@ -3348,11 +3480,9 @@
                     pendidikan: { asal_tk_ra: "-", tgl_masuk: "2024-07-15", diterima_kelas: kelas, tahun_lulus: "", no_ijazah: "" }
                 });
             }
-
-            renderImportPreviewTable();
         }
 
-        // FALLBACK CSV STRING PARSER JIKA SHEETJS TIDAK TERSEDIA
+        // FALLBACK CSV STRING PARSER
         function parseCsvTextFallback(text) {
             const lines = text.split(/\r?\n/).filter(line => line.trim().length > 0);
             if (lines.length <= 1) {
@@ -3381,17 +3511,19 @@
             }
 
             const rows = lines.map(l => splitCsvLine(l));
-            parseSpreadsheetRows(rows);
+            parsedCsvStudents = [];
+            extractStudentsFromRows(rows, 'Data Siswa');
+            renderImportPreviewTable();
         }
 
         function renderImportPreviewTable() {
             if (parsedCsvStudents.length === 0) {
-                showToast("Gagal membaca baris data siswa. Pastikan format kolom sesuai template.", "error");
+                showToast("Gagal membaca baris data siswa. Pastikan format file Excel/CSV sesuai.", "error");
                 return;
             }
 
             const tbody = document.getElementById('import-preview-tbody');
-            tbody.innerHTML = parsedCsvStudents.slice(0, 10).map((s, idx) => `
+            tbody.innerHTML = parsedCsvStudents.map((s, idx) => `
                 <tr class="hover:bg-slate-50">
                     <td class="py-1.5 px-3 text-center font-mono text-slate-500">${idx + 1}</td>
                     <td class="py-1.5 px-3 font-bold text-slate-800">${s.nama_lengkap}</td>
@@ -3400,7 +3532,7 @@
                     <td class="py-1.5 px-2 font-bold text-slate-700">${s.kelas_aktif}</td>
                     <td class="py-1.5 px-3 text-slate-600">${s.orang_tua.nama_ayah} / ${s.orang_tua.nama_ibu}</td>
                 </tr>
-            `).join('') + (parsedCsvStudents.length > 10 ? `<tr><td colspan="6" class="py-2 text-center text-slate-400 italic">...dan ${parsedCsvStudents.length - 10} data siswa lainnya</td></tr>` : '');
+            `).join('');
 
             document.getElementById('import-row-count').textContent = `${parsedCsvStudents.length} Data Siswa Siap Diimpor`;
             document.getElementById('import-preview-box').classList.remove('hidden');
@@ -3414,25 +3546,45 @@
             btn.innerHTML = '<span>Menyimpan ke Buku Induk...</span> <i class="fa-solid fa-spinner fa-spin ml-2"></i>';
 
             let countAdded = 0;
-            for (const student of parsedCsvStudents) {
-                const existingIdx = state.students.findIndex(st => st.nisn === student.nisn || st.id === student.id);
+            const currentStudents = [...state.students];
+
+            for (let i = 0; i < parsedCsvStudents.length; i++) {
+                const s = sanitizeStudent(parsedCsvStudents[i], i);
+                const hasValidNisn = s.nisn && s.nisn !== '-' && s.nisn !== '0' && s.nisn.length >= 6;
+                const existingIdx = hasValidNisn
+                    ? currentStudents.findIndex(item => item.nisn === s.nisn)
+                    : currentStudents.findIndex(item => item.nama_lengkap.toLowerCase() === s.nama_lengkap.toLowerCase() && item.kelas_aktif === s.kelas_aktif);
+
                 if (existingIdx >= 0) {
-                    state.students[existingIdx] = student;
+                    currentStudents[existingIdx] = { ...currentStudents[existingIdx], ...s };
                 } else {
-                    state.students.unshift(student);
+                    currentStudents.push(s);
                 }
                 countAdded++;
-
-                if (isCloudConnected && db) {
-                    try {
-                        await getDocRef('buku_induk_siswa', student.id).set(student);
-                    } catch (e) { }
-                }
             }
 
+            state.students = currentStudents;
+
+            // Simpan ke offline cache terlebih dahulu
             try {
                 localStorage.setItem('mis_offline_students', JSON.stringify(state.students));
             } catch (e) { }
+
+            // Simpan ke Firestore via batching (maksimal 450 per batch)
+            if (isCloudConnected && db) {
+                try {
+                    const batch = db.batch();
+                    const batchItems = parsedCsvStudents.slice(0, 450);
+                    for (let i = 0; i < batchItems.length; i++) {
+                        const s = sanitizeStudent(batchItems[i], i);
+                        const docRef = getDocRef('buku_induk_siswa', s.id);
+                        batch.set(docRef, s, { merge: true });
+                    }
+                    await batch.commit().catch(err => console.warn("Batch commit note:", err));
+                } catch (e) {
+                    console.warn("Firestore batch note:", e);
+                }
+            }
 
             window.closeImportModal();
             refreshAllUI();
