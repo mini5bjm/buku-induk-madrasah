@@ -57,13 +57,13 @@
     <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
     <!-- Deteksi Sesi Login Aktif (Mencegah Flashing / Kembali ke Login saat Halaman di-Refresh) -->
     <script>
-        (function () {
-            try {
-                if (localStorage.getItem('mis_auth_session')) {
-                    document.documentElement.classList.add('has-active-session');
-                }
-            } catch (e) { }
-        })();
+            (function () {
+                try {
+                    if (localStorage.getItem('mis_auth_session')) {
+                        document.documentElement.classList.add('has-active-session');
+                    }
+                } catch (e) { }
+            })();
     </script>
 
     <style>
@@ -71,6 +71,7 @@
         html.has-active-session #login-screen {
             display: none !important;
         }
+
         html.has-active-session #app-shell {
             display: flex !important;
         }
@@ -251,7 +252,8 @@
                 </div>
             </div>
             <div id="global-transition-title" class="text-base font-bold text-white tracking-wide">Memproses...</div>
-            <div id="global-transition-desc" class="text-xs text-slate-300 mt-1.5 font-medium">Mohon tunggu sebentar</div>
+            <div id="global-transition-desc" class="text-xs text-slate-300 mt-1.5 font-medium">Mohon tunggu sebentar
+            </div>
         </div>
 
         <!-- ==========================================
@@ -274,7 +276,8 @@
                             <div>
                                 <span class="text-xs uppercase tracking-widest text-opti-lime font-bold block">SIM Buku
                                     Induk Digital</span>
-                                <h2 class="text-white font-bold text-lg leading-tight" id="login-brand-school">MIS. Nurul Islam Km. 5</h2>
+                                <h2 class="text-white font-bold text-lg leading-tight" id="login-brand-school">MIS.
+                                    Nurul Islam Km. 5</h2>
                             </div>
                         </div>
 
@@ -336,7 +339,8 @@
                                 <div class="flex items-start gap-2">
                                     <i class="fa-solid fa-shield-halved text-opti-dark mt-0.5"></i>
                                     <div>
-                                        Khusus Admin / Operator untuk mengelola data induk siswa, mutasi, kenaikan kelas, dan cetak lembar buku induk resmi.
+                                        Khusus Admin / Operator untuk mengelola data induk siswa, mutasi, kenaikan
+                                        kelas, dan cetak lembar buku induk resmi.
                                     </div>
                                 </div>
                             </div>
@@ -491,9 +495,11 @@
                                         <span id="dash-banner-nsm">NSM: 111263710018 • NPSN: 60723192</span>
                                     </div>
                                     <h3 class="text-2xl sm:text-3xl font-extrabold tracking-tight leading-tight">
-                                        Buku Induk Siswa Digital <span id="dash-banner-school-name" class="text-opti-lime">MIS. Nurul Islam Km. 5</span>
+                                        Buku Induk Siswa Digital <span id="dash-banner-school-name"
+                                            class="text-opti-lime">MIS. Nurul Islam Km. 5</span>
                                     </h3>
-                                    <p id="dash-banner-address" class="text-xs sm:text-sm text-slate-300 mt-2 leading-relaxed">
+                                    <p id="dash-banner-address"
+                                        class="text-xs sm:text-sm text-slate-300 mt-2 leading-relaxed">
                                         Jl. A. Yani Km. 5 Komp. Masjid Nurul Islam, Pemurus Dalam, Banjarmasin
                                     </p>
                                 </div>
@@ -670,17 +676,20 @@
                                 </select>
                             </div>
                             <div class="flex flex-wrap items-center gap-2">
-                                <button onclick="window.downloadStudentTemplate()" title="Unduh contoh template tabel Excel (.xlsx)"
+                                <button onclick="window.downloadStudentTemplate()"
+                                    title="Unduh contoh template tabel Excel (.xlsx)"
                                     class="py-2.5 px-3.5 rounded-full bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold text-xs transition flex items-center justify-center gap-1.5 shrink-0 shadow-sm">
                                     <i class="fa-solid fa-file-excel text-emerald-600"></i>
                                     <span>Unduh Template (.xlsx)</span>
                                 </button>
-                                <button onclick="window.openImportModal()" title="Impor data siswa massal dari file Excel (.xlsx) atau CSV"
+                                <button onclick="window.openImportModal()"
+                                    title="Impor data siswa massal dari file Excel (.xlsx) atau CSV"
                                     class="py-2.5 px-3.5 rounded-full bg-emerald-50 hover:bg-emerald-100 text-emerald-800 border border-emerald-200 font-bold text-xs transition flex items-center justify-center gap-1.5 shrink-0 shadow-sm">
                                     <i class="fa-solid fa-file-import text-emerald-600"></i>
                                     <span>Impor Data Siswa</span>
                                 </button>
-                                <button onclick="window.openNaikKelasModal()" title="Kenaikan kelas massal untuk tahun ajaran baru"
+                                <button onclick="window.openNaikKelasModal()"
+                                    title="Kenaikan kelas massal untuk tahun ajaran baru"
                                     class="py-2.5 px-3.5 rounded-full bg-amber-50 hover:bg-amber-100 text-amber-900 border border-amber-200 font-bold text-xs transition flex items-center justify-center gap-1.5 shrink-0 shadow-sm">
                                     <i class="fa-solid fa-arrow-trend-up text-amber-600"></i>
                                     <span>Naik Kelas</span>
@@ -721,32 +730,41 @@
                         <!-- Top Toolbar & Stats -->
                         <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
                             <div class="bg-white rounded-3xl p-5 border border-slate-200/80 shadow-sm">
-                                <span class="text-xs text-slate-500 font-bold uppercase tracking-wider block">Total Tenaga Pendidik</span>
+                                <span class="text-xs text-slate-500 font-bold uppercase tracking-wider block">Total
+                                    Tenaga Pendidik</span>
                                 <div class="text-2xl font-extrabold text-slate-900 mt-1" id="stat-guru-total">0</div>
-                                <span class="text-[11px] text-emerald-600 font-bold mt-0.5 block">MIS. Nurul Islam Km. 5</span>
+                                <span class="text-[11px] text-emerald-600 font-bold mt-0.5 block">MIS. Nurul Islam Km.
+                                    5</span>
                             </div>
                             <div class="bg-white rounded-3xl p-5 border border-slate-200/80 shadow-sm">
-                                <span class="text-xs text-slate-500 font-bold uppercase tracking-wider block">Laki-Laki</span>
+                                <span
+                                    class="text-xs text-slate-500 font-bold uppercase tracking-wider block">Laki-Laki</span>
                                 <div class="text-2xl font-extrabold text-slate-900 mt-1" id="stat-guru-laki">0</div>
                                 <span class="text-[11px] text-slate-500 mt-0.5 block">Guru & Tenaga Kependidikan</span>
                             </div>
                             <div class="bg-white rounded-3xl p-5 border border-slate-200/80 shadow-sm">
-                                <span class="text-xs text-slate-500 font-bold uppercase tracking-wider block">Perempuan</span>
-                                <div class="text-2xl font-extrabold text-slate-900 mt-1" id="stat-guru-perempuan">0</div>
+                                <span
+                                    class="text-xs text-slate-500 font-bold uppercase tracking-wider block">Perempuan</span>
+                                <div class="text-2xl font-extrabold text-slate-900 mt-1" id="stat-guru-perempuan">0
+                                </div>
                                 <span class="text-[11px] text-slate-500 mt-0.5 block">Guru & Tenaga Kependidikan</span>
                             </div>
                             <div class="bg-white rounded-3xl p-5 border border-slate-200/80 shadow-sm">
-                                <span class="text-xs text-slate-500 font-bold uppercase tracking-wider block">Status Keaktifan</span>
-                                <div class="text-2xl font-extrabold text-emerald-600 mt-1" id="stat-guru-aktif">100%</div>
+                                <span class="text-xs text-slate-500 font-bold uppercase tracking-wider block">Status
+                                    Keaktifan</span>
+                                <div class="text-2xl font-extrabold text-emerald-600 mt-1" id="stat-guru-aktif">100%
+                                </div>
                                 <span class="text-[11px] text-emerald-700 font-bold mt-0.5 block">Aktif Bertugas</span>
                             </div>
                         </div>
 
                         <!-- Filter and Add Teacher -->
-                        <div class="bg-white rounded-3xl p-5 border border-slate-200/80 shadow-sm flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-4">
+                        <div
+                            class="bg-white rounded-3xl p-5 border border-slate-200/80 shadow-sm flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-4">
                             <div class="flex-1 flex flex-col sm:flex-row gap-3">
                                 <div class="relative flex-1">
-                                    <i class="fa-solid fa-magnifying-glass absolute left-4 top-1/2 -translate-y-1/2 text-slate-400 text-sm"></i>
+                                    <i
+                                        class="fa-solid fa-magnifying-glass absolute left-4 top-1/2 -translate-y-1/2 text-slate-400 text-sm"></i>
                                     <input type="text" id="filter-search-guru" oninput="window.renderTeachersTable()"
                                         placeholder="Cari Nama Guru, NIP, atau Mata Pelajaran..."
                                         class="w-full pl-10 pr-4 py-2.5 rounded-2xl border border-slate-300 text-sm focus:outline-none focus:ring-2 focus:ring-opti-dark">
@@ -761,12 +779,14 @@
                                 </select>
                             </div>
                             <div class="flex flex-wrap items-center gap-2">
-                                <button onclick="window.downloadTeacherTemplate()" title="Unduh contoh template tabel Excel (.xlsx) untuk guru"
+                                <button onclick="window.downloadTeacherTemplate()"
+                                    title="Unduh contoh template tabel Excel (.xlsx) untuk guru"
                                     class="py-2.5 px-3.5 rounded-full bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold text-xs transition flex items-center justify-center gap-1.5 shrink-0 shadow-sm">
                                     <i class="fa-solid fa-file-excel text-emerald-600"></i>
                                     <span>Unduh Template (.xlsx)</span>
                                 </button>
-                                <button onclick="window.openImportTeacherModal()" title="Impor data guru massal dari file Excel (.xlsx) atau CSV"
+                                <button onclick="window.openImportTeacherModal()"
+                                    title="Impor data guru massal dari file Excel (.xlsx) atau CSV"
                                     class="py-2.5 px-3.5 rounded-full bg-emerald-50 hover:bg-emerald-100 text-emerald-800 border border-emerald-200 font-bold text-xs transition flex items-center justify-center gap-1.5 shrink-0 shadow-sm">
                                     <i class="fa-solid fa-file-import text-emerald-600"></i>
                                     <span>Impor Data Guru</span>
@@ -808,32 +828,42 @@
                         <!-- Top Stats Cards -->
                         <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
                             <div class="bg-white rounded-3xl p-5 border border-slate-200/80 shadow-sm">
-                                <span class="text-xs text-slate-500 font-bold uppercase tracking-wider block">Total Alumni Terdata</span>
+                                <span class="text-xs text-slate-500 font-bold uppercase tracking-wider block">Total
+                                    Alumni Terdata</span>
                                 <div class="text-2xl font-extrabold text-slate-900 mt-1" id="stat-alumni-total">0</div>
                                 <span class="text-[11px] text-slate-500 mt-0.5 block">Lulusan Madrasah</span>
                             </div>
                             <div class="bg-white rounded-3xl p-5 border border-slate-200/80 shadow-sm">
-                                <span class="text-xs text-emerald-600 font-bold uppercase tracking-wider block">Lanjut ke MTs</span>
+                                <span class="text-xs text-emerald-600 font-bold uppercase tracking-wider block">Lanjut
+                                    ke MTs</span>
                                 <div class="text-2xl font-extrabold text-emerald-700 mt-1" id="stat-alumni-mts">0</div>
-                                <span class="text-[11px] text-emerald-600 font-medium mt-0.5 block">Madrasah Tsanawiyah</span>
+                                <span class="text-[11px] text-emerald-600 font-medium mt-0.5 block">Madrasah
+                                    Tsanawiyah</span>
                             </div>
                             <div class="bg-white rounded-3xl p-5 border border-slate-200/80 shadow-sm">
-                                <span class="text-xs text-blue-600 font-bold uppercase tracking-wider block">Lanjut ke SMP</span>
+                                <span class="text-xs text-blue-600 font-bold uppercase tracking-wider block">Lanjut ke
+                                    SMP</span>
                                 <div class="text-2xl font-extrabold text-blue-700 mt-1" id="stat-alumni-smp">0</div>
-                                <span class="text-[11px] text-blue-600 font-medium mt-0.5 block">Sekolah Menengah Pertama</span>
+                                <span class="text-[11px] text-blue-600 font-medium mt-0.5 block">Sekolah Menengah
+                                    Pertama</span>
                             </div>
                             <div class="bg-white rounded-3xl p-5 border border-slate-200/80 shadow-sm">
-                                <span class="text-xs text-purple-600 font-bold uppercase tracking-wider block">Lanjut ke Ponpes</span>
-                                <div class="text-2xl font-extrabold text-purple-700 mt-1" id="stat-alumni-ponpes">0</div>
-                                <span class="text-[11px] text-purple-600 font-medium mt-0.5 block">Pondok Pesantren</span>
+                                <span class="text-xs text-purple-600 font-bold uppercase tracking-wider block">Lanjut ke
+                                    Ponpes</span>
+                                <div class="text-2xl font-extrabold text-purple-700 mt-1" id="stat-alumni-ponpes">0
+                                </div>
+                                <span class="text-[11px] text-purple-600 font-medium mt-0.5 block">Pondok
+                                    Pesantren</span>
                             </div>
                         </div>
 
                         <!-- Filter and Add Alumni -->
-                        <div class="bg-white rounded-3xl p-5 border border-slate-200/80 shadow-sm flex flex-col lg:flex-row items-stretch lg:items-center justify-between gap-4">
+                        <div
+                            class="bg-white rounded-3xl p-5 border border-slate-200/80 shadow-sm flex flex-col lg:flex-row items-stretch lg:items-center justify-between gap-4">
                             <div class="flex-1 flex flex-col sm:flex-row gap-3">
                                 <div class="relative flex-1">
-                                    <i class="fa-solid fa-magnifying-glass absolute left-4 top-1/2 -translate-y-1/2 text-slate-400 text-sm"></i>
+                                    <i
+                                        class="fa-solid fa-magnifying-glass absolute left-4 top-1/2 -translate-y-1/2 text-slate-400 text-sm"></i>
                                     <input type="text" id="filter-search-alumni" oninput="window.renderAlumniTable()"
                                         placeholder="Cari Nama Alumni, NISN, atau Nama Sekolah Lanjutan..."
                                         class="w-full pl-10 pr-4 py-2.5 rounded-2xl border border-slate-300 text-sm focus:outline-none focus:ring-2 focus:ring-opti-dark">
@@ -1087,7 +1117,8 @@
                                     <div>
                                         <div class="flex items-center justify-between mb-1">
                                             <label class="block text-xs font-bold text-slate-700">Pilih Siswa</label>
-                                            <select id="mutasi-filter-form-kelas" onchange="window.filterMutationFormStudents(this.value)"
+                                            <select id="mutasi-filter-form-kelas"
+                                                onchange="window.filterMutationFormStudents(this.value)"
                                                 class="text-[11px] font-semibold text-slate-600 bg-slate-100 rounded-lg px-2 py-0.5 border border-slate-200">
                                                 <option value="ALL">Semua Kelas</option>
                                                 <option value="Kelas 1">Kelas 1</option>
@@ -1147,17 +1178,22 @@
                             </div>
 
                             <div class="lg:col-span-7 bg-white rounded-3xl p-6 border border-slate-200/80 shadow-sm">
-                                <div class="flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-3 mb-4">
+                                <div
+                                    class="flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-3 mb-4">
                                     <div>
                                         <h3 class="text-lg font-extrabold text-slate-900">Buku Agenda Mutasi Siswa</h3>
                                         <p class="text-xs text-slate-500">Daftar siswa pindahan masuk maupun keluar</p>
                                     </div>
-                                    <span id="stat-mutasi-count" class="px-3 py-1 rounded-full text-xs font-bold bg-amber-50 text-amber-900 border border-amber-200 self-start sm:self-auto">0 Data Mutasi</span>
+                                    <span id="stat-mutasi-count"
+                                        class="px-3 py-1 rounded-full text-xs font-bold bg-amber-50 text-amber-900 border border-amber-200 self-start sm:self-auto">0
+                                        Data Mutasi</span>
                                 </div>
                                 <div class="flex flex-col sm:flex-row items-stretch sm:items-center gap-2.5 mb-4">
                                     <div class="relative flex-1">
-                                        <i class="fa-solid fa-magnifying-glass absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400 text-xs"></i>
-                                        <input type="text" id="filter-search-mutasi" oninput="window.renderMutationsTable()"
+                                        <i
+                                            class="fa-solid fa-magnifying-glass absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400 text-xs"></i>
+                                        <input type="text" id="filter-search-mutasi"
+                                            oninput="window.renderMutationsTable()"
                                             placeholder="Cari nama siswa, no. surat, atau sekolah..."
                                             class="w-full pl-9 pr-3 py-2 rounded-xl border border-slate-300 text-xs focus:outline-none focus:ring-2 focus:ring-opti-dark">
                                     </div>
@@ -1204,11 +1240,14 @@
                             class="bg-white rounded-3xl p-6 border border-slate-200/80 shadow-sm flex flex-col lg:flex-row items-stretch lg:items-center justify-between gap-4 no-print">
                             <div class="flex flex-col sm:flex-row items-stretch sm:items-center gap-3 flex-1">
                                 <div class="flex-1 max-w-xl space-y-2">
-                                    <label class="block text-[11px] font-bold uppercase text-slate-500">Pilih Siswa Untuk Dicetak Lembar Buku Induknya:</label>
+                                    <label class="block text-[11px] font-bold uppercase text-slate-500">Pilih Siswa
+                                        Untuk Dicetak Lembar Buku Induknya:</label>
                                     <div class="grid grid-cols-1 sm:grid-cols-2 gap-2">
                                         <div class="relative">
-                                            <i class="fa-solid fa-magnifying-glass absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 text-xs"></i>
-                                            <input type="text" id="print-search-siswa" oninput="window.populatePrintSelector()"
+                                            <i
+                                                class="fa-solid fa-magnifying-glass absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 text-xs"></i>
+                                            <input type="text" id="print-search-siswa"
+                                                oninput="window.populatePrintSelector()"
                                                 placeholder="Cari Nama Siswa / NISN..."
                                                 class="w-full pl-8 pr-3 py-2 rounded-xl border border-slate-300 text-xs focus:outline-none focus:ring-2 focus:ring-opti-dark">
                                         </div>
@@ -1254,17 +1293,21 @@
                     <section id="sec-admin-pengaturan" class="app-section hidden space-y-6">
                         <div class="grid grid-cols-1 lg:grid-cols-12 gap-6">
                             <!-- Card 1: Identitas Madrasah / Sekolah -->
-                            <div class="lg:col-span-6 bg-white rounded-3xl p-6 border border-slate-200/80 shadow-sm flex flex-col justify-between">
+                            <div
+                                class="lg:col-span-6 bg-white rounded-3xl p-6 border border-slate-200/80 shadow-sm flex flex-col justify-between">
                                 <div>
                                     <div class="flex items-center justify-between mb-4">
                                         <div>
                                             <span
                                                 class="text-[11px] font-bold uppercase tracking-wider px-2.5 py-1 rounded-full bg-lime-100 text-lime-900">Identitas
                                                 Lembaga</span>
-                                            <h3 class="text-lg font-extrabold text-slate-900 mt-1" id="setting-card-title">Profil & Nama Madrasah</h3>
-                                            <p class="text-xs text-slate-500">Ubah identitas madrasah untuk kop surat dan dokumen resmi</p>
+                                            <h3 class="text-lg font-extrabold text-slate-900 mt-1"
+                                                id="setting-card-title">Profil & Nama Madrasah</h3>
+                                            <p class="text-xs text-slate-500">Ubah identitas madrasah untuk kop surat
+                                                dan dokumen resmi</p>
                                         </div>
-                                        <div class="w-10 h-10 rounded-2xl bg-lime-50 text-opti-dark flex items-center justify-center text-lg">
+                                        <div
+                                            class="w-10 h-10 rounded-2xl bg-lime-50 text-opti-dark flex items-center justify-center text-lg">
                                             <i class="fa-solid fa-school"></i>
                                         </div>
                                     </div>
@@ -1272,7 +1315,8 @@
                                     <form id="form-pengaturan-madrasah" onsubmit="window.handleSaveSettings(event)"
                                         class="space-y-3.5">
                                         <div>
-                                            <label class="block text-xs font-bold text-slate-700 mb-1">Nama Madrasah / Sekolah</label>
+                                            <label class="block text-xs font-bold text-slate-700 mb-1">Nama Madrasah /
+                                                Sekolah</label>
                                             <input type="text" id="set-nama-madrasah" required
                                                 placeholder="MIS. Nurul Islam Km. 5"
                                                 class="w-full px-3.5 py-2.5 rounded-xl border border-slate-300 text-xs font-bold text-slate-900 focus:outline-none focus:ring-2 focus:ring-opti-dark">
@@ -1309,22 +1353,27 @@
                                             </div>
                                         </div>
                                         <div>
-                                            <label class="block text-xs font-bold text-slate-700 mb-1">Tahun Ajaran Aktif (Pilih dari Riwayat / Tambah Baru)</label>
+                                            <label class="block text-xs font-bold text-slate-700 mb-1">Tahun Ajaran
+                                                Aktif (Pilih dari Riwayat / Tambah Baru)</label>
                                             <div class="flex items-center gap-2">
-                                                <select id="set-ta-select" onchange="window.handleSelectTahunAjaran(this.value)"
+                                                <select id="set-ta-select"
+                                                    onchange="window.handleSelectTahunAjaran(this.value)"
                                                     class="flex-1 px-3.5 py-2.5 rounded-xl border border-slate-300 text-xs font-bold bg-white focus:outline-none focus:ring-2 focus:ring-opti-dark">
                                                     <!-- Diisi JS -->
                                                 </select>
-                                                <button type="button" onclick="window.deleteCurrentTahunAjaran()" title="Hapus Tahun Ajaran Terpilih"
+                                                <button type="button" onclick="window.deleteCurrentTahunAjaran()"
+                                                    title="Hapus Tahun Ajaran Terpilih"
                                                     class="px-3.5 py-2.5 rounded-xl bg-red-50 hover:bg-red-100 text-red-600 border border-red-200 text-xs font-bold transition shrink-0 flex items-center gap-1.5 shadow-sm">
                                                     <i class="fa-solid fa-trash"></i>
                                                     <span>Hapus T.A.</span>
                                                 </button>
                                             </div>
                                             <div class="mt-2 flex items-center gap-2">
-                                                <input type="text" id="set-ta-new" placeholder="Tambah T.A. Baru (cth: 2027/2028)"
+                                                <input type="text" id="set-ta-new"
+                                                    placeholder="Tambah T.A. Baru (cth: 2027/2028)"
                                                     class="flex-1 px-3.5 py-2 rounded-xl border border-slate-300 text-xs focus:outline-none focus:ring-2 focus:ring-opti-dark">
-                                                <button type="button" id="btn-add-new-ta" onclick="window.addNewTahunAjaran()"
+                                                <button type="button" id="btn-add-new-ta"
+                                                    onclick="window.addNewTahunAjaran()"
                                                     class="px-3.5 py-2 rounded-xl bg-opti-dark hover:bg-slate-800 text-opti-lime text-xs font-bold transition shrink-0 shadow-sm">
                                                     + Tambah T.A.
                                                 </button>
@@ -1340,40 +1389,52 @@
                             </div>
 
                             <!-- Card 2: Pengaturan Akun Operator (Username & Password) -->
-                            <div class="lg:col-span-6 bg-white rounded-3xl p-6 border border-slate-200/80 shadow-sm flex flex-col justify-between">
+                            <div
+                                class="lg:col-span-6 bg-white rounded-3xl p-6 border border-slate-200/80 shadow-sm flex flex-col justify-between">
                                 <div>
                                     <div class="flex items-center justify-between mb-4">
                                         <div>
                                             <span
                                                 class="text-[11px] font-bold uppercase tracking-wider px-2.5 py-1 rounded-full bg-amber-100 text-amber-900">Keamanan
                                                 & Akses</span>
-                                            <h3 class="text-lg font-extrabold text-slate-900 mt-1">Ganti Username & Password</h3>
-                                            <p class="text-xs text-slate-500">Atur kredensial akun login untuk operator madrasah</p>
+                                            <h3 class="text-lg font-extrabold text-slate-900 mt-1">Ganti Username &
+                                                Password</h3>
+                                            <p class="text-xs text-slate-500">Atur kredensial akun login untuk operator
+                                                madrasah</p>
                                         </div>
-                                        <div class="w-10 h-10 rounded-2xl bg-amber-50 text-amber-600 flex items-center justify-center text-lg">
+                                        <div
+                                            class="w-10 h-10 rounded-2xl bg-amber-50 text-amber-600 flex items-center justify-center text-lg">
                                             <i class="fa-solid fa-user-shield"></i>
                                         </div>
                                     </div>
 
-                                    <form id="form-pengaturan-akun" onsubmit="window.handleSaveAdminAccount(event)" class="space-y-4">
+                                    <form id="form-pengaturan-akun" onsubmit="window.handleSaveAdminAccount(event)"
+                                        class="space-y-4">
                                         <div>
-                                            <label class="block text-xs font-bold text-slate-700 mb-1">Username Baru</label>
+                                            <label class="block text-xs font-bold text-slate-700 mb-1">Username
+                                                Baru</label>
                                             <div class="relative">
-                                                <i class="fa-solid fa-user absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400 text-xs"></i>
+                                                <i
+                                                    class="fa-solid fa-user absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400 text-xs"></i>
                                                 <input type="text" id="set-admin-username" required placeholder="admin"
                                                     class="w-full pl-9 pr-3.5 py-2.5 rounded-xl border border-slate-300 text-xs font-bold text-slate-900 focus:outline-none focus:ring-2 focus:ring-opti-dark">
                                             </div>
-                                            <p class="text-[11px] text-slate-400 mt-1">Username ini digunakan untuk masuk ke panel operator.</p>
+                                            <p class="text-[11px] text-slate-400 mt-1">Username ini digunakan untuk
+                                                masuk ke panel operator.</p>
                                         </div>
 
                                         <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
                                             <div>
-                                                <label class="block text-xs font-bold text-slate-700 mb-1">Password Baru</label>
+                                                <label class="block text-xs font-bold text-slate-700 mb-1">Password
+                                                    Baru</label>
                                                 <div class="relative">
-                                                    <i class="fa-solid fa-key absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400 text-xs"></i>
-                                                    <input type="password" id="set-admin-new-pass" required placeholder="Minimal 6 karakter"
+                                                    <i
+                                                        class="fa-solid fa-key absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400 text-xs"></i>
+                                                    <input type="password" id="set-admin-new-pass" required
+                                                        placeholder="Minimal 6 karakter"
                                                         class="w-full pl-9 pr-9 py-2.5 rounded-xl border border-slate-300 text-xs focus:outline-none focus:ring-2 focus:ring-opti-dark">
-                                                    <button type="button" onclick="window.toggleSettingPasswordVisibility('set-admin-new-pass', 'toggle-newpass-icon')"
+                                                    <button type="button"
+                                                        onclick="window.toggleSettingPasswordVisibility('set-admin-new-pass', 'toggle-newpass-icon')"
                                                         class="absolute right-2.5 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-700 p-1 cursor-pointer focus:outline-none"
                                                         title="Lihat Password">
                                                         <i id="toggle-newpass-icon" class="fa-solid fa-eye text-xs"></i>
@@ -1381,24 +1442,31 @@
                                                 </div>
                                             </div>
                                             <div>
-                                                <label class="block text-xs font-bold text-slate-700 mb-1">Konfirmasi Password Baru</label>
+                                                <label class="block text-xs font-bold text-slate-700 mb-1">Konfirmasi
+                                                    Password Baru</label>
                                                 <div class="relative">
-                                                    <i class="fa-solid fa-lock absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400 text-xs"></i>
-                                                    <input type="password" id="set-admin-confirm-pass" required placeholder="Ulangi password"
+                                                    <i
+                                                        class="fa-solid fa-lock absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400 text-xs"></i>
+                                                    <input type="password" id="set-admin-confirm-pass" required
+                                                        placeholder="Ulangi password"
                                                         class="w-full pl-9 pr-9 py-2.5 rounded-xl border border-slate-300 text-xs focus:outline-none focus:ring-2 focus:ring-opti-dark">
-                                                    <button type="button" onclick="window.toggleSettingPasswordVisibility('set-admin-confirm-pass', 'toggle-confpass-icon')"
+                                                    <button type="button"
+                                                        onclick="window.toggleSettingPasswordVisibility('set-admin-confirm-pass', 'toggle-confpass-icon')"
                                                         class="absolute right-2.5 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-700 p-1 cursor-pointer focus:outline-none"
                                                         title="Lihat Password">
-                                                        <i id="toggle-confpass-icon" class="fa-solid fa-eye text-xs"></i>
+                                                        <i id="toggle-confpass-icon"
+                                                            class="fa-solid fa-eye text-xs"></i>
                                                     </button>
                                                 </div>
                                             </div>
                                         </div>
 
-                                        <div class="p-3.5 rounded-2xl bg-slate-50 border border-slate-200 text-xs text-slate-600 flex items-center gap-3">
+                                        <div
+                                            class="p-3.5 rounded-2xl bg-slate-50 border border-slate-200 text-xs text-slate-600 flex items-center gap-3">
                                             <i class="fa-solid fa-circle-check text-emerald-600 text-sm shrink-0"></i>
                                             <div>
-                                                Kredensial disimpan otomatis ke server database dan penyimpanan lokal perangkat Anda.
+                                                Kredensial disimpan otomatis ke server database dan penyimpanan lokal
+                                                perangkat Anda.
                                             </div>
                                         </div>
 
@@ -1506,9 +1574,12 @@
                         <div>
                             <div class="flex items-center justify-between mb-1">
                                 <label class="block text-xs font-bold text-slate-700">Tanggal Lahir *</label>
-                                <span id="f-umur-badge" class="text-[10px] font-bold px-1.5 py-0.5 rounded bg-amber-50 text-amber-900 border border-amber-200">Umur: -</span>
+                                <span id="f-umur-badge"
+                                    class="text-[10px] font-bold px-1.5 py-0.5 rounded bg-amber-50 text-amber-900 border border-amber-200">Umur:
+                                    -</span>
                             </div>
-                            <input type="date" id="f-tgl-lahir" required onchange="window.updateFormAgeBadge(this.value)"
+                            <input type="date" id="f-tgl-lahir" required
+                                onchange="window.updateFormAgeBadge(this.value)"
                                 class="w-full px-3.5 py-2.5 rounded-xl border border-slate-300 text-xs">
                         </div>
                         <div>
@@ -1518,12 +1589,12 @@
                         </div>
                         <div>
                             <label class="block text-xs font-bold text-slate-700 mb-1">Anak Ke-</label>
-                            <input type="text" id="f-anak-ke" placeholder="Contoh: 1 (Boleh dikosongkan)"
+                            <input type="text" id="f-anak-ke" placeholder="Di isi dengan angka"
                                 class="w-full px-3.5 py-2.5 rounded-xl border border-slate-300 text-xs">
                         </div>
                         <div>
                             <label class="block text-xs font-bold text-slate-700 mb-1">Jumlah Saudara</label>
-                            <input type="text" id="f-jml-saudara" placeholder="Contoh: 2 (Boleh dikosongkan)"
+                            <input type="text" id="f-jml-saudara" placeholder="Di isi dengan angka"
                                 class="w-full px-3.5 py-2.5 rounded-xl border border-slate-300 text-xs">
                         </div>
                         <div>
@@ -1583,13 +1654,15 @@
                                 <option value="> Rp 5.000.000">&gt; Rp 5.000.000</option>
                                 <option value="Lainnya">Lainnya (Ketik Manual...)</option>
                             </select>
-                            <input type="text" id="f-penghasilan-custom" placeholder="Ketik rincian / nominal penghasilan..."
+                            <input type="text" id="f-penghasilan-custom"
+                                placeholder="Ketik rincian / nominal penghasilan..."
                                 class="hidden mt-2 w-full px-3.5 py-2 rounded-xl border border-slate-300 text-xs bg-slate-50">
                         </div>
                     </div>
 
                     <!-- TAB 3: RIWAYAT MASUK (TK/RA & PINDAHAN) -->
-                    <div id="ftab-panel-3" class="form-tab-panel hidden grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+                    <div id="ftab-panel-3"
+                        class="form-tab-panel hidden grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
                         <div class="sm:col-span-2 lg:col-span-3">
                             <label class="block text-xs font-bold text-slate-700 mb-1">Status / Jalur Masuk *</label>
                             <select id="f-jenis-masuk"
@@ -1674,46 +1747,59 @@
         <!-- MODAL IMPORT DATA SISWA (EXCEL / CSV) -->
         <div id="modal-import-siswa"
             class="hidden fixed inset-0 z-[1000002] bg-slate-900/70 backdrop-blur-sm flex items-center justify-center p-3 sm:p-6 overflow-y-auto">
-            <div class="bg-white rounded-3xl max-w-3xl w-full flex flex-col shadow-2xl border border-slate-200 overflow-hidden my-auto max-h-[90vh]">
+            <div
+                class="bg-white rounded-3xl max-w-3xl w-full flex flex-col shadow-2xl border border-slate-200 overflow-hidden my-auto max-h-[90vh]">
                 <div class="opti-mesh-bg px-6 py-5 text-white flex items-center justify-between shrink-0">
                     <div class="flex items-center gap-3">
-                        <div class="w-10 h-10 rounded-2xl bg-opti-lime text-opti-dark flex items-center justify-center font-bold">
+                        <div
+                            class="w-10 h-10 rounded-2xl bg-opti-lime text-opti-dark flex items-center justify-center font-bold">
                             <i class="fa-solid fa-file-import"></i>
                         </div>
                         <div>
                             <h3 class="text-lg font-extrabold">Impor Data Siswa Massal (Excel / CSV)</h3>
-                            <p class="text-xs text-slate-300">Masukkan puluhan data siswa sekaligus dari file Excel (.xlsx) atau CSV</p>
+                            <p class="text-xs text-slate-300">Masukkan puluhan data siswa sekaligus dari file Excel
+                                (.xlsx) atau CSV</p>
                         </div>
                     </div>
-                    <button type="button" onclick="window.closeImportModal()" class="w-8 h-8 rounded-full bg-white/10 hover:bg-white/20 text-white flex items-center justify-center">
+                    <button type="button" onclick="window.closeImportModal()"
+                        class="w-8 h-8 rounded-full bg-white/10 hover:bg-white/20 text-white flex items-center justify-center">
                         <i class="fa-solid fa-xmark"></i>
                     </button>
                 </div>
 
                 <div class="p-6 space-y-4 overflow-y-auto">
                     <!-- Petunjuk Ringkas -->
-                    <div class="p-3.5 rounded-2xl bg-slate-50 border border-slate-200 flex items-center gap-3 text-xs text-slate-600">
+                    <div
+                        class="p-3.5 rounded-2xl bg-slate-50 border border-slate-200 flex items-center gap-3 text-xs text-slate-600">
                         <i class="fa-solid fa-circle-info text-opti-dark text-base shrink-0"></i>
-                        <span>Pilih file <b>Excel (.xlsx, .xls)</b> atau <b>CSV</b> yang berisi data siswa. Sistem akan otomatis mendeteksi kolom No, Nama Siswa, NISN, Kelas, dan Data Orang Tua.</span>
+                        <span>Pilih file <b>Excel (.xlsx, .xls)</b> atau <b>CSV</b> yang berisi data siswa. Sistem akan
+                            otomatis mendeteksi kolom No, Nama Siswa, NISN, Kelas, dan Data Orang Tua.</span>
                     </div>
 
                     <!-- Dropzone / File Picker -->
                     <div class="border-2 border-dashed border-slate-300 hover:border-opti-lime rounded-2xl p-6 text-center cursor-pointer transition bg-slate-50/50"
                         onclick="document.getElementById('csv-file-input').click()">
-                        <input type="file" id="csv-file-input" accept=".xlsx, .xls, .csv" class="hidden" onchange="window.handleCsvFileSelected(event)">
-                        <div class="w-12 h-12 rounded-2xl bg-lime-100 text-opti-dark flex items-center justify-center mx-auto text-xl mb-2">
+                        <input type="file" id="csv-file-input" accept=".xlsx, .xls, .csv" class="hidden"
+                            onchange="window.handleCsvFileSelected(event)">
+                        <div
+                            class="w-12 h-12 rounded-2xl bg-lime-100 text-opti-dark flex items-center justify-center mx-auto text-xl mb-2">
                             <i class="fa-solid fa-cloud-arrow-up"></i>
                         </div>
-                        <p class="text-xs font-bold text-slate-800">Klik untuk memilih file Excel (.xlsx, .xls) atau CSV dari komputer Anda</p>
-                        <p class="text-[11px] text-slate-400 mt-1">Sistem otomatis mendeteksi kolom No di A, Nama di B, NISN di C, dsb.</p>
-                        <div id="import-file-name" class="mt-2 text-xs font-mono font-bold text-emerald-600 hidden"></div>
+                        <p class="text-xs font-bold text-slate-800">Klik untuk memilih file Excel (.xlsx, .xls) atau CSV
+                            dari komputer Anda</p>
+                        <p class="text-[11px] text-slate-400 mt-1">Sistem otomatis mendeteksi kolom No di A, Nama di B,
+                            NISN di C, dsb.</p>
+                        <div id="import-file-name" class="mt-2 text-xs font-mono font-bold text-emerald-600 hidden">
+                        </div>
                     </div>
 
                     <!-- Preview Table -->
                     <div id="import-preview-box" class="hidden space-y-2">
                         <div class="flex items-center justify-between">
                             <span class="text-xs font-bold text-slate-800">Pratinjau Data yang Terbaca:</span>
-                            <span id="import-row-count" class="px-2.5 py-1 rounded-full text-[11px] font-bold bg-lime-100 text-lime-900">0 Data Siswa</span>
+                            <span id="import-row-count"
+                                class="px-2.5 py-1 rounded-full text-[11px] font-bold bg-lime-100 text-lime-900">0 Data
+                                Siswa</span>
                         </div>
                         <div class="max-h-48 overflow-y-auto border border-slate-200 rounded-xl overflow-x-auto">
                             <table class="w-full text-left text-xs border-collapse">
@@ -1749,46 +1835,59 @@
         <!-- MODAL IMPOR DATA GURU MASSAL -->
         <div id="modal-import-guru"
             class="hidden fixed inset-0 z-[1000002] bg-slate-900/70 backdrop-blur-sm flex items-center justify-center p-3 sm:p-6 overflow-y-auto">
-            <div class="bg-white rounded-3xl max-w-3xl w-full flex flex-col shadow-2xl border border-slate-200 overflow-hidden my-auto max-h-[92vh]">
+            <div
+                class="bg-white rounded-3xl max-w-3xl w-full flex flex-col shadow-2xl border border-slate-200 overflow-hidden my-auto max-h-[92vh]">
                 <div class="opti-mesh-bg px-6 py-5 text-white flex items-center justify-between shrink-0">
                     <div class="flex items-center gap-3">
-                        <div class="w-10 h-10 rounded-2xl bg-emerald-400 text-opti-dark flex items-center justify-center font-bold">
+                        <div
+                            class="w-10 h-10 rounded-2xl bg-emerald-400 text-opti-dark flex items-center justify-center font-bold">
                             <i class="fa-solid fa-file-import"></i>
                         </div>
                         <div>
                             <h3 class="text-lg font-extrabold">Impor Data Guru Massal (Excel / CSV)</h3>
-                            <p class="text-xs text-slate-300">Masukkan puluhan data pendidik sekaligus dari file Excel (.xlsx) atau CSV</p>
+                            <p class="text-xs text-slate-300">Masukkan puluhan data pendidik sekaligus dari file Excel
+                                (.xlsx) atau CSV</p>
                         </div>
                     </div>
-                    <button type="button" onclick="window.closeImportTeacherModal()" class="w-8 h-8 rounded-full bg-white/10 hover:bg-white/20 text-white flex items-center justify-center">
+                    <button type="button" onclick="window.closeImportTeacherModal()"
+                        class="w-8 h-8 rounded-full bg-white/10 hover:bg-white/20 text-white flex items-center justify-center">
                         <i class="fa-solid fa-xmark"></i>
                     </button>
                 </div>
 
                 <div class="p-6 space-y-4 overflow-y-auto">
                     <!-- Petunjuk Ringkas -->
-                    <div class="p-3.5 rounded-2xl bg-slate-50 border border-slate-200 flex items-center gap-3 text-xs text-slate-600">
+                    <div
+                        class="p-3.5 rounded-2xl bg-slate-50 border border-slate-200 flex items-center gap-3 text-xs text-slate-600">
                         <i class="fa-solid fa-circle-info text-opti-dark text-base shrink-0"></i>
-                        <span>Pilih file <b>Excel (.xlsx, .xls)</b> atau <b>CSV</b> yang berisi data guru. Sistem otomatis membaca kolom No, Nama, NIP, L/P, Jabatan, Mapel, No HP, dan Status.</span>
+                        <span>Pilih file <b>Excel (.xlsx, .xls)</b> atau <b>CSV</b> yang berisi data guru. Sistem
+                            otomatis membaca kolom No, Nama, NIP, L/P, Jabatan, Mapel, No HP, dan Status.</span>
                     </div>
 
                     <!-- Dropzone / File Picker -->
                     <div class="border-2 border-dashed border-slate-300 hover:border-opti-lime rounded-2xl p-6 text-center cursor-pointer transition bg-slate-50/50"
                         onclick="document.getElementById('teacher-file-input').click()">
-                        <input type="file" id="teacher-file-input" accept=".xlsx, .xls, .csv" class="hidden" onchange="window.handleTeacherFileSelected(event)">
-                        <div class="w-12 h-12 rounded-2xl bg-emerald-100 text-emerald-800 flex items-center justify-center mx-auto text-xl mb-2">
+                        <input type="file" id="teacher-file-input" accept=".xlsx, .xls, .csv" class="hidden"
+                            onchange="window.handleTeacherFileSelected(event)">
+                        <div
+                            class="w-12 h-12 rounded-2xl bg-emerald-100 text-emerald-800 flex items-center justify-center mx-auto text-xl mb-2">
                             <i class="fa-solid fa-cloud-arrow-up"></i>
                         </div>
-                        <p class="text-xs font-bold text-slate-800">Klik untuk memilih file Excel Guru (.xlsx, .xls) atau CSV dari komputer</p>
-                        <p class="text-[11px] text-slate-400 mt-1">Gunakan tombol "Unduh Template (.xlsx)" di menu guru jika belum memiliki format tabel</p>
-                        <div id="teacher-import-file-name" class="mt-2 text-xs font-mono font-bold text-emerald-600 hidden"></div>
+                        <p class="text-xs font-bold text-slate-800">Klik untuk memilih file Excel Guru (.xlsx, .xls)
+                            atau CSV dari komputer</p>
+                        <p class="text-[11px] text-slate-400 mt-1">Gunakan tombol "Unduh Template (.xlsx)" di menu guru
+                            jika belum memiliki format tabel</p>
+                        <div id="teacher-import-file-name"
+                            class="mt-2 text-xs font-mono font-bold text-emerald-600 hidden"></div>
                     </div>
 
                     <!-- Preview Table -->
                     <div id="teacher-import-preview-box" class="hidden space-y-2">
                         <div class="flex items-center justify-between">
                             <span class="text-xs font-bold text-slate-800">Pratinjau Data Guru yang Terbaca:</span>
-                            <span id="teacher-import-row-count" class="px-2.5 py-1 rounded-full text-[11px] font-bold bg-emerald-100 text-emerald-900">0 Data Guru</span>
+                            <span id="teacher-import-row-count"
+                                class="px-2.5 py-1 rounded-full text-[11px] font-bold bg-emerald-100 text-emerald-900">0
+                                Data Guru</span>
                         </div>
                         <div class="max-h-52 overflow-y-auto border border-slate-200 rounded-xl overflow-x-auto">
                             <table class="w-full text-left text-xs border-collapse">
@@ -1814,7 +1913,8 @@
                 <div class="px-6 py-4 bg-slate-50 border-t border-slate-200 flex items-center justify-between shrink-0">
                     <button type="button" onclick="window.closeImportTeacherModal()"
                         class="px-4 py-2 rounded-full text-xs font-bold text-slate-600 hover:bg-slate-200">Tutup</button>
-                    <button type="button" id="btn-execute-import-teacher" onclick="window.executeImportTeachers()" disabled
+                    <button type="button" id="btn-execute-import-teacher" onclick="window.executeImportTeachers()"
+                        disabled
                         class="px-6 py-2.5 rounded-full bg-opti-dark text-opti-lime font-extrabold text-xs transition shadow-md disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2">
                         <i class="fa-solid fa-check-double"></i>
                         <span>Simpan Semua Data Guru</span>
@@ -1826,18 +1926,22 @@
         <!-- MODAL KENAIKAN KELAS MASSAL (TAHUN AJARAN BARU) -->
         <div id="modal-naik-kelas"
             class="hidden fixed inset-0 z-[1000002] bg-slate-900/70 backdrop-blur-sm flex items-center justify-center p-3 sm:p-6 overflow-y-auto">
-            <div class="bg-white rounded-3xl max-w-2xl w-full flex flex-col shadow-2xl border border-slate-200 overflow-hidden my-auto max-h-[92vh]">
+            <div
+                class="bg-white rounded-3xl max-w-2xl w-full flex flex-col shadow-2xl border border-slate-200 overflow-hidden my-auto max-h-[92vh]">
                 <div class="opti-mesh-bg px-6 py-5 text-white flex items-center justify-between shrink-0">
                     <div class="flex items-center gap-3">
-                        <div class="w-10 h-10 rounded-2xl bg-amber-400 text-opti-dark flex items-center justify-center font-bold">
+                        <div
+                            class="w-10 h-10 rounded-2xl bg-amber-400 text-opti-dark flex items-center justify-center font-bold">
                             <i class="fa-solid fa-arrow-trend-up"></i>
                         </div>
                         <div>
                             <h3 class="text-lg font-extrabold">Kenaikan Kelas Massal</h3>
-                            <p class="text-xs text-slate-300">Pembaruan jenjang kelas serentak untuk tahun ajaran baru</p>
+                            <p class="text-xs text-slate-300">Pembaruan jenjang kelas serentak untuk tahun ajaran baru
+                            </p>
                         </div>
                     </div>
-                    <button type="button" onclick="window.closeNaikKelasModal()" class="w-8 h-8 rounded-full bg-white/10 hover:bg-white/20 text-white flex items-center justify-center">
+                    <button type="button" onclick="window.closeNaikKelasModal()"
+                        class="w-8 h-8 rounded-full bg-white/10 hover:bg-white/20 text-white flex items-center justify-center">
                         <i class="fa-solid fa-xmark"></i>
                     </button>
                 </div>
@@ -1846,11 +1950,14 @@
                     <!-- Academic Year Transition Box -->
                     <div class="grid grid-cols-2 gap-4 p-4 rounded-2xl bg-amber-50/60 border border-amber-200">
                         <div>
-                            <span class="text-[11px] font-bold uppercase text-amber-800 block">Tahun Ajaran Saat Ini</span>
-                            <div class="text-lg font-extrabold text-slate-900 mt-0.5" id="naik-kelas-ta-lama">2026/2027</div>
+                            <span class="text-[11px] font-bold uppercase text-amber-800 block">Tahun Ajaran Saat
+                                Ini</span>
+                            <div class="text-lg font-extrabold text-slate-900 mt-0.5" id="naik-kelas-ta-lama">2026/2027
+                            </div>
                         </div>
                         <div>
-                            <span class="text-[11px] font-bold uppercase text-amber-800 block">Tahun Ajaran Baru *</span>
+                            <span class="text-[11px] font-bold uppercase text-amber-800 block">Tahun Ajaran Baru
+                                *</span>
                             <input type="text" id="naik-kelas-ta-baru" placeholder="2027/2028"
                                 class="w-full mt-1 px-3 py-1.5 rounded-xl border border-amber-300 text-xs font-bold text-slate-900 focus:outline-none focus:ring-2 focus:ring-opti-dark">
                         </div>
@@ -1868,10 +1975,12 @@
                             <div class="bg-white p-2 rounded-xl border border-slate-200 text-slate-700">Kls 3 ➔ 4</div>
                             <div class="bg-white p-2 rounded-xl border border-slate-200 text-slate-700">Kls 4 ➔ 5</div>
                             <div class="bg-white p-2 rounded-xl border border-slate-200 text-slate-700">Kls 5 ➔ 6</div>
-                            <div class="bg-emerald-100 p-2 rounded-xl border border-emerald-300 text-emerald-900">Kls 6 ➔ Lulus</div>
+                            <div class="bg-emerald-100 p-2 rounded-xl border border-emerald-300 text-emerald-900">Kls 6
+                                ➔ Lulus</div>
                         </div>
                         <p class="text-[11px] text-slate-500 pt-1">
-                            *Siswa Kelas 6 yang naik jenjang akan otomatis berstatus <strong>Lulus</strong> dan tersimpan ke <strong>Menu Data Alumni</strong>.
+                            *Siswa Kelas 6 yang naik jenjang akan otomatis berstatus <strong>Lulus</strong> dan
+                            tersimpan ke <strong>Menu Data Alumni</strong>.
                         </p>
                     </div>
 
@@ -1902,10 +2011,12 @@
         <!-- MODAL FORM DATA GURU / PENDIDIK -->
         <div id="modal-form-guru"
             class="hidden fixed inset-0 z-[1000002] bg-slate-900/70 backdrop-blur-sm flex items-center justify-center p-3 sm:p-6 overflow-y-auto">
-            <div class="bg-white rounded-3xl max-w-xl w-full flex flex-col shadow-2xl border border-slate-200 overflow-hidden my-auto max-h-[92vh]">
+            <div
+                class="bg-white rounded-3xl max-w-xl w-full flex flex-col shadow-2xl border border-slate-200 overflow-hidden my-auto max-h-[92vh]">
                 <div class="opti-mesh-bg px-6 py-5 text-white flex items-center justify-between shrink-0">
                     <div class="flex items-center gap-3">
-                        <div class="w-10 h-10 rounded-2xl bg-opti-lime text-opti-dark flex items-center justify-center font-bold">
+                        <div
+                            class="w-10 h-10 rounded-2xl bg-opti-lime text-opti-dark flex items-center justify-center font-bold">
                             <i class="fa-solid fa-chalkboard-user"></i>
                         </div>
                         <div>
@@ -1913,12 +2024,14 @@
                             <p class="text-xs text-slate-300">Profil tenaga pendidik & kependidikan madrasah</p>
                         </div>
                     </div>
-                    <button type="button" onclick="window.closeTeacherModal()" class="w-8 h-8 rounded-full bg-white/10 hover:bg-white/20 text-white flex items-center justify-center">
+                    <button type="button" onclick="window.closeTeacherModal()"
+                        class="w-8 h-8 rounded-full bg-white/10 hover:bg-white/20 text-white flex items-center justify-center">
                         <i class="fa-solid fa-xmark"></i>
                     </button>
                 </div>
 
-                <form id="form-data-guru" onsubmit="window.handleSaveTeacher(event)" class="p-6 space-y-3.5 overflow-y-auto">
+                <form id="form-data-guru" onsubmit="window.handleSaveTeacher(event)"
+                    class="p-6 space-y-3.5 overflow-y-auto">
                     <input type="hidden" id="g-doc-id">
                     <div>
                         <label class="block text-xs font-bold text-slate-700 mb-1">NIP / PegID Guru</label>
@@ -1940,7 +2053,8 @@
                         </div>
                         <div>
                             <label class="block text-xs font-bold text-slate-700 mb-1">Status Keaktifan</label>
-                            <select id="g-status" class="w-full px-3.5 py-2.5 rounded-xl border border-slate-300 text-xs">
+                            <select id="g-status"
+                                class="w-full px-3.5 py-2.5 rounded-xl border border-slate-300 text-xs">
                                 <option value="Aktif">Aktif</option>
                                 <option value="Cuti">Cuti</option>
                                 <option value="Pindah Tugas">Pindah Tugas</option>
@@ -1982,10 +2096,12 @@
         <!-- MODAL FORM DATA ALUMNI & SEKOLAH LANJUTAN -->
         <div id="modal-form-alumni"
             class="hidden fixed inset-0 z-[1000002] bg-slate-900/70 backdrop-blur-sm flex items-center justify-center p-3 sm:p-6 overflow-y-auto">
-            <div class="bg-white rounded-3xl max-w-xl w-full flex flex-col shadow-2xl border border-slate-200 overflow-hidden my-auto max-h-[92vh]">
+            <div
+                class="bg-white rounded-3xl max-w-xl w-full flex flex-col shadow-2xl border border-slate-200 overflow-hidden my-auto max-h-[92vh]">
                 <div class="opti-mesh-bg px-6 py-5 text-white flex items-center justify-between shrink-0">
                     <div class="flex items-center gap-3">
-                        <div class="w-10 h-10 rounded-2xl bg-opti-lime text-opti-dark flex items-center justify-center font-bold">
+                        <div
+                            class="w-10 h-10 rounded-2xl bg-opti-lime text-opti-dark flex items-center justify-center font-bold">
                             <i class="fa-solid fa-user-graduate"></i>
                         </div>
                         <div>
@@ -1993,12 +2109,14 @@
                             <p class="text-xs text-slate-300">Pencatatan kelulusan & penelusuran sekolah lanjutan</p>
                         </div>
                     </div>
-                    <button type="button" onclick="window.closeAlumniModal()" class="w-8 h-8 rounded-full bg-white/10 hover:bg-white/20 text-white flex items-center justify-center">
+                    <button type="button" onclick="window.closeAlumniModal()"
+                        class="w-8 h-8 rounded-full bg-white/10 hover:bg-white/20 text-white flex items-center justify-center">
                         <i class="fa-solid fa-xmark"></i>
                     </button>
                 </div>
 
-                <form id="form-data-alumni" onsubmit="window.handleSaveAlumni(event)" class="p-6 space-y-3.5 overflow-y-auto">
+                <form id="form-data-alumni" onsubmit="window.handleSaveAlumni(event)"
+                    class="p-6 space-y-3.5 overflow-y-auto">
                     <input type="hidden" id="al-doc-id">
                     <div class="grid grid-cols-2 gap-3">
                         <div>
@@ -2039,7 +2157,8 @@
 
                     <!-- PENELUSURAN SEKOLAH LANJUTAN -->
                     <div class="p-3.5 rounded-2xl bg-lime-50/60 border border-lime-200/80 space-y-3">
-                        <span class="text-xs font-extrabold text-opti-dark uppercase tracking-wider block flex items-center gap-2">
+                        <span
+                            class="text-xs font-extrabold text-opti-dark uppercase tracking-wider block flex items-center gap-2">
                             <i class="fa-solid fa-school text-emerald-600"></i>
                             Pilihan Melanjutkan Sekolah:
                         </span>
@@ -2054,8 +2173,10 @@
                             </select>
                         </div>
                         <div>
-                            <label class="block text-xs font-bold text-slate-700 mb-1">Nama Lembaga / Sekolah Lanjutan *</label>
-                            <input type="text" id="al-sekolah-lanjutan" required placeholder="Contoh: MTsN 2 Banjarmasin / Ponpes Darussalam"
+                            <label class="block text-xs font-bold text-slate-700 mb-1">Nama Lembaga / Sekolah Lanjutan
+                                *</label>
+                            <input type="text" id="al-sekolah-lanjutan" required
+                                placeholder="Contoh: MTsN 2 Banjarmasin / Ponpes Darussalam"
                                 class="w-full px-3.5 py-2.5 rounded-xl border border-slate-300 text-xs bg-white font-medium focus:outline-none focus:ring-2 focus:ring-opti-dark">
                         </div>
                     </div>
@@ -3505,7 +3626,7 @@
             if (!selectedTA) return;
             state.madrasahSettings.tahun_ajaran_aktif = selectedTA;
             if (isCloudConnected && db) {
-                await getDocRef('pengaturan_madrasah', 'profil').set({ tahun_ajaran_aktif: selectedTA }, { merge: true }).catch(() => {});
+                await getDocRef('pengaturan_madrasah', 'profil').set({ tahun_ajaran_aktif: selectedTA }, { merge: true }).catch(() => { });
             }
             try { localStorage.setItem('mis_offline_settings', JSON.stringify(state.madrasahSettings)); } catch (e) { }
             refreshAllUI();
@@ -3540,7 +3661,7 @@
                     await getDocRef('pengaturan_madrasah', 'profil').set({
                         daftar_tahun_ajaran: listTA,
                         tahun_ajaran_aktif: val
-                    }, { merge: true }).catch(() => {});
+                    }, { merge: true }).catch(() => { });
                 }
                 try { localStorage.setItem('mis_offline_settings', JSON.stringify(state.madrasahSettings)); } catch (e) { }
                 refreshAllUI();
@@ -3576,7 +3697,7 @@
                         await getDocRef('pengaturan_madrasah', 'profil').set({
                             daftar_tahun_ajaran: listTA,
                             tahun_ajaran_aktif: state.madrasahSettings.tahun_ajaran_aktif
-                        }, { merge: true }).catch(() => {});
+                        }, { merge: true }).catch(() => { });
                     }
 
                     try { localStorage.setItem('mis_offline_settings', JSON.stringify(state.madrasahSettings)); } catch (e) { }
