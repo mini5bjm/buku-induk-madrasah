@@ -2993,8 +2993,8 @@
                             const existingIdx = combined.findIndex(c => c.id === localSt.id || (hasValidNisn && c.nisn === localSt.nisn));
                             if (existingIdx >= 0) {
                                 combined[existingIdx] = {
-                                    ...localSt,
                                     ...combined[existingIdx],
+                                    ...localSt,
                                     foto_siswa: (localSt.foto_siswa && localSt.foto_siswa.length > 20) ? localSt.foto_siswa : (combined[existingIdx].foto_siswa || '')
                                 };
                             } else {
@@ -3021,8 +3021,8 @@
                             const existingIdx = combined.findIndex(c => c.id === localT.id || (hasValidNip && c.nip === localT.nip) || (localT.nama_lengkap && c.nama_lengkap && c.nama_lengkap.toLowerCase() === localT.nama_lengkap.toLowerCase()));
                             if (existingIdx >= 0) {
                                 combined[existingIdx] = {
-                                    ...localT,
                                     ...combined[existingIdx],
+                                    ...localT,
                                     foto_guru: (localT.foto_guru && localT.foto_guru.length > 20) ? localT.foto_guru : (combined[existingIdx].foto_guru || '')
                                 };
                             } else {
@@ -3049,8 +3049,8 @@
                             const existingIdx = combined.findIndex(c => c.id === localA.id || (hasValidNisn && c.nisn === localA.nisn) || (localA.nama_lengkap && c.nama_lengkap && c.nama_lengkap.toLowerCase() === localA.nama_lengkap.toLowerCase()));
                             if (existingIdx >= 0) {
                                 combined[existingIdx] = {
-                                    ...localA,
                                     ...combined[existingIdx],
+                                    ...localA,
                                     foto_alumni: (localA.foto_alumni && localA.foto_alumni.length > 20) ? localA.foto_alumni : (combined[existingIdx].foto_alumni || ''),
                                     file_ijazah: (localA.file_ijazah && localA.file_ijazah.length > 20) ? localA.file_ijazah : (combined[existingIdx].file_ijazah || ''),
                                     nama_file_ijazah: localA.nama_file_ijazah || combined[existingIdx].nama_file_ijazah || '',
@@ -3176,7 +3176,7 @@
                         if (deletedTeacherIds.includes(it.id)) return;
                         const cur = state.teachers.find(t => t.id === it.id);
                         if (cur) {
-                            if (it.foto_guru) cur.foto_guru = it.foto_guru;
+                            Object.assign(cur, it);
                         } else {
                             state.teachers.push(it);
                         }
@@ -3191,15 +3191,7 @@
                         if (deletedAlumniIds.includes(ia.id)) return;
                         const cur = state.alumni.find(a => a.id === ia.id);
                         if (cur) {
-                            if (ia.foto_alumni) cur.foto_alumni = ia.foto_alumni;
-                            if (ia.file_ijazah) {
-                                cur.file_ijazah = ia.file_ijazah;
-                                cur.nama_file_ijazah = ia.nama_file_ijazah || cur.nama_file_ijazah;
-                            }
-                            if (ia.file_transkrip) {
-                                cur.file_transkrip = ia.file_transkrip;
-                                cur.nama_file_transkrip = ia.nama_file_transkrip || cur.nama_file_transkrip;
-                            }
+                            Object.assign(cur, ia);
                         } else {
                             state.alumni.push(ia);
                         }
@@ -3214,7 +3206,7 @@
                         if (deletedIds.includes(is.id)) return;
                         const cur = state.students.find(s => s.id === is.id);
                         if (cur) {
-                            if (is.foto_siswa) cur.foto_siswa = is.foto_siswa;
+                            Object.assign(cur, normalizeStudentData(is));
                         } else {
                             state.students.push(normalizeStudentData(is));
                         }
@@ -4045,11 +4037,7 @@
 
                 // 4. Sinkronisasi ke Firestore Cloud di latar belakang jika tersedia
                 if (isCloudConnected && db) {
-                    try {
-                        await getDocRef('buku_induk_siswa', docId).set(studentPayload);
-                    } catch (err) {
-                        console.warn("Firestore save student note:", err);
-                    }
+                    await safeCloudSaveDoc('buku_induk_siswa', docId, studentPayload, true);
                 }
             }, "Data Siswa Tersimpan!");
 
