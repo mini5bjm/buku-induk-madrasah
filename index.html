@@ -4050,6 +4050,8 @@
     <Cell><Data ss:Type="String">${escapeXml(r[14])}</Data></Cell>
     <Cell><Data ss:Type="String">${escapeXml(r[15])}</Data></Cell>
     <Cell><Data ss:Type="String">${escapeXml(r[16])}</Data></Cell>
+    <Cell><Data ss:Type="String">${escapeXml(r[17] || '')}</Data></Cell>
+    <Cell><Data ss:Type="String">${escapeXml(r[18] || '')}</Data></Cell>
    </Row>`).join('')}
   </Table>
  </Worksheet>
@@ -4145,13 +4147,26 @@
             if (isExcel && typeof XLSX !== 'undefined') {
                 const reader = new FileReader();
                 reader.onload = function (evt) {
+                    let workbook = null;
                     try {
                         const data = new Uint8Array(evt.target.result);
-                        const workbook = XLSX.read(data, { type: 'array' });
+                        workbook = XLSX.read(data, { type: 'array', cellDates: true });
+                    } catch (readErr) {
+                        console.warn("XLSX read as array failed, trying binary:", readErr);
+                        try {
+                            workbook = XLSX.read(evt.target.result, { type: 'binary', cellDates: true });
+                        } catch (binErr) {
+                            console.error("XLSX read failed completely:", binErr);
+                            showToast("Gagal membaca file Excel. Pastikan file tidak sedang dibuka di Excel atau simpan ulang file (.xlsx).", "error");
+                            return;
+                        }
+                    }
+
+                    try {
                         processWorkbook(workbook);
-                    } catch (err) {
-                        console.error("Gagal membaca file Excel:", err);
-                        showToast("Gagal membaca file Excel. Pastikan file tidak terkunci/rusak.", "error");
+                    } catch (procErr) {
+                        console.error("Gagal memproses data tabel Excel:", procErr);
+                        showToast("Terjadi kesalahan memproses kolom data: " + procErr.message, "error");
                     }
                 };
                 reader.readAsArrayBuffer(file);
@@ -4355,6 +4370,7 @@
                 const namaIbu = colMap.nama_ibu !== undefined ? String(cols[colMap.nama_ibu] || '-').trim() : '-';
                 const pekIbu = colMap.pekerjaan_ibu !== undefined ? String(cols[colMap.pekerjaan_ibu] || '-').trim() : '-';
                 const noHp = colMap.no_hp !== undefined ? String(cols[colMap.no_hp] || '-').trim() : '-';
+                const alamat = colMap.alamat !== undefined ? String(cols[colMap.alamat] || 'Banjarmasin').trim() : 'Banjarmasin';
                 let anakKe = '';
                 if (colMap.anak_ke !== undefined && cols[colMap.anak_ke] !== undefined) {
                     const rawAk = String(cols[colMap.anak_ke]).trim();
@@ -4859,13 +4875,25 @@
             if (isExcel && typeof XLSX !== 'undefined') {
                 const reader = new FileReader();
                 reader.onload = function (evt) {
+                    let workbook = null;
                     try {
                         const data = new Uint8Array(evt.target.result);
-                        const workbook = XLSX.read(data, { type: 'array' });
+                        workbook = XLSX.read(data, { type: 'array', cellDates: true });
+                    } catch (readErr) {
+                        try {
+                            workbook = XLSX.read(evt.target.result, { type: 'binary', cellDates: true });
+                        } catch (binErr) {
+                            console.error("Gagal membaca file Excel Guru:", binErr);
+                            showToast("Gagal membaca file Excel Guru. Pastikan format valid.", "error");
+                            return;
+                        }
+                    }
+
+                    try {
                         processTeacherWorkbook(workbook);
-                    } catch (err) {
-                        console.error("Gagal membaca file Excel Guru:", err);
-                        showToast("Gagal membaca file Excel Guru. Pastikan format valid.", "error");
+                    } catch (procErr) {
+                        console.error("Gagal memproses data guru:", procErr);
+                        showToast("Terjadi kesalahan memproses data guru: " + procErr.message, "error");
                     }
                 };
                 reader.readAsArrayBuffer(file);
