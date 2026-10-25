@@ -390,7 +390,7 @@
                                 Induk Digital</span>
                             <h1 class="font-bold text-sm text-white truncate" id="sidebar-madrasah-name">MIS. Nurul
                                 Islam Km. 5</h1>
-                            <p class="text-[11px] text-slate-300 truncate">Banjarmasin Timur</p>
+                            <p class="text-[11px] text-slate-300 truncate" id="sidebar-madrasah-address">Banjarmasin</p>
                         </div>
                     </div>
 
@@ -456,16 +456,6 @@
                     </div>
 
                     <div class="flex items-center gap-2.5">
-                        <!-- Quick Action Add Student -->
-                        <button id="topbar-btn-add-siswa" onclick="window.openStudentModal()"
-                            class="hidden sm:inline-flex items-center gap-2 pl-4 pr-2 py-2 rounded-full bg-opti-dark hover:bg-slate-800 text-white text-xs font-bold transition shadow-sm">
-                            <span>Input Siswa Baru</span>
-                            <span
-                                class="w-6 h-6 rounded-full bg-opti-lime text-opti-dark flex items-center justify-center">
-                                <i class="fa-solid fa-plus text-xs"></i>
-                            </span>
-                        </button>
-
                         <!-- Mobile Logout Button -->
                         <button onclick="window.handleLogout()" title="Keluar"
                             class="lg:hidden w-9 h-9 rounded-full bg-red-50 text-red-600 border border-red-200 flex items-center justify-center text-sm">
@@ -488,12 +478,10 @@
                                         <span id="dash-banner-nsm">NSM: 111263710018 • NPSN: 60723192</span>
                                     </div>
                                     <h3 class="text-2xl sm:text-3xl font-extrabold tracking-tight leading-tight">
-                                        Buku Induk Siswa Digital <span class="text-opti-lime">MIS. Nurul Islam Km.
-                                            5</span>
+                                        Buku Induk Siswa Digital <span id="dash-banner-school-name" class="text-opti-lime">MIS. Nurul Islam Km. 5</span>
                                     </h3>
-                                    <p class="text-xs sm:text-sm text-slate-300 mt-2 leading-relaxed">
-                                        Jl. A. Yani Km. 5 Komp. Masjid Nurul Islam, Kel. Pemurus Dalam, Kec. Banjarmasin
-                                        Selatan / Timur, Kota Banjarmasin.
+                                    <p id="dash-banner-address" class="text-xs sm:text-sm text-slate-300 mt-2 leading-relaxed">
+                                        Jl. A. Yani Km. 5 Komp. Masjid Nurul Islam, Pemurus Dalam, Banjarmasin
                                     </p>
                                 </div>
                                 <div class="flex flex-wrap items-center gap-3 shrink-0">
@@ -683,6 +671,11 @@
                                     class="py-2.5 px-3.5 rounded-full bg-amber-50 hover:bg-amber-100 text-amber-900 border border-amber-200 font-bold text-xs transition flex items-center justify-center gap-1.5 shrink-0 shadow-sm">
                                     <i class="fa-solid fa-arrow-trend-up text-amber-600"></i>
                                     <span>Naik Kelas</span>
+                                </button>
+                                <button onclick="window.openStudentModal()" title="Tambah Siswa Baru secara manual"
+                                    class="py-2.5 px-4 rounded-full bg-opti-lime hover:bg-opti-limeHover text-opti-dark font-extrabold text-xs transition flex items-center justify-center gap-1.5 shrink-0 shadow-sm">
+                                    <i class="fa-solid fa-user-plus"></i>
+                                    <span>Tambah Siswa</span>
                                 </button>
                             </div>
                         </div>
@@ -1132,7 +1125,7 @@
                                             placeholder="Pindah tugas orang tua."
                                             class="w-full px-3.5 py-2 rounded-xl border border-slate-300 text-xs"></textarea>
                                     </div>
-                                    <button type="submit"
+                                    <button type="submit" id="btn-save-mutasi"
                                         class="w-full py-3 rounded-full bg-opti-dark hover:bg-slate-800 text-opti-lime font-bold text-xs transition flex items-center justify-center gap-2">
                                         <i class="fa-solid fa-file-signature"></i>
                                         <span>Simpan Mutasi</span>
@@ -1309,17 +1302,22 @@
                                                     class="flex-1 px-3.5 py-2.5 rounded-xl border border-slate-300 text-xs font-bold bg-white focus:outline-none focus:ring-2 focus:ring-opti-dark">
                                                     <!-- Diisi JS -->
                                                 </select>
+                                                <button type="button" onclick="window.deleteCurrentTahunAjaran()" title="Hapus Tahun Ajaran Terpilih"
+                                                    class="px-3.5 py-2.5 rounded-xl bg-red-50 hover:bg-red-100 text-red-600 border border-red-200 text-xs font-bold transition shrink-0 flex items-center gap-1.5 shadow-sm">
+                                                    <i class="fa-solid fa-trash"></i>
+                                                    <span>Hapus T.A.</span>
+                                                </button>
                                             </div>
                                             <div class="mt-2 flex items-center gap-2">
                                                 <input type="text" id="set-ta-new" placeholder="Tambah T.A. Baru (cth: 2027/2028)"
                                                     class="flex-1 px-3.5 py-2 rounded-xl border border-slate-300 text-xs focus:outline-none focus:ring-2 focus:ring-opti-dark">
-                                                <button type="button" onclick="window.addNewTahunAjaran()"
+                                                <button type="button" id="btn-add-new-ta" onclick="window.addNewTahunAjaran()"
                                                     class="px-3.5 py-2 rounded-xl bg-opti-dark hover:bg-slate-800 text-opti-lime text-xs font-bold transition shrink-0 shadow-sm">
                                                     + Tambah T.A.
                                                 </button>
                                             </div>
                                         </div>
-                                        <button type="submit"
+                                        <button type="submit" id="btn-save-settings"
                                             class="w-full py-3 rounded-full bg-opti-dark hover:bg-slate-800 text-opti-lime font-bold text-xs transition flex items-center justify-center gap-2 shadow-md">
                                             <i class="fa-solid fa-check-double"></i>
                                             <span>Simpan Identitas Madrasah</span>
@@ -1391,7 +1389,7 @@
                                             </div>
                                         </div>
 
-                                        <button type="submit"
+                                        <button type="submit" id="btn-save-admin-account"
                                             class="w-full py-3 rounded-full bg-slate-900 hover:bg-slate-800 text-white font-bold text-xs transition flex items-center justify-center gap-2 shadow-md">
                                             <i class="fa-solid fa-user-check text-opti-lime"></i>
                                             <span>Simpan Username & Password Baru</span>
@@ -1649,10 +1647,10 @@
                         <div class="flex items-center gap-2.5">
                             <button type="button" onclick="window.closeStudentModal()"
                                 class="px-4 py-2.5 rounded-full text-xs font-bold text-slate-600 hover:bg-slate-100">Batal</button>
-                            <button type="submit"
+                            <button type="submit" id="btn-save-student"
                                 class="px-6 py-2.5 rounded-full bg-opti-lime hover:bg-opti-limeHover text-opti-dark font-extrabold text-xs shadow-md flex items-center gap-2">
                                 <i class="fa-solid fa-floppy-disk"></i>
-                                <span>Simpan</span>
+                                <span>Simpan Siswa</span>
                             </button>
                         </div>
                     </div>
@@ -1958,7 +1956,7 @@
                     <div class="pt-4 border-t border-slate-200 flex items-center justify-between">
                         <button type="button" onclick="window.closeTeacherModal()"
                             class="px-4 py-2 rounded-full text-xs font-bold text-slate-600 hover:bg-slate-100">Batal</button>
-                        <button type="submit"
+                        <button type="submit" id="btn-save-teacher"
                             class="px-6 py-2.5 rounded-full bg-opti-lime hover:bg-opti-limeHover text-opti-dark font-extrabold text-xs shadow-md flex items-center gap-2">
                             <i class="fa-solid fa-floppy-disk"></i>
                             <span>Simpan Guru</span>
@@ -2065,7 +2063,7 @@
                     <div class="pt-4 border-t border-slate-200 flex items-center justify-between">
                         <button type="button" onclick="window.closeAlumniModal()"
                             class="px-4 py-2 rounded-full text-xs font-bold text-slate-600 hover:bg-slate-100">Batal</button>
-                        <button type="submit"
+                        <button type="submit" id="btn-save-alumni"
                             class="px-6 py-2.5 rounded-full bg-opti-lime hover:bg-opti-limeHover text-opti-dark font-extrabold text-xs shadow-md flex items-center gap-2">
                             <i class="fa-solid fa-floppy-disk"></i>
                             <span>Simpan Alumni</span>
@@ -2203,15 +2201,42 @@
                     refreshAllUI();
                 }, err => console.warn("Firestore listener error (pengaturan):", err));
 
+        function normalizeStudentData(s) {
+            if (!s) return s;
+            let ak = String(s.anak_ke !== undefined && s.anak_ke !== null ? s.anak_ke : '').trim();
+            if (!ak || ak === '1' || ak === '0' || ak === '') ak = '-';
+            let js = String(s.jml_saudara !== undefined && s.jml_saudara !== null ? s.jml_saudara : '').trim();
+            if (!js || js === '1' || js === '0' || js === '') js = '-';
+            return { ...s, anak_ke: ak, jml_saudara: js };
+        }
+
+        async function withButtonFeedback(btn, taskFn, successText = 'Tersimpan!') {
+            if (!btn) return await taskFn();
+            const origHtml = btn.innerHTML;
+            btn.disabled = true;
+            btn.innerHTML = `<i class="fa-solid fa-spinner fa-spin mr-1.5"></i> <span>Menyimpan...</span>`;
+            try {
+                await taskFn();
+                btn.innerHTML = `<i class="fa-solid fa-circle-check text-emerald-400 mr-1.5"></i> <span>${successText}</span>`;
+                await new Promise(r => setTimeout(r, 650));
+            } catch (err) {
+                console.error("Task error:", err);
+                throw err;
+            } finally {
+                btn.innerHTML = origHtml;
+                btn.disabled = false;
+            }
+        }
+
                 getColRef('buku_induk_siswa').onSnapshot(snap => {
                     if (snap && !snap.empty) {
-                        const cloudStudents = snap.docs.map(d => ({ id: d.id, ...d.data() }));
+                        const cloudStudents = snap.docs.map(d => normalizeStudentData({ id: d.id, ...d.data() }));
                         const combined = [...cloudStudents];
                         for (const localSt of state.students) {
                             const hasValidNisn = localSt.nisn && localSt.nisn !== '-' && localSt.nisn !== '0' && String(localSt.nisn).length >= 6;
                             const alreadyInCloud = combined.some(c => c.id === localSt.id || (hasValidNisn && c.nisn === localSt.nisn));
                             if (!alreadyInCloud) {
-                                combined.push(localSt);
+                                combined.push(normalizeStudentData(localSt));
                             }
                         }
                         combined.sort((a, b) => (a.nama_lengkap || '').localeCompare(b.nama_lengkap || '', 'id', { sensitivity: 'base' }));
@@ -2256,8 +2281,9 @@
             try {
                 const cachedStudents = localStorage.getItem('mis_offline_students');
                 if (cachedStudents) {
-                    state.students = JSON.parse(cachedStudents);
+                    state.students = JSON.parse(cachedStudents).map(normalizeStudentData);
                     state.students.sort((a, b) => (a.nama_lengkap || '').localeCompare(b.nama_lengkap || '', 'id', { sensitivity: 'base' }));
+                    try { localStorage.setItem('mis_offline_students', JSON.stringify(state.students)); } catch (e) { }
                 }
                 const cachedTeachers = localStorage.getItem('mis_offline_teachers');
                 if (cachedTeachers) state.teachers = JSON.parse(cachedTeachers);
@@ -2564,8 +2590,16 @@
                 if (loginBrand) loginBrand.textContent = s.nama_madrasah;
                 const sidebarName = document.getElementById('sidebar-madrasah-name');
                 if (sidebarName) sidebarName.textContent = s.nama_madrasah;
+                const sidebarAddress = document.getElementById('sidebar-madrasah-address');
+                if (sidebarAddress) sidebarAddress.textContent = s.alamat || 'Banjarmasin';
                 const cardTitle = document.getElementById('setting-card-title');
                 if (cardTitle) cardTitle.textContent = `Profil ${s.nama_madrasah}`;
+                const topbarSub = document.getElementById('topbar-page-subtitle');
+                if (topbarSub) topbarSub.textContent = `Ringkasan pangkalan data buku induk siswa ${s.nama_madrasah}`;
+                const bannerSchool = document.getElementById('dash-banner-school-name');
+                if (bannerSchool) bannerSchool.textContent = s.nama_madrasah;
+                const bannerAddress = document.getElementById('dash-banner-address');
+                if (bannerAddress) bannerAddress.textContent = s.alamat || '';
             }
 
             document.getElementById('sidebar-ta-badge').textContent = s.tahun_ajaran_aktif || '2026/2027';
@@ -3299,6 +3333,43 @@
             try { localStorage.setItem('mis_offline_settings', JSON.stringify(state.madrasahSettings)); } catch (e) { }
             refreshAllUI();
             showToast(`Tahun Ajaran baru ${val} berhasil ditambahkan dan disimpan!`, "success");
+        };
+
+        window.deleteCurrentTahunAjaran = function () {
+            const selectTA = document.getElementById('set-ta-select');
+            const targetTA = selectTA ? selectTA.value : state.madrasahSettings.tahun_ajaran_aktif;
+            if (!targetTA) return;
+
+            let listTA = Array.isArray(state.madrasahSettings.daftar_tahun_ajaran) ? [...state.madrasahSettings.daftar_tahun_ajaran] : ["2023/2024", "2024/2025", "2025/2026", "2026/2027"];
+            if (listTA.length <= 1) {
+                showToast("Minimal harus tersisa 1 tahun ajaran dalam sistem.", "error");
+                return;
+            }
+
+            showConfirmModal(
+                `Hapus Tahun Ajaran ${targetTA}?`,
+                `Tahun ajaran ${targetTA} akan dihapus dari daftar pilihan riwayat sistem.`,
+                async () => {
+                    listTA = listTA.filter(ta => ta !== targetTA);
+                    state.madrasahSettings.daftar_tahun_ajaran = listTA;
+
+                    // Jika yang dihapus adalah yang sedang aktif, ganti aktif ke tahun ajaran terakhir
+                    if (state.madrasahSettings.tahun_ajaran_aktif === targetTA) {
+                        state.madrasahSettings.tahun_ajaran_aktif = listTA[listTA.length - 1];
+                    }
+
+                    if (isCloudConnected && db) {
+                        await getDocRef('pengaturan_madrasah', 'profil').set({
+                            daftar_tahun_ajaran: listTA,
+                            tahun_ajaran_aktif: state.madrasahSettings.tahun_ajaran_aktif
+                        }, { merge: true }).catch(() => {});
+                    }
+
+                    try { localStorage.setItem('mis_offline_settings', JSON.stringify(state.madrasahSettings)); } catch (e) { }
+                    refreshAllUI();
+                    showToast(`Tahun Ajaran ${targetTA} berhasil dihapus dari sistem!`, "info");
+                }
+            );
         };
 
         // LIHAT / SEMBUNYIKAN PASSWORD PADA PENGATURAN AKUN
