@@ -53,8 +53,28 @@
     <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-auth-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore-compat.js"></script>
+    <!-- SheetJS (XLSX) Library untuk Baca & Tulis File Excel (.xlsx) Asli -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+    <!-- Deteksi Sesi Login Aktif (Mencegah Flashing / Kembali ke Login saat Halaman di-Refresh) -->
+    <script>
+        (function () {
+            try {
+                if (localStorage.getItem('mis_auth_session')) {
+                    document.documentElement.classList.add('has-active-session');
+                }
+            } catch (e) { }
+        })();
+    </script>
 
     <style>
+        /* Cegah flicker login screen saat refresh bila pengguna memiliki sesi aktif */
+        html.has-active-session #login-screen {
+            display: none !important;
+        }
+        html.has-active-session #app-shell {
+            display: flex !important;
+        }
+
         /* Reset & Full Page Override untuk Blogger */
         #buku-induk-app-wrapper {
             position: fixed;
@@ -649,15 +669,15 @@
                                 </select>
                             </div>
                             <div class="flex flex-wrap items-center gap-2">
-                                <button onclick="window.downloadStudentTemplate()" title="Unduh contoh template tabel Excel/CSV"
+                                <button onclick="window.downloadStudentTemplate()" title="Unduh contoh template tabel Excel (.xlsx)"
                                     class="py-2.5 px-3.5 rounded-full bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold text-xs transition flex items-center justify-center gap-1.5 shrink-0 shadow-sm">
-                                    <i class="fa-solid fa-file-arrow-down text-emerald-600"></i>
-                                    <span>Unduh Template</span>
+                                    <i class="fa-solid fa-file-excel text-emerald-600"></i>
+                                    <span>Unduh Template (.xlsx)</span>
                                 </button>
-                                <button onclick="window.openImportModal()" title="Impor data siswa massal dari file CSV/Excel"
+                                <button onclick="window.openImportModal()" title="Impor data siswa massal dari file Excel (.xlsx) atau CSV"
                                     class="py-2.5 px-3.5 rounded-full bg-emerald-50 hover:bg-emerald-100 text-emerald-800 border border-emerald-200 font-bold text-xs transition flex items-center justify-center gap-1.5 shrink-0 shadow-sm">
                                     <i class="fa-solid fa-file-import text-emerald-600"></i>
-                                    <span>Impor CSV</span>
+                                    <span>Impor Data Siswa</span>
                                 </button>
                                 <button onclick="window.openNaikKelasModal()" title="Kenaikan kelas massal untuk tahun ajaran baru"
                                     class="py-2.5 px-3.5 rounded-full bg-amber-50 hover:bg-amber-100 text-amber-900 border border-amber-200 font-bold text-xs transition flex items-center justify-center gap-1.5 shrink-0 shadow-sm">
@@ -1568,7 +1588,7 @@
             </div>
         </div>
 
-        <!-- MODAL IMPORT DATA SISWA (CSV) -->
+        <!-- MODAL IMPORT DATA SISWA (EXCEL / CSV) -->
         <div id="modal-import-siswa"
             class="hidden fixed inset-0 z-[1000002] bg-slate-900/70 backdrop-blur-sm flex items-center justify-center p-3 sm:p-6 overflow-y-auto">
             <div class="bg-white rounded-3xl max-w-3xl w-full flex flex-col shadow-2xl border border-slate-200 overflow-hidden my-auto max-h-[90vh]">
@@ -1578,8 +1598,8 @@
                             <i class="fa-solid fa-file-import"></i>
                         </div>
                         <div>
-                            <h3 class="text-lg font-extrabold">Impor Data Siswa Massal (CSV)</h3>
-                            <p class="text-xs text-slate-300">Masukkan puluhan data siswa sekaligus dari file Excel atau CSV</p>
+                            <h3 class="text-lg font-extrabold">Impor Data Siswa Massal (Excel / CSV)</h3>
+                            <p class="text-xs text-slate-300">Masukkan puluhan data siswa sekaligus dari file Excel (.xlsx) atau CSV</p>
                         </div>
                     </div>
                     <button type="button" onclick="window.closeImportModal()" class="w-8 h-8 rounded-full bg-white/10 hover:bg-white/20 text-white flex items-center justify-center">
@@ -1594,25 +1614,25 @@
                             <i class="fa-solid fa-circle-info text-opti-dark mt-0.5 text-base"></i>
                             <div>
                                 <span class="font-bold text-slate-900 block">Belum punya format tabelnya?</span>
-                                <span class="text-slate-600">Gunakan template resmi agar susunan kolom otomatis cocok saat dibaca sistem.</span>
+                                <span class="text-slate-600">Gunakan template resmi (.xlsx). Kolom A adalah No, Kolom B adalah Nama Siswa, dsb.</span>
                             </div>
                         </div>
                         <button type="button" onclick="window.downloadStudentTemplate()"
                             class="px-3.5 py-2 rounded-xl bg-opti-dark hover:bg-slate-800 text-opti-lime font-bold shrink-0 flex items-center gap-2">
-                            <i class="fa-solid fa-download"></i>
-                            <span>Unduh Template CSV</span>
+                            <i class="fa-solid fa-file-excel"></i>
+                            <span>Unduh Template Excel (.xlsx)</span>
                         </button>
                     </div>
 
                     <!-- Dropzone / File Picker -->
                     <div class="border-2 border-dashed border-slate-300 hover:border-opti-lime rounded-2xl p-6 text-center cursor-pointer transition bg-slate-50/50"
                         onclick="document.getElementById('csv-file-input').click()">
-                        <input type="file" id="csv-file-input" accept=".csv" class="hidden" onchange="window.handleCsvFileSelected(event)">
+                        <input type="file" id="csv-file-input" accept=".xlsx, .xls, .csv" class="hidden" onchange="window.handleCsvFileSelected(event)">
                         <div class="w-12 h-12 rounded-2xl bg-lime-100 text-opti-dark flex items-center justify-center mx-auto text-xl mb-2">
                             <i class="fa-solid fa-cloud-arrow-up"></i>
                         </div>
-                        <p class="text-xs font-bold text-slate-800">Klik untuk memilih file CSV dari komputer Anda</p>
-                        <p class="text-[11px] text-slate-400 mt-1">Format file harus berekstensi .csv (pemisah koma atau titik koma)</p>
+                        <p class="text-xs font-bold text-slate-800">Klik untuk memilih file Excel (.xlsx, .xls) atau CSV dari komputer Anda</p>
+                        <p class="text-[11px] text-slate-400 mt-1">Sistem otomatis mendeteksi kolom No di A, Nama di B, NISN di C, dsb.</p>
                         <div id="import-file-name" class="mt-2 text-xs font-mono font-bold text-emerald-600 hidden"></div>
                     </div>
 
@@ -1626,9 +1646,10 @@
                             <table class="w-full text-left text-xs border-collapse">
                                 <thead class="bg-slate-100 font-bold sticky top-0">
                                     <tr>
-                                        <th class="py-2 px-3">NISN</th>
+                                        <th class="py-2 px-3 text-center">No</th>
                                         <th class="py-2 px-3">Nama Siswa</th>
-                                        <th class="py-2 px-2">L/P</th>
+                                        <th class="py-2 px-3">NISN</th>
+                                        <th class="py-2 px-2 text-center">L/P</th>
                                         <th class="py-2 px-2">Kelas</th>
                                         <th class="py-2 px-3">Nama Orang Tua</th>
                                     </tr>
@@ -2107,6 +2128,44 @@
                 loginBrand.textContent = state.madrasahSettings.nama_madrasah;
             }
 
+            // Pulihkan sesi login aktif jika ada (mencegah kembali ke login saat refresh)
+            let hasActiveSession = false;
+            try {
+                const savedSession = localStorage.getItem('mis_auth_session');
+                if (savedSession) {
+                    state.currentUser = JSON.parse(savedSession);
+                    if (state.currentUser && state.currentUser.role) {
+                        hasActiveSession = true;
+                    }
+                }
+            } catch (e) {
+                state.currentUser = null;
+            }
+
+            if (hasActiveSession && state.currentUser) {
+                document.documentElement.classList.add('has-active-session');
+                const loginScreen = document.getElementById('login-screen');
+                const appShell = document.getElementById('app-shell');
+                if (loginScreen) loginScreen.classList.add('hidden');
+                if (appShell) appShell.classList.remove('hidden');
+
+                const userNameEl = document.getElementById('sidebar-user-name');
+                if (userNameEl && state.currentUser.name) {
+                    userNameEl.textContent = state.currentUser.name;
+                }
+
+                // Render tampilan awal dari cache lokal dengan segera
+                refreshAllUI();
+                const activeMenu = localStorage.getItem('mis_active_menu') || 'admin-dashboard';
+                window.navigateMenu(activeMenu);
+            } else {
+                document.documentElement.classList.remove('has-active-session');
+                const loginScreen = document.getElementById('login-screen');
+                const appShell = document.getElementById('app-shell');
+                if (loginScreen) loginScreen.classList.remove('hidden');
+                if (appShell) appShell.classList.add('hidden');
+            }
+
             try {
                 if (!firebase.apps.length) {
                     firebase.initializeApp(firebaseConfig);
@@ -2233,8 +2292,17 @@
 
             isCloudConnected = true;
             state.currentUser = { role: 'admin', name: `Operator (${customUser})`, email: userInput };
+            try {
+                localStorage.setItem('mis_auth_session', JSON.stringify(state.currentUser));
+                localStorage.setItem('mis_active_menu', 'admin-dashboard');
+            } catch (e) { }
+            document.documentElement.classList.add('has-active-session');
             document.getElementById('login-screen').classList.add('hidden');
             document.getElementById('app-shell').classList.remove('hidden');
+            const userNameEl = document.getElementById('sidebar-user-name');
+            if (userNameEl) {
+                userNameEl.textContent = state.currentUser.name;
+            }
             window.navigateMenu('admin-dashboard');
             showToast("Berhasil masuk ke Panel Operator!", "success");
             await startCloudSync();
@@ -2244,6 +2312,11 @@
         window.enterOfflineMode = function () {
             state.currentUser = { role: 'admin', name: "Operator Madrasah (Offline)", email: "operator@lokal" };
             isCloudConnected = false;
+            try {
+                localStorage.setItem('mis_auth_session', JSON.stringify(state.currentUser));
+                localStorage.setItem('mis_active_menu', 'admin-dashboard');
+            } catch (e) { }
+            document.documentElement.classList.add('has-active-session');
             const badgeEl = document.getElementById('mode-indicator-badge');
             if (badgeEl) {
                 badgeEl.textContent = "Mode Offline (Lokal)";
@@ -2251,6 +2324,10 @@
             }
             document.getElementById('login-screen').classList.add('hidden');
             document.getElementById('app-shell').classList.remove('hidden');
+            const userNameEl = document.getElementById('sidebar-user-name');
+            if (userNameEl) {
+                userNameEl.textContent = state.currentUser.name;
+            }
             window.navigateMenu('admin-dashboard');
             showToast("Masuk dalam Mode Offline (Data tersimpan di perangkat lokal).", "info");
         };
@@ -2262,6 +2339,11 @@
                 async () => {
                     if (auth) await auth.signOut().catch(() => { });
                     state.currentUser = null;
+                    try {
+                        localStorage.removeItem('mis_auth_session');
+                        localStorage.removeItem('mis_active_menu');
+                    } catch (e) { }
+                    document.documentElement.classList.remove('has-active-session');
                     document.getElementById('app-shell').classList.add('hidden');
                     document.getElementById('login-screen').classList.remove('hidden');
                     showToast("Sesi telah diakhiri.", "info");
@@ -2282,6 +2364,10 @@
         ];
 
         window.navigateMenu = function (menuId) {
+            try {
+                localStorage.setItem('mis_active_menu', menuId);
+            } catch (e) { }
+
             const activeItem = ADMIN_MENUS.find(m => m.id === menuId) || ADMIN_MENUS[0];
             document.getElementById('topbar-page-title').textContent = activeItem.title;
 
@@ -2314,6 +2400,7 @@
             `;
             }).join('');
 
+            if (menuId === 'admin-siswa') window.renderStudentsTable();
             if (menuId === 'admin-guru') window.renderTeachersTable();
             if (menuId === 'admin-alumni') window.renderAlumniTable();
             if (menuId === 'admin-cetak') window.renderOfficialPrintSheet();
@@ -2915,6 +3002,12 @@
                 localStorage.setItem('mis_admin_custom_username', newUsername);
                 localStorage.setItem('mis_admin_custom_password', newPass);
                 localStorage.setItem('mis_offline_settings', JSON.stringify(state.madrasahSettings));
+                if (state.currentUser) {
+                    state.currentUser.name = `Operator (${newUsername})`;
+                    localStorage.setItem('mis_auth_session', JSON.stringify(state.currentUser));
+                    const userNameEl = document.getElementById('sidebar-user-name');
+                    if (userNameEl) userNameEl.textContent = state.currentUser.name;
+                }
             } catch (err) {
                 console.warn("Local storage error:", err);
             }
@@ -2938,28 +3031,132 @@
         };
 
         // ==========================================
-        // FITUR 1: UNDUH TEMPLATE & IMPOR DATA SISWA (CSV)
+        // FITUR 1: UNDUH TEMPLATE & IMPOR DATA SISWA (EXCEL .XLSX & CSV)
         // ==========================================
         window.downloadStudentTemplate = function () {
+            // Urutan Kolom: Kolom A: No, Kolom B: Nama_Lengkap, dst. (Sesuai Permintaan)
             const headers = [
-                "NISN", "NIS_Lokal", "NIK", "Nama_Lengkap", "JK",
-                "Tempat_Lahir", "Tanggal_Lahir", "Agama", "Kelas", "Status",
+                "No", "Nama_Lengkap", "NISN", "NIS_Lokal", "NIK", "JK",
+                "Tempat_Lahir", "Tanggal_Lahir", "Kelas", "Status", "Agama",
                 "Nama_Ayah", "Pekerjaan_Ayah", "Nama_Ibu", "Pekerjaan_Ibu", "No_HP_Ortu", "Alamat"
             ];
+
             const samples = [
-                ["0134567801", "1112637100182101", "6371041205150001", "Muhammad Hafidz Al-Banjari", "L", "Banjarmasin", "2015-05-12", "Islam", "Kelas 5", "Aktif", "H. Syamsul Arifin", "Wiraswasta", "Hj. Siti Rahmah", "Ibu Rumah Tangga", "081251234501", "Jl. A. Yani Km. 5 Gang Purnama RT. 14"],
-                ["0145678902", "1112637100182102", "6371045508160002", "Aisyah Az-Zahra", "P", "Banjarmasin", "2016-08-15", "Islam", "Kelas 4", "Aktif", "Rahmat Hidayat", "PNS", "Nur Asiah", "Guru", "081251234502", "Jl. Pemurus Dalam Komp. Mitra RT. 08"]
+                [1, "Muhammad Hafidz Al-Banjari", "0134567801", "1112637100182101", "6371041205150001", "L", "Banjarmasin", "2015-05-12", "Kelas 5", "Aktif", "Islam", "H. Syamsul Arifin", "Wiraswasta", "Hj. Siti Rahmah", "Ibu Rumah Tangga", "081251234501", "Jl. A. Yani Km. 5 Gang Purnama RT. 14"],
+                [2, "Aisyah Az-Zahra", "0145678902", "1112637100182102", "6371045508160002", "P", "Banjarmasin", "2016-08-15", "Kelas 4", "Aktif", "Islam", "Rahmat Hidayat", "PNS", "Nur Asiah", "Guru", "081251234502", "Jl. Pemurus Dalam Komp. Mitra RT. 08"],
+                [3, "Ahmad Maulana Fajar", "0156789013", "1112637100182103", "6371041809170003", "L", "Banjarmasin", "2017-09-18", "Kelas 3", "Aktif", "Islam", "Drs. H. Fahmi", "Pegawai Kemenag", "Rusmini, S.Pd", "Guru Madrasah", "085249123453", "Jl. Veteran Komp. Merpati No. 12"]
             ];
-            const csvRows = [headers.join(","), ...samples.map(r => r.map(val => `"${String(val).replace(/"/g, '""')}"`).join(","))];
-            const blob = new Blob(["\uFEFF" + csvRows.join("\r\n")], { type: "text/csv;charset=utf-8;" });
+
+            // 1. Prioritas Utama: Buat file .xlsx asli menggunakan library SheetJS (XLSX)
+            if (typeof XLSX !== 'undefined') {
+                try {
+                    const wsData = [headers, ...samples];
+                    const ws = XLSX.utils.aoa_to_sheet(wsData);
+
+                    // Atur lebar tiap kolom agar saat dibuka di Excel langsung rapi dan terbaca jelas
+                    ws['!cols'] = [
+                        { wch: 6 },  // Kolom A: No
+                        { wch: 28 }, // Kolom B: Nama_Lengkap
+                        { wch: 15 }, // Kolom C: NISN
+                        { wch: 18 }, // Kolom D: NIS_Lokal
+                        { wch: 18 }, // Kolom E: NIK
+                        { wch: 6 },  // Kolom F: JK
+                        { wch: 16 }, // Kolom G: Tempat_Lahir
+                        { wch: 14 }, // Kolom H: Tanggal_Lahir
+                        { wch: 12 }, // Kolom I: Kelas
+                        { wch: 10 }, // Kolom J: Status
+                        { wch: 10 }, // Kolom K: Agama
+                        { wch: 22 }, // Kolom L: Nama_Ayah
+                        { wch: 18 }, // Kolom M: Pekerjaan_Ayah
+                        { wch: 22 }, // Kolom N: Nama_Ibu
+                        { wch: 18 }, // Kolom O: Pekerjaan_Ibu
+                        { wch: 16 }, // Kolom P: No_HP_Ortu
+                        { wch: 38 }  // Kolom Q: Alamat
+                    ];
+
+                    const wb = XLSX.utils.book_new();
+                    XLSX.utils.book_append_sheet(wb, ws, "Data_Siswa");
+                    XLSX.writeFile(wb, "template_data_siswa_buku_induk.xlsx");
+                    showToast("Template Excel (.xlsx) berhasil diunduh!", "success");
+                    return;
+                } catch (xlsxErr) {
+                    console.warn("SheetJS write note:", xlsxErr);
+                }
+            }
+
+            // 2. Fallback: Excel XML SpreadsheetML (Kolom A, B, C... dijamin terpisah rapi di Microsoft Excel)
+            const escapeXml = (str) => String(str).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
+            let xml = `<?xml version="1.0" encoding="UTF-8"?>
+<?mso-application progid="Excel.Sheet"?>
+<Workbook xmlns="urn:schemas-microsoft-com:office:spreadsheet"
+ xmlns:o="urn:schemas-microsoft-com:office:office"
+ xmlns:x="urn:schemas-microsoft-com:office:excel"
+ xmlns:ss="urn:schemas-microsoft-com:office:spreadsheet"
+ xmlns:html="http://www.w3.org/TR/REC-html40">
+ <Styles>
+  <Style ss:ID="HeaderStyle">
+   <Font ss:Bold="1" ss:Color="#FFFFFF"/>
+   <Interior ss:Color="#0D282D" ss:Pattern="Solid"/>
+   <Alignment ss:Horizontal="Center" ss:Vertical="Center"/>
+  </Style>
+  <Style ss:ID="CenterText">
+   <Alignment ss:Horizontal="Center"/>
+  </Style>
+ </Styles>
+ <Worksheet ss:Name="Data_Siswa">
+  <Table>
+   <Column ss:Width="40"/>
+   <Column ss:Width="180"/>
+   <Column ss:Width="100"/>
+   <Column ss:Width="120"/>
+   <Column ss:Width="120"/>
+   <Column ss:Width="40"/>
+   <Column ss:Width="110"/>
+   <Column ss:Width="90"/>
+   <Column ss:Width="80"/>
+   <Column ss:Width="70"/>
+   <Column ss:Width="70"/>
+   <Column ss:Width="150"/>
+   <Column ss:Width="120"/>
+   <Column ss:Width="150"/>
+   <Column ss:Width="120"/>
+   <Column ss:Width="110"/>
+   <Column ss:Width="250"/>
+   <Row ss:StyleID="HeaderStyle">
+    ${headers.map(h => `<Cell><Data ss:Type="String">${escapeXml(h)}</Data></Cell>`).join('')}
+   </Row>
+   ${samples.map(r => `
+   <Row>
+    <Cell ss:StyleID="CenterText"><Data ss:Type="Number">${r[0]}</Data></Cell>
+    <Cell><Data ss:Type="String">${escapeXml(r[1])}</Data></Cell>
+    <Cell><Data ss:Type="String">${escapeXml(r[2])}</Data></Cell>
+    <Cell><Data ss:Type="String">${escapeXml(r[3])}</Data></Cell>
+    <Cell><Data ss:Type="String">${escapeXml(r[4])}</Data></Cell>
+    <Cell ss:StyleID="CenterText"><Data ss:Type="String">${escapeXml(r[5])}</Data></Cell>
+    <Cell><Data ss:Type="String">${escapeXml(r[6])}</Data></Cell>
+    <Cell ss:StyleID="CenterText"><Data ss:Type="String">${escapeXml(r[7])}</Data></Cell>
+    <Cell><Data ss:Type="String">${escapeXml(r[8])}</Data></Cell>
+    <Cell><Data ss:Type="String">${escapeXml(r[9])}</Data></Cell>
+    <Cell><Data ss:Type="String">${escapeXml(r[10])}</Data></Cell>
+    <Cell><Data ss:Type="String">${escapeXml(r[11])}</Data></Cell>
+    <Cell><Data ss:Type="String">${escapeXml(r[12])}</Data></Cell>
+    <Cell><Data ss:Type="String">${escapeXml(r[13])}</Data></Cell>
+    <Cell><Data ss:Type="String">${escapeXml(r[14])}</Data></Cell>
+    <Cell><Data ss:Type="String">${escapeXml(r[15])}</Data></Cell>
+    <Cell><Data ss:Type="String">${escapeXml(r[16])}</Data></Cell>
+   </Row>`).join('')}
+  </Table>
+ </Worksheet>
+</Workbook>`;
+            const blob = new Blob([xml], { type: "application/vnd.ms-excel;charset=utf-8;" });
             const url = URL.createObjectURL(blob);
             const link = document.createElement("a");
             link.setAttribute("href", url);
-            link.setAttribute("download", "template_data_siswa_buku_induk.csv");
+            link.setAttribute("download", "template_data_siswa_buku_induk.xls");
             document.body.appendChild(link);
             link.click();
             document.body.removeChild(link);
-            showToast("Template CSV berhasil diunduh!", "success");
+            showToast("Template Excel berhasil diunduh!", "success");
         };
 
         let parsedCsvStudents = [];
@@ -2981,6 +3178,7 @@
             document.getElementById('modal-import-siswa').classList.add('hidden');
         };
 
+        // MEMPROSES FILE TERPILIH (EXCEL .XLSX / .XLS / .CSV)
         window.handleCsvFileSelected = function (e) {
             const file = e.target.files[0];
             if (!file) return;
@@ -2991,63 +3189,136 @@
                 fileNameEl.classList.remove('hidden');
             }
 
+            const isExcel = file.name.endsWith('.xlsx') || file.name.endsWith('.xls');
+
+            // 1. Jika file Excel (.xlsx / .xls) dan library SheetJS tersedia
+            if (isExcel && typeof XLSX !== 'undefined') {
+                const reader = new FileReader();
+                reader.onload = function (evt) {
+                    try {
+                        const data = new Uint8Array(evt.target.result);
+                        const workbook = XLSX.read(data, { type: 'array' });
+                        const firstSheetName = workbook.SheetNames[0];
+                        const worksheet = workbook.Sheets[firstSheetName];
+                        const rows = XLSX.utils.sheet_to_json(worksheet, { header: 1, defval: '' });
+                        parseSpreadsheetRows(rows);
+                    } catch (err) {
+                        console.error("Gagal membaca file Excel:", err);
+                        showToast("Gagal membaca file Excel. Pastikan file tidak terkunci/rusak.", "error");
+                    }
+                };
+                reader.readAsArrayBuffer(file);
+                return;
+            }
+
+            // 2. Jika file CSV atau SheetJS belum siap, baca via teks
             const reader = new FileReader();
             reader.onload = function (evt) {
                 const text = evt.target.result;
-                parseCsvContent(text);
+                if (typeof XLSX !== 'undefined') {
+                    try {
+                        const workbook = XLSX.read(text, { type: 'string' });
+                        const firstSheetName = workbook.SheetNames[0];
+                        const worksheet = workbook.Sheets[firstSheetName];
+                        const rows = XLSX.utils.sheet_to_json(worksheet, { header: 1, defval: '' });
+                        parseSpreadsheetRows(rows);
+                        return;
+                    } catch (e) { }
+                }
+                parseCsvTextFallback(text);
             };
             reader.readAsText(file, "UTF-8");
         };
 
-        function parseCsvContent(text) {
-            const lines = text.split(/\r?\n/).filter(line => line.trim().length > 0);
-            if (lines.length <= 1) {
-                showToast("File CSV kosong atau hanya memiliki baris judul.", "error");
+        // PARSER UNTUK BARIS SHEETJS (ARRAY OF ARRAYS) DENGAN SMART COLUMN DETECTION
+        function parseSpreadsheetRows(rows) {
+            if (!rows || rows.length <= 1) {
+                showToast("File Excel/tabel kosong atau hanya berisi judul.", "error");
                 return;
             }
 
-            const delimiter = lines[0].includes(';') ? ';' : ',';
-
-            function splitCsvLine(line) {
-                const result = [];
-                let current = '';
-                let inQuotes = false;
-                for (let i = 0; i < line.length; i++) {
-                    const char = line[i];
-                    if (char === '"' || char === "'") {
-                        inQuotes = !inQuotes;
-                    } else if (char === delimiter && !inQuotes) {
-                        result.push(current.trim().replace(/^["']|["']$/g, ''));
-                        current = '';
-                    } else {
-                        current += char;
-                    }
+            // Cari baris header (biasanya baris ke-0, atau baris pertama yang mengandung kata nama/nisn/no)
+            let headerIdx = 0;
+            for (let r = 0; r < Math.min(rows.length, 5); r++) {
+                const rowStr = (rows[r] || []).map(c => String(c).toLowerCase()).join(' ');
+                if (rowStr.includes('nama') || rowStr.includes('nisn') || (rowStr.includes('no') && rowStr.includes('kelas'))) {
+                    headerIdx = r;
+                    break;
                 }
-                result.push(current.trim().replace(/^["']|["']$/g, ''));
-                return result;
+            }
+
+            const headerRow = (rows[headerIdx] || []).map(c => String(c || '').trim());
+            const colMap = {};
+
+            headerRow.forEach((colName, idx) => {
+                const clean = colName.toLowerCase().replace(/[^a-z0-9]/g, '');
+                if (clean === 'no' || clean === 'nomor' || clean === 'nourut') colMap.no = idx;
+                else if (clean.includes('namalengkap') || clean === 'nama' || clean.includes('namasiswa')) colMap.nama = idx;
+                else if (clean.includes('nisn')) colMap.nisn = idx;
+                else if (clean.includes('nislokal') || clean === 'nis') colMap.nis_lokal = idx;
+                else if (clean.includes('nik')) colMap.nik = idx;
+                else if (clean === 'jk' || clean.includes('jeniskelamin') || clean === 'lp') colMap.jk = idx;
+                else if (clean.includes('tempatlahir') || clean === 'tempat' || clean === 'tmplahir') colMap.tempat_lahir = idx;
+                else if (clean.includes('tanggallahir') || clean.includes('tgllahir') || clean === 'tanggal') colMap.tgl_lahir = idx;
+                else if (clean.includes('kelas')) colMap.kelas = idx;
+                else if (clean.includes('status')) colMap.status = idx;
+                else if (clean.includes('agama')) colMap.agama = idx;
+                else if (clean.includes('namaayah') || clean === 'ayah') colMap.nama_ayah = idx;
+                else if (clean.includes('pekerjaanayah') || clean === 'pekayah') colMap.pekerjaan_ayah = idx;
+                else if (clean.includes('namaibu') || clean === 'ibu') colMap.nama_ibu = idx;
+                else if (clean.includes('pekerjaanibu') || clean === 'pekibu') colMap.pekerjaan_ibu = idx;
+                else if (clean.includes('nohp') || clean.includes('telepon') || clean.includes('wa') || clean.includes('hp')) colMap.no_hp = idx;
+                else if (clean.includes('alamat')) colMap.alamat = idx;
+            });
+
+            // Helper format tanggal Excel (serial number atau teks)
+            function formatExcelDate(val) {
+                if (!val) return '2016-01-01';
+                if (typeof val === 'number' && val > 20000 && val < 60000) {
+                    const d = new Date(Math.round((val - 25569) * 86400 * 1000));
+                    return d.toISOString().split('T')[0];
+                }
+                const str = String(val).trim();
+                const dmy = str.match(/^(\d{1,2})[\/\-](\d{1,2})[\/\-](\d{4})$/);
+                if (dmy) {
+                    return `${dmy[3]}-${String(dmy[2]).padStart(2, '0')}-${String(dmy[1]).padStart(2, '0')}`;
+                }
+                return str;
             }
 
             parsedCsvStudents = [];
-            for (let i = 1; i < lines.length; i++) {
-                const cols = splitCsvLine(lines[i]);
-                if (cols.length < 4 || !cols[3]) continue;
+            for (let i = headerIdx + 1; i < rows.length; i++) {
+                const cols = rows[i] || [];
+                if (cols.length === 0 || cols.every(c => String(c).trim() === '')) continue;
 
-                const nisn = cols[0] || ('0' + Math.floor(100000000 + Math.random() * 900000000));
-                const nisLokal = cols[1] || ('1112' + Math.floor(1000000000 + Math.random() * 9000000000));
-                const nik = cols[2] || ('6371' + Math.floor(100000000000 + Math.random() * 900000000000));
-                const nama = cols[3];
-                const jk = (cols[4] || 'L').toUpperCase().startsWith('P') ? 'P' : 'L';
-                const tempatLahir = cols[5] || 'Banjarmasin';
-                const tglLahir = cols[6] || '2016-01-01';
-                const agama = cols[7] || 'Islam';
-                const kelas = cols[8] || 'Kelas 1';
-                const status = cols[9] || 'Aktif';
-                const namaAyah = cols[10] || '-';
-                const pekAyah = cols[11] || '-';
-                const namaIbu = cols[12] || '-';
-                const pekIbu = cols[13] || '-';
-                const noHp = cols[14] || '-';
-                const alamat = cols[15] || 'Banjarmasin';
+                // Ambil nilai berdasarkan nama kolom terdeteksi, atau fallback posisi
+                let nama = colMap.nama !== undefined ? cols[colMap.nama] : (cols[1] || cols[3] || '');
+                let nisn = colMap.nisn !== undefined ? cols[colMap.nisn] : (cols[2] || cols[0] || '');
+
+                // Bersihkan string
+                nama = String(nama || '').trim();
+                nisn = String(nisn || '').trim();
+
+                if (!nama) continue; // Baris tanpa nama diabaikan
+                if (!nisn) nisn = '0' + Math.floor(100000000 + Math.random() * 900000000);
+
+                const nisLokal = String(colMap.nis_lokal !== undefined ? cols[colMap.nis_lokal] : (cols[3] || cols[1] || '1112' + Math.floor(1000000000 + Math.random() * 9000000000))).trim();
+                const nik = String(colMap.nik !== undefined ? cols[colMap.nik] : (cols[4] || cols[2] || '6371' + Math.floor(100000000000 + Math.random() * 900000000000))).trim();
+                const rawJk = String(colMap.jk !== undefined ? cols[colMap.jk] : (cols[5] || cols[4] || 'L')).toUpperCase().trim();
+                const jk = rawJk.startsWith('P') ? 'P' : 'L';
+                const tempatLahir = String(colMap.tempat_lahir !== undefined ? cols[colMap.tempat_lahir] : (cols[6] || cols[5] || 'Banjarmasin')).trim();
+                const rawTgl = colMap.tgl_lahir !== undefined ? cols[colMap.tgl_lahir] : (cols[7] || cols[6] || '2016-01-01');
+                const tglLahir = formatExcelDate(rawTgl);
+                const kelas = String(colMap.kelas !== undefined ? cols[colMap.kelas] : (cols[8] || 'Kelas 1')).trim();
+                const status = String(colMap.status !== undefined ? cols[colMap.status] : (cols[9] || 'Aktif')).trim();
+                const agama = String(colMap.agama !== undefined ? cols[colMap.agama] : (cols[10] || cols[7] || 'Islam')).trim();
+
+                const namaAyah = String(colMap.nama_ayah !== undefined ? cols[colMap.nama_ayah] : (cols[11] || cols[10] || '-')).trim();
+                const pekAyah = String(colMap.pekerjaan_ayah !== undefined ? cols[colMap.pekerjaan_ayah] : (cols[12] || cols[11] || '-')).trim();
+                const namaIbu = String(colMap.nama_ibu !== undefined ? cols[colMap.nama_ibu] : (cols[13] || cols[12] || '-')).trim();
+                const pekIbu = String(colMap.pekerjaan_ibu !== undefined ? cols[colMap.pekerjaan_ibu] : (cols[14] || cols[13] || '-')).trim();
+                const noHp = String(colMap.no_hp !== undefined ? cols[colMap.no_hp] : (cols[15] || cols[14] || '-')).trim();
+                const alamat = String(colMap.alamat !== undefined ? cols[colMap.alamat] : (cols[16] || cols[15] || 'Banjarmasin')).trim();
 
                 parsedCsvStudents.push({
                     id: `SISWA-${nisn}`,
@@ -3078,21 +3349,58 @@
                 });
             }
 
+            renderImportPreviewTable();
+        }
+
+        // FALLBACK CSV STRING PARSER JIKA SHEETJS TIDAK TERSEDIA
+        function parseCsvTextFallback(text) {
+            const lines = text.split(/\r?\n/).filter(line => line.trim().length > 0);
+            if (lines.length <= 1) {
+                showToast("File CSV kosong atau hanya memiliki baris judul.", "error");
+                return;
+            }
+
+            const delimiter = lines[0].includes(';') ? ';' : ',';
+            function splitCsvLine(line) {
+                const result = [];
+                let current = '';
+                let inQuotes = false;
+                for (let i = 0; i < line.length; i++) {
+                    const char = line[i];
+                    if (char === '"' || char === "'") {
+                        inQuotes = !inQuotes;
+                    } else if (char === delimiter && !inQuotes) {
+                        result.push(current.trim().replace(/^["']|["']$/g, ''));
+                        current = '';
+                    } else {
+                        current += char;
+                    }
+                }
+                result.push(current.trim().replace(/^["']|["']$/g, ''));
+                return result;
+            }
+
+            const rows = lines.map(l => splitCsvLine(l));
+            parseSpreadsheetRows(rows);
+        }
+
+        function renderImportPreviewTable() {
             if (parsedCsvStudents.length === 0) {
                 showToast("Gagal membaca baris data siswa. Pastikan format kolom sesuai template.", "error");
                 return;
             }
 
             const tbody = document.getElementById('import-preview-tbody');
-            tbody.innerHTML = parsedCsvStudents.slice(0, 10).map(s => `
+            tbody.innerHTML = parsedCsvStudents.slice(0, 10).map((s, idx) => `
                 <tr class="hover:bg-slate-50">
-                    <td class="py-1.5 px-3 font-mono">${s.nisn}</td>
-                    <td class="py-1.5 px-3 font-bold">${s.nama_lengkap}</td>
-                    <td class="py-1.5 px-2 text-center">${s.jk}</td>
-                    <td class="py-1.5 px-2 font-bold">${s.kelas_aktif}</td>
-                    <td class="py-1.5 px-3">${s.orang_tua.nama_ayah} / ${s.orang_tua.nama_ibu}</td>
+                    <td class="py-1.5 px-3 text-center font-mono text-slate-500">${idx + 1}</td>
+                    <td class="py-1.5 px-3 font-bold text-slate-800">${s.nama_lengkap}</td>
+                    <td class="py-1.5 px-3 font-mono text-slate-600">${s.nisn}</td>
+                    <td class="py-1.5 px-2 text-center font-bold ${s.jk === 'L' ? 'text-blue-700' : 'text-pink-700'}">${s.jk}</td>
+                    <td class="py-1.5 px-2 font-bold text-slate-700">${s.kelas_aktif}</td>
+                    <td class="py-1.5 px-3 text-slate-600">${s.orang_tua.nama_ayah} / ${s.orang_tua.nama_ibu}</td>
                 </tr>
-            `).join('') + (parsedCsvStudents.length > 10 ? `<tr><td colspan="5" class="py-2 text-center text-slate-400 italic">...dan ${parsedCsvStudents.length - 10} data siswa lainnya</td></tr>` : '');
+            `).join('') + (parsedCsvStudents.length > 10 ? `<tr><td colspan="6" class="py-2 text-center text-slate-400 italic">...dan ${parsedCsvStudents.length - 10} data siswa lainnya</td></tr>` : '');
 
             document.getElementById('import-row-count').textContent = `${parsedCsvStudents.length} Data Siswa Siap Diimpor`;
             document.getElementById('import-preview-box').classList.remove('hidden');
