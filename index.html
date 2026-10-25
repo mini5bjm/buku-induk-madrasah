@@ -2119,6 +2119,36 @@
                 <form id="form-data-guru" onsubmit="window.handleSaveTeacher(event)"
                     class="p-6 space-y-3.5 overflow-y-auto">
                     <input type="hidden" id="g-doc-id">
+
+                    <!-- UPLOAD PAS FOTO GURU -->
+                    <div class="p-3.5 rounded-2xl bg-slate-50 border border-slate-200 flex flex-col sm:flex-row items-center gap-4">
+                        <div class="relative w-24 h-28 rounded-xl bg-slate-100 border border-dashed border-slate-300 flex items-center justify-center overflow-hidden shrink-0 group shadow-2xs">
+                            <img id="prev-foto-guru" src="" class="hidden w-full h-full object-cover">
+                            <div id="ph-foto-guru" class="text-center p-2 text-slate-400">
+                                <i class="fa-solid fa-chalkboard-user text-2xl text-slate-400 mb-1 block"></i>
+                                <span class="text-[10px] font-medium">Belum ada foto</span>
+                            </div>
+                        </div>
+                        <div class="flex-1 w-full space-y-2">
+                            <div>
+                                <label class="block text-xs font-bold text-slate-800">Pas Foto Guru / Tenaga Pendidik</label>
+                                <p class="text-[11px] text-slate-500">Format JPG atau PNG (disarankan pas foto resmi/latar merah atau biru)</p>
+                            </div>
+                            <div class="flex flex-wrap items-center gap-2">
+                                <input type="file" id="g-file-foto" accept="image/*" class="hidden" onchange="window.handleTeacherPhotoSelect(event)">
+                                <button type="button" onclick="document.getElementById('g-file-foto').click()" class="py-1.5 px-3 rounded-lg bg-emerald-50 hover:bg-emerald-100 text-emerald-800 border border-emerald-200 text-xs font-bold transition flex items-center gap-1.5 shadow-2xs">
+                                    <i class="fa-solid fa-camera"></i> <span>Pilih Foto</span>
+                                </button>
+                                <button type="button" id="btn-dl-foto-guru" onclick="window.downloadCurrentTeacherPhoto()" class="hidden py-1.5 px-3 rounded-lg bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-bold transition shadow-2xs flex items-center gap-1.5" title="Unduh Pas Foto Guru">
+                                    <i class="fa-solid fa-download"></i> <span>Unduh</span>
+                                </button>
+                                <button type="button" id="btn-del-foto-guru" onclick="window.removeTeacherPhoto()" class="hidden py-1.5 px-2.5 rounded-lg bg-red-50 hover:bg-red-100 text-red-600 text-xs font-bold transition shadow-2xs flex items-center gap-1" title="Hapus Foto Guru">
+                                    <i class="fa-solid fa-trash-can"></i> <span>Hapus</span>
+                                </button>
+                            </div>
+                            <input type="hidden" id="g-data-foto">
+                        </div>
+                    </div>
                     <div>
                         <label class="block text-xs font-bold text-slate-700 mb-1">NIP / PegID Guru</label>
                         <input type="text" id="g-nip" placeholder="197804122005011004 atau ID Guru"
@@ -2702,6 +2732,25 @@
         }
         window.saveOfflineAlumni = saveOfflineAlumni;
 
+        // HELPER PENYIMPANAN OFFLINE GURU DENGAN PROTEKSI KUOTA GAMBAR
+        function saveOfflineTeachers() {
+            try {
+                localStorage.setItem('mis_offline_teachers', JSON.stringify(state.teachers));
+            } catch (quotaErr) {
+                console.warn("LocalStorage penuh karena foto guru, menyimpan metadata guru:", quotaErr);
+                try {
+                    const lightTeachers = state.teachers.map(t => ({
+                        ...t,
+                        foto_guru: t.foto_guru && t.foto_guru.length > 50000 ? '' : t.foto_guru
+                    }));
+                    localStorage.setItem('mis_offline_teachers', JSON.stringify(lightTeachers));
+                } catch (e2) {
+                    console.error("Gagal menyimpan cadangan offline guru:", e2);
+                }
+            }
+        }
+        window.saveOfflineTeachers = saveOfflineTeachers;
+
         async function startCloudSync() {
             if (!db) return;
             try {
@@ -2765,13 +2814,21 @@
                         const cloudTeachers = snap.docs.map(d => ({ id: d.id, ...d.data() }));
                         const combined = [...cloudTeachers];
                         for (const localT of state.teachers) {
-                            if (!combined.some(c => c.id === localT.id || (localT.nip && c.nip === localT.nip))) {
+                            const hasValidNip = localT.nip && localT.nip !== '-' && localT.nip.length >= 6;
+                            const existingIdx = combined.findIndex(c => c.id === localT.id || (hasValidNip && c.nip === localT.nip) || (localT.nama_lengkap && c.nama_lengkap && c.nama_lengkap.toLowerCase() === localT.nama_lengkap.toLowerCase()));
+                            if (existingIdx >= 0) {
+                                combined[existingIdx] = {
+                                    ...localT,
+                                    ...combined[existingIdx],
+                                    foto_guru: combined[existingIdx].foto_guru || localT.foto_guru || ''
+                                };
+                            } else {
                                 combined.push(localT);
                             }
                         }
                         combined.sort((a, b) => (a.nama_lengkap || '').localeCompare(b.nama_lengkap || '', 'id', { sensitivity: 'base' }));
                         state.teachers = combined;
-                        try { localStorage.setItem('mis_offline_teachers', JSON.stringify(state.teachers)); } catch (e) { }
+                        saveOfflineTeachers();
                         window.renderTeachersTable();
                     }
                 }, err => console.warn("Firestore listener error (guru):", err));
@@ -5229,26 +5286,237 @@
                 return;
             }
 
-            tbody.innerHTML = filtered.map(t => `
-                <tr class="hover:bg-slate-50 transition">
-                    <td class="py-3.5 px-4 font-mono text-xs font-bold text-slate-700 text-center whitespace-nowrap">${t.nip || '-'}</td>
-                    <td class="py-3.5 px-5 font-bold text-slate-900 text-xs">${t.nama_lengkap}</td>
-                    <td class="py-3.5 px-3 text-center whitespace-nowrap"><span class="px-2 py-0.5 rounded bg-slate-100 text-xs font-bold text-slate-700">${t.jk}</span></td>
-                    <td class="py-3.5 px-4 font-semibold text-xs text-slate-800 text-center">${t.jabatan || '-'}</td>
-                    <td class="py-3.5 px-4 text-xs text-slate-600 text-center">${t.mapel || '-'}</td>
-                    <td class="py-3.5 px-4 font-mono text-xs text-center">${t.no_hp || '-'}</td>
-                    <td class="py-3.5 px-4 text-center whitespace-nowrap"><span class="px-2.5 py-1 rounded-full text-[11px] font-bold bg-emerald-100 text-emerald-800">${t.status || 'Aktif'}</span></td>
-                    <td class="py-3.5 px-5 text-center whitespace-nowrap">
-                        <button onclick="window.openTeacherModal('${t.id}')" class="p-2 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-700 text-xs mr-1" title="Edit"><i class="fa-solid fa-pen-to-square"></i></button>
-                        <button onclick="window.handleDeleteTeacher('${t.id}')" class="p-2 rounded-xl bg-red-50 hover:bg-red-100 text-red-600 text-xs" title="Hapus"><i class="fa-solid fa-trash"></i></button>
-                    </td>
-                </tr>
-            `).join('');
+            tbody.innerHTML = filtered.map(t => {
+                const fotoHtml = t.foto_guru
+                    ? `<div class="relative group shrink-0">
+                         <img src="${t.foto_guru}" onclick="window.viewTeacherDoc('${t.id}')" class="w-9 h-9 rounded-full object-cover border border-slate-200 cursor-pointer shadow-sm hover:scale-105 transition" title="Pas Foto Guru (Klik untuk memperbesar)">
+                         <button type="button" onclick="window.downloadTeacherPhotoDirect('${t.id}')" class="absolute -top-1 -right-1 w-4 h-4 rounded-full bg-emerald-600 hover:bg-emerald-700 text-white flex items-center justify-center text-[7px] shadow transition" title="Unduh Foto Guru"><i class="fa-solid fa-download"></i></button>
+                         <button type="button" onclick="window.triggerQuickUploadTeacher('${t.id}')" class="absolute -bottom-1 -right-1 w-4 h-4 rounded-full bg-slate-800 hover:bg-emerald-600 text-white flex items-center justify-center text-[8px] shadow transition" title="Ganti Pas Foto"><i class="fa-solid fa-camera"></i></button>
+                       </div>`
+                    : `<div class="relative group shrink-0">
+                         <div onclick="window.triggerQuickUploadTeacher('${t.id}')" class="w-9 h-9 rounded-full ${t.jk === 'P' ? 'bg-pink-100 text-pink-700 border-pink-200' : 'bg-emerald-100 text-emerald-700 border-emerald-200'} border flex items-center justify-center font-bold text-xs cursor-pointer hover:ring-2 hover:ring-opti-lime transition" title="Klik untuk Upload Pas Foto Guru">
+                           ${(t.nama_lengkap || 'G').charAt(0).toUpperCase()}
+                         </div>
+                         <button type="button" onclick="window.triggerQuickUploadTeacher('${t.id}')" class="absolute -bottom-1 -right-1 w-4 h-4 rounded-full bg-slate-700 hover:bg-emerald-600 text-white flex items-center justify-center text-[8px] shadow transition" title="Upload Pas Foto Guru"><i class="fa-solid fa-camera"></i></button>
+                       </div>`;
+
+                return `
+                    <tr class="hover:bg-slate-50 transition">
+                        <td class="py-3.5 px-4 font-mono text-xs font-bold text-slate-700 text-center whitespace-nowrap">${t.nip || '-'}</td>
+                        <td class="py-3.5 px-5">
+                            <div class="flex items-center gap-2.5">
+                                ${fotoHtml}
+                                <div>
+                                    <div class="font-bold text-slate-900 text-xs">${t.nama_lengkap}</div>
+                                    ${t.no_hp && t.no_hp !== '-' ? `<div class="text-[10px] text-slate-400 font-mono"><i class="fa-brands fa-whatsapp text-emerald-500 mr-1"></i>${t.no_hp}</div>` : ''}
+                                </div>
+                            </div>
+                        </td>
+                        <td class="py-3.5 px-3 text-center whitespace-nowrap"><span class="px-2 py-0.5 rounded ${t.jk === 'P' ? 'bg-pink-100 text-pink-700' : 'bg-blue-100 text-blue-700'} text-xs font-bold">${t.jk || 'L'}</span></td>
+                        <td class="py-3.5 px-4 font-semibold text-xs text-slate-800 text-center">${t.jabatan || '-'}</td>
+                        <td class="py-3.5 px-4 text-xs text-slate-600 text-center">${t.mapel || '-'}</td>
+                        <td class="py-3.5 px-4 font-mono text-xs text-center">${t.no_hp || '-'}</td>
+                        <td class="py-3.5 px-4 text-center whitespace-nowrap"><span class="px-2.5 py-1 rounded-full text-[11px] font-bold bg-emerald-100 text-emerald-800">${t.status || 'Aktif'}</span></td>
+                        <td class="py-3.5 px-5 text-center whitespace-nowrap">
+                            <button onclick="window.openTeacherModal('${t.id}')" class="p-2 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-700 text-xs mr-1" title="Edit Data Guru"><i class="fa-solid fa-pen-to-square"></i></button>
+                            <button onclick="window.handleDeleteTeacher('${t.id}')" class="p-2 rounded-xl bg-red-50 hover:bg-red-100 text-red-600 text-xs" title="Hapus Data Guru"><i class="fa-solid fa-trash"></i></button>
+                        </td>
+                    </tr>
+                `;
+            }).join('');
+        };
+
+        // FITUR PENGELOLAAN PAS FOTO GURU
+        window.handleTeacherPhotoSelect = async function (event) {
+            const file = event.target.files && event.target.files[0];
+            if (!file) return;
+
+            if (file.size > 5 * 1024 * 1024) {
+                showToast("Ukuran foto maksimal 5MB!", "error");
+                event.target.value = '';
+                return;
+            }
+
+            try {
+                const dataUrl = await compressAlumniImage(file, 600, 800, 0.8);
+                const dataInput = document.getElementById('g-data-foto');
+                const prevImg = document.getElementById('prev-foto-guru');
+                const ph = document.getElementById('ph-foto-guru');
+                const btnDel = document.getElementById('btn-del-foto-guru');
+                const btnDl = document.getElementById('btn-dl-foto-guru');
+                if (dataInput) dataInput.value = dataUrl;
+                if (prevImg) { prevImg.src = dataUrl; prevImg.classList.remove('hidden'); }
+                if (ph) ph.classList.add('hidden');
+                if (btnDel) btnDel.classList.remove('hidden');
+                if (btnDl) btnDl.classList.remove('hidden');
+            } catch (err) {
+                console.error("Gagal memproses foto guru:", err);
+                showToast("Gagal memproses foto guru.", "error");
+            }
+        };
+
+        window.removeTeacherPhoto = function () {
+            const fileInp = document.getElementById('g-file-foto');
+            const dataInp = document.getElementById('g-data-foto');
+            const prevImg = document.getElementById('prev-foto-guru');
+            const ph = document.getElementById('ph-foto-guru');
+            const btnDel = document.getElementById('btn-del-foto-guru');
+            const btnDl = document.getElementById('btn-dl-foto-guru');
+            if (fileInp) fileInp.value = '';
+            if (dataInp) dataInp.value = '';
+            if (prevImg) { prevImg.src = ''; prevImg.classList.add('hidden'); }
+            if (ph) ph.classList.remove('hidden');
+            if (btnDel) btnDel.classList.add('hidden');
+            if (btnDl) btnDl.classList.add('hidden');
+        };
+
+        window.downloadCurrentTeacherPhoto = function () {
+            let fileData = document.getElementById('g-data-foto')?.value;
+            const namaGuru = (document.getElementById('g-nama')?.value || 'Guru').trim().replace(/[/\\?%*:|"<>]/g, '').replace(/\s+/g, '_');
+            const nip = (document.getElementById('g-nip')?.value || '').trim();
+
+            if (!fileData) {
+                const docId = document.getElementById('g-doc-id')?.value;
+                if (docId) {
+                    const t = state.teachers.find(item => item.id === docId);
+                    if (t && t.foto_guru) fileData = t.foto_guru;
+                }
+            }
+
+            if (!fileData) {
+                showToast("Belum ada foto guru untuk diunduh.", "info");
+                return;
+            }
+
+            const fileName = `Foto_${namaGuru}${nip && nip !== '-' ? '_' + nip : ''}.png`;
+            const link = document.createElement('a');
+            link.href = fileData;
+            link.download = fileName;
+            document.body.appendChild(link);
+            link.click();
+            document.body.removeChild(link);
+            showToast(`Mengunduh ${fileName}...`, "success");
+        };
+
+        window.downloadTeacherPhotoDirect = function (teacherId) {
+            const t = state.teachers.find(item => item.id === teacherId);
+            if (!t || !t.foto_guru) {
+                showToast("Foto guru belum tersedia.", "info");
+                return;
+            }
+
+            const cleanName = (t.nama_lengkap || 'Guru').trim().replace(/[/\\?%*:|"<>]/g, '').replace(/\s+/g, '_');
+            const nip = t.nip && t.nip !== '-' ? `_${t.nip}` : '';
+            const fileName = `Foto_${cleanName}${nip}.png`;
+
+            const link = document.createElement('a');
+            link.href = t.foto_guru;
+            link.download = fileName;
+            document.body.appendChild(link);
+            link.click();
+            document.body.removeChild(link);
+            showToast(`Mengunduh ${fileName}...`, "success");
+        };
+
+        // FITUR UPLOAD CEPAT FOTO GURU LANGSUNG DARI TABEL
+        let activeQuickUploadTeacherId = null;
+
+        window.triggerQuickUploadTeacher = function (teacherId) {
+            activeQuickUploadTeacherId = teacherId;
+            let inputEl = document.getElementById('global-teacher-quick-file-input');
+            if (!inputEl) {
+                inputEl = document.createElement('input');
+                inputEl.type = 'file';
+                inputEl.id = 'global-teacher-quick-file-input';
+                inputEl.accept = 'image/*';
+                inputEl.className = 'hidden';
+                inputEl.onchange = window.handleQuickUploadTeacherSelected;
+                document.body.appendChild(inputEl);
+            }
+            inputEl.value = '';
+            inputEl.click();
+        };
+
+        window.handleQuickUploadTeacherSelected = async function (e) {
+            const file = e.target.files && e.target.files[0];
+            if (!file) return;
+
+            const teacherId = activeQuickUploadTeacherId;
+            if (!teacherId) return;
+
+            const teacher = state.teachers.find(t => t.id === teacherId);
+            if (!teacher) {
+                showToast("Data guru tidak ditemukan.", "error");
+                return;
+            }
+
+            if (file.size > 5 * 1024 * 1024) {
+                showToast("Ukuran foto maksimal 5MB!", "error");
+                return;
+            }
+
+            window.showTransitionLoading("Menyimpan Foto...", `Mengunggah foto untuk ${teacher.nama_lengkap}`);
+
+            try {
+                const dataUrl = await compressAlumniImage(file, 600, 800, 0.8);
+                teacher.foto_guru = dataUrl;
+
+                const idx = state.teachers.findIndex(t => t.id === teacherId);
+                if (idx >= 0) {
+                    state.teachers[idx] = teacher;
+                }
+
+                saveOfflineTeachers();
+
+                if (isCloudConnected && db) {
+                    await getDocRef('data_guru', teacherId).set(teacher, { merge: true }).catch(err => console.warn(err));
+                }
+
+                window.renderTeachersTable();
+                showToast(`Foto untuk ${teacher.nama_lengkap} berhasil diunggah!`, "success");
+            } catch (err) {
+                console.error("Quick upload teacher error:", err);
+                showToast("Gagal mengunggah foto guru: " + err.message, "error");
+            } finally {
+                window.hideTransitionLoading();
+            }
+        };
+
+        window.viewTeacherDoc = function (teacherId) {
+            const t = state.teachers.find(item => item.id === teacherId);
+            if (!t || !t.foto_guru) {
+                showToast("Foto guru belum tersedia.", "info");
+                return;
+            }
+
+            const modal = document.getElementById('modal-view-doc');
+            const titleEl = document.getElementById('doc-viewer-title');
+            const subTitleEl = document.getElementById('doc-viewer-subtitle');
+            const iconEl = document.getElementById('doc-viewer-icon');
+            const dlBtn = document.getElementById('doc-viewer-download');
+            const bodyEl = document.getElementById('doc-viewer-body');
+
+            const fileName = `Foto_${(t.nama_lengkap || 'Guru').replace(/\s+/g, '_')}.png`;
+
+            if (titleEl) titleEl.textContent = 'Pas Foto Tenaga Pendidik / Guru';
+            if (subTitleEl) subTitleEl.textContent = `${t.nama_lengkap} (NIP: ${t.nip || '-'}) - ${t.jabatan || 'Guru'}`;
+            if (iconEl) iconEl.innerHTML = `<i class="fa-solid fa-chalkboard-user"></i>`;
+            if (dlBtn) {
+                dlBtn.href = t.foto_guru;
+                dlBtn.download = fileName;
+            }
+
+            if (bodyEl) {
+                bodyEl.innerHTML = `<div class="max-h-[65vh] max-w-full flex items-center justify-center p-2"><img src="${t.foto_guru}" alt="${t.nama_lengkap}" class="max-h-[62vh] max-w-full rounded-2xl shadow-lg border border-slate-200 object-contain"></div>`;
+            }
+
+            if (modal) modal.classList.remove('hidden');
         };
 
         window.openTeacherModal = function (teacherId = null) {
             document.getElementById('form-data-guru').reset();
             document.getElementById('g-doc-id').value = '';
+            window.removeTeacherPhoto();
 
             if (teacherId) {
                 const t = state.teachers.find(item => item.id === teacherId);
@@ -5262,6 +5530,19 @@
                     document.getElementById('g-mapel').value = t.mapel || '';
                     document.getElementById('g-nohp').value = t.no_hp || '';
                     document.getElementById('g-status').value = t.status || 'Aktif';
+
+                    if (t.foto_guru) {
+                        const dataInp = document.getElementById('g-data-foto');
+                        const prevImg = document.getElementById('prev-foto-guru');
+                        const ph = document.getElementById('ph-foto-guru');
+                        const btnDel = document.getElementById('btn-del-foto-guru');
+                        const btnDl = document.getElementById('btn-dl-foto-guru');
+                        if (dataInp) dataInp.value = t.foto_guru;
+                        if (prevImg) { prevImg.src = t.foto_guru; prevImg.classList.remove('hidden'); }
+                        if (ph) ph.classList.add('hidden');
+                        if (btnDel) btnDel.classList.remove('hidden');
+                        if (btnDl) btnDl.classList.remove('hidden');
+                    }
                 }
             } else {
                 document.getElementById('modal-guru-title').textContent = "Formulir Tambah Data Guru";
@@ -5288,7 +5569,8 @@
                     jabatan: document.getElementById('g-jabatan').value.trim() || 'Guru',
                     mapel: document.getElementById('g-mapel').value.trim() || 'Tematik',
                     no_hp: document.getElementById('g-nohp').value.trim() || '-',
-                    status: document.getElementById('g-status').value
+                    status: document.getElementById('g-status').value,
+                    foto_guru: document.getElementById('g-data-foto')?.value || ''
                 };
 
                 const idx = state.teachers.findIndex(t => t.id === id);
@@ -5298,9 +5580,9 @@
                 state.teachers.sort((a, b) => (a.nama_lengkap || '').localeCompare(b.nama_lengkap || '', 'id', { sensitivity: 'base' }));
 
                 if (isCloudConnected && db) {
-                    await getDocRef('data_guru', id).set(teacherData).catch(err => console.warn(err));
+                    await getDocRef('data_guru', id).set(teacherData, { merge: true }).catch(err => console.warn(err));
                 }
-                try { localStorage.setItem('mis_offline_teachers', JSON.stringify(state.teachers)); } catch (e) { }
+                saveOfflineTeachers();
 
                 window.renderTeachersTable();
             }, "Data Guru Tersimpan!");
@@ -5321,7 +5603,7 @@
                     if (isCloudConnected && db) {
                         await getDocRef('data_guru', id).delete().catch(err => console.warn(err));
                     }
-                    try { localStorage.setItem('mis_offline_teachers', JSON.stringify(state.teachers)); } catch (e) { }
+                    saveOfflineTeachers();
                     window.renderTeachersTable();
                     showToast("Data guru dihapus.", "info");
                 }
@@ -5640,7 +5922,11 @@
                         : currentTeachers.findIndex(item => item.nama_lengkap.toLowerCase() === t.nama_lengkap.toLowerCase());
 
                     if (existingIdx >= 0) {
-                        currentTeachers[existingIdx] = { ...currentTeachers[existingIdx], ...t };
+                        currentTeachers[existingIdx] = {
+                            ...currentTeachers[existingIdx],
+                            ...t,
+                            foto_guru: currentTeachers[existingIdx].foto_guru || ''
+                        };
                     } else {
                         currentTeachers.push(t);
                     }
@@ -5650,9 +5936,7 @@
                 currentTeachers.sort((a, b) => (a.nama_lengkap || '').localeCompare(b.nama_lengkap || '', 'id', { sensitivity: 'base' }));
                 state.teachers = currentTeachers;
 
-                try {
-                    localStorage.setItem('mis_offline_teachers', JSON.stringify(state.teachers));
-                } catch (e) { }
+                saveOfflineTeachers();
 
                 if (isCloudConnected && db) {
                     try {
