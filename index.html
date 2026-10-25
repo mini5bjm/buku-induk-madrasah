@@ -692,6 +692,7 @@
                                 <table class="w-full text-left border-collapse">
                                     <thead>
                                         <tr class="bg-slate-900 text-white text-[11px] uppercase tracking-wider">
+                                            <th class="py-4 px-3 font-bold text-center whitespace-nowrap w-12">No.</th>
                                             <th class="py-4 px-4 font-bold text-center whitespace-nowrap min-w-[130px]">
                                                 NISN / NIS Lokal</th>
                                             <th class="py-4 px-5 font-bold text-center min-w-[200px]">Nama Lengkap Siswa
@@ -3752,12 +3753,13 @@
             if (!tbody) return;
 
             if (filtered.length === 0) {
-                tbody.innerHTML = `<tr><td colspan="7" class="py-12 text-center text-slate-400 text-sm">Tidak ada data siswa yang cocok dengan filter / pencarian.</td></tr>`;
+                tbody.innerHTML = `<tr><td colspan="8" class="py-12 text-center text-slate-400 text-sm">Tidak ada data siswa yang cocok dengan filter / pencarian.</td></tr>`;
                 return;
             }
 
-            tbody.innerHTML = filtered.map(s => `
+            tbody.innerHTML = filtered.map((s, idx) => `
             <tr class="hover:bg-slate-50 transition">
+                <td class="py-3.5 px-3 text-center font-bold text-xs text-slate-500 whitespace-nowrap">${idx + 1}</td>
                 <td class="py-3.5 px-4 font-mono text-xs text-center whitespace-nowrap">
                     <b class="text-slate-900">${s.nisn}</b>
                     <div class="text-[11px] text-slate-500 mt-0.5">NIS: ${s.nis_lokal || '-'}</div>
