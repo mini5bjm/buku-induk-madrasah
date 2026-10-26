@@ -2926,7 +2926,36 @@
             if (ak === '-') ak = '';
             let js = String(s.jml_saudara !== undefined && s.jml_saudara !== null ? s.jml_saudara : '').trim();
             if (js === '-') js = '';
-            return { ...s, anak_ke: ak, jml_saudara: js };
+
+            let pend = s.pendidikan ? { ...s.pendidikan } : {};
+            // Bersihkan data dummy tanggal masuk bawaan sistem lama
+            if (pend.tgl_masuk === '2024-07-15' || pend.tgl_masuk === '-') {
+                pend.tgl_masuk = '';
+            }
+
+            const asalTk = String(pend.asal_tk_ra || '').trim();
+            const asalPindahan = String(pend.asal_sekolah_pindahan || '').trim();
+            const hasRealAsalTk = asalTk && asalTk !== '-';
+            const hasRealAsalPindahan = asalPindahan && asalPindahan !== '-';
+            const hasRealTglMasuk = pend.tgl_masuk && pend.tgl_masuk !== '-' && pend.tgl_masuk !== '2024-07-15';
+
+            // Bersihkan jenis_masuk dummy bawaan sistem lama jika tidak pernah diisi riwayat penerimaan nyata
+            if (pend.jenis_masuk === 'Siswa Baru (TK/RA)' && !hasRealAsalTk && !hasRealTglMasuk) {
+                pend.jenis_masuk = '';
+            }
+            if (pend.jenis_masuk === 'Pindahan' && !hasRealAsalPindahan && !hasRealTglMasuk) {
+                pend.jenis_masuk = '';
+            }
+            if (pend.jenis_masuk === '-' || pend.jenis_masuk === 'Siswa Reguler') {
+                pend.jenis_masuk = '';
+            }
+
+            // Bersihkan diterima_kelas dummy jika riwayat masuk kosong
+            if (!hasRealTglMasuk && (!pend.jenis_masuk || pend.jenis_masuk === '')) {
+                pend.diterima_kelas = '';
+            }
+
+            return { ...s, anak_ke: ak, jml_saudara: js, pendidikan: pend };
         };
         const normalizeStudentData = window.normalizeStudentData;
 
@@ -4212,12 +4241,13 @@
                     document.getElementById('f-penghasilan-custom').value = (penghasilanVal === '-' || penghasilanVal === 'Lainnya') ? '' : penghasilanVal;
                 }
 
-                const jm = s.pendidikan?.jenis_masuk || (s.pendidikan?.asal_sekolah_pindahan && s.pendidikan?.asal_sekolah_pindahan !== '-' ? 'Pindahan' : (s.pendidikan?.asal_tk_ra && s.pendidikan?.asal_tk_ra !== '-' ? 'Siswa Baru (TK/RA)' : ''));
+                const normS = window.normalizeStudentData ? window.normalizeStudentData(s) : s;
+                const jm = normS.pendidikan?.jenis_masuk || '';
                 document.getElementById('f-jenis-masuk').value = jm || '';
-                document.getElementById('f-asal-tk').value = (s.pendidikan?.asal_tk_ra && s.pendidikan?.asal_tk_ra !== '-') ? s.pendidikan?.asal_tk_ra : '';
-                document.getElementById('f-asal-pindahan').value = (s.pendidikan?.asal_sekolah_pindahan && s.pendidikan?.asal_sekolah_pindahan !== '-') ? s.pendidikan?.asal_sekolah_pindahan : '';
-                document.getElementById('f-tgl-masuk').value = s.pendidikan?.tgl_masuk || '';
-                document.getElementById('f-diterima-kelas').value = s.pendidikan?.diterima_kelas || '';
+                document.getElementById('f-asal-tk').value = (normS.pendidikan?.asal_tk_ra && normS.pendidikan?.asal_tk_ra !== '-') ? normS.pendidikan?.asal_tk_ra : '';
+                document.getElementById('f-asal-pindahan').value = (normS.pendidikan?.asal_sekolah_pindahan && normS.pendidikan?.asal_sekolah_pindahan !== '-') ? normS.pendidikan?.asal_sekolah_pindahan : '';
+                document.getElementById('f-tgl-masuk').value = normS.pendidikan?.tgl_masuk || '';
+                document.getElementById('f-diterima-kelas').value = normS.pendidikan?.diterima_kelas || '';
                 window.updateJenisMasukFields(false);
             } else {
                 document.getElementById('modal-siswa-title').textContent = "Tambah Siswa Baru";
@@ -4734,6 +4764,7 @@
             }
 
             let s = (state.students || []).find(item => item.id === studentId);
+            if (s) s = window.normalizeStudentData ? window.normalizeStudentData(s) : s;
             const a = (state.alumni || []).find(item => item.id === studentId);
 
             if (!s && a) {
@@ -4764,11 +4795,11 @@
                         penghasilan_ortu: a.penghasilan_ortu || matchedStudent?.orang_tua?.penghasilan_ortu || '-'
                     },
                     pendidikan: {
-                        jenis_masuk: matchedStudent?.pendidikan?.jenis_masuk || 'Siswa Reguler',
+                        jenis_masuk: matchedStudent?.pendidikan?.jenis_masuk || '',
                         asal_tk_ra: matchedStudent?.pendidikan?.asal_tk_ra || '-',
                         asal_sekolah_pindahan: matchedStudent?.pendidikan?.asal_sekolah_pindahan || '-',
-                        tgl_masuk: matchedStudent?.pendidikan?.tgl_masuk || '-',
-                        diterima_kelas: matchedStudent?.pendidikan?.diterima_kelas || 'Kelas 1',
+                        tgl_masuk: matchedStudent?.pendidikan?.tgl_masuk || '',
+                        diterima_kelas: matchedStudent?.pendidikan?.diterima_kelas || '',
                         tahun_lulus: a.tahun_lulus || matchedStudent?.pendidikan?.tahun_lulus || '-',
                         no_ijazah: a.no_ijazah || matchedStudent?.pendidikan?.no_ijazah || '-',
                         sekolah_lanjutan: a.nama_sekolah_lanjutan ? `${a.jenis_lanjutan ? a.jenis_lanjutan + ' - ' : ''}${a.nama_sekolah_lanjutan}` : (matchedStudent?.pendidikan?.sekolah_lanjutan || '-')
@@ -4801,6 +4832,22 @@
             }
 
             if (!s) return;
+
+            const pJm = (s.pendidikan?.jenis_masuk && s.pendidikan.jenis_masuk !== '-' && s.pendidikan.jenis_masuk !== 'Siswa Reguler') ? s.pendidikan.jenis_masuk : '-';
+            const pAsalTk = (s.pendidikan?.asal_tk_ra && s.pendidikan.asal_tk_ra !== '-') ? s.pendidikan.asal_tk_ra : '-';
+            const pAsalPindahan = (s.pendidikan?.asal_sekolah_pindahan && s.pendidikan.asal_sekolah_pindahan !== '-') ? s.pendidikan.asal_sekolah_pindahan : '-';
+
+            const pTgl = (s.pendidikan?.tgl_masuk && s.pendidikan.tgl_masuk !== '-' && s.pendidikan.tgl_masuk !== '2024-07-15') ? s.pendidikan.tgl_masuk : '';
+            const pKls = (s.pendidikan?.diterima_kelas && s.pendidikan.diterima_kelas !== '-') ? s.pendidikan.diterima_kelas : '';
+
+            let pDiterimaKet = '-';
+            if (pTgl && pKls) {
+                pDiterimaKet = `${pTgl} &nbsp;•&nbsp; (Diterima di <b>${pKls}</b>)`;
+            } else if (pTgl) {
+                pDiterimaKet = pTgl;
+            } else if (pKls) {
+                pDiterimaKet = `Diterima di <b>${pKls}</b>`;
+            }
 
             const m = state.madrasahSettings;
             const studentAcademics = (state.academics || []).filter(ac => ac.siswa_id === s.id || (s.nisn && s.nisn !== '-' && ac.nisn === s.nisn));
@@ -4887,22 +4934,22 @@
                         <tr class="border-b border-slate-200">
                             <td class="py-1.5 w-60 text-slate-600">10. Jalur Masuk</td>
                             <td class="py-1.5 w-4 text-center text-slate-700">:</td>
-                            <td class="py-1.5 font-bold">${s.pendidikan?.jenis_masuk || (s.pendidikan?.asal_sekolah_pindahan && s.pendidikan?.asal_sekolah_pindahan !== '-' ? 'Siswa Pindahan' : 'Siswa Baru (TK/RA)')}</td>
+                            <td class="py-1.5 font-bold">${pJm}</td>
                         </tr>
                         <tr class="border-b border-slate-200">
                             <td class="py-1.5 w-60 text-slate-600">11. Asal TK / RA</td>
                             <td class="py-1.5 w-4 text-center text-slate-700">:</td>
-                            <td class="py-1.5">${s.pendidikan?.asal_tk_ra || '-'}</td>
+                            <td class="py-1.5">${pAsalTk}</td>
                         </tr>
                         <tr class="border-b border-slate-200">
                             <td class="py-1.5 w-60 text-slate-600">12. Asal Sekolah Pindahan</td>
                             <td class="py-1.5 w-4 text-center text-slate-700">:</td>
-                            <td class="py-1.5">${s.pendidikan?.asal_sekolah_pindahan || '-'}</td>
+                            <td class="py-1.5">${pAsalPindahan}</td>
                         </tr>
                         <tr class="border-b border-slate-200">
                             <td class="py-1.5 w-60 text-slate-600">13. Diterima Tanggal & Kelas</td>
                             <td class="py-1.5 w-4 text-center text-slate-700">:</td>
-                            <td class="py-1.5">${s.pendidikan?.tgl_masuk || '-'} (Diterima di <b>${s.pendidikan?.diterima_kelas || '-'}</b>)</td>
+                            <td class="py-1.5">${pDiterimaKet}</td>
                         </tr>
                         <tr class="border-b border-slate-200">
                             <td class="py-1.5 w-60 text-slate-600">14. Status Keaktifan Saat Ini</td>
@@ -5992,12 +6039,12 @@
                     penghasilan_ortu: String(s.orang_tua?.penghasilan_ortu || '').trim() || '-'
                 },
                 pendidikan: {
-                    jenis_masuk: String(s.pendidikan?.jenis_masuk || (s.pendidikan?.asal_sekolah_pindahan && s.pendidikan?.asal_sekolah_pindahan !== '-' ? 'Pindahan' : 'Siswa Baru (TK/RA)')),
+                    jenis_masuk: String(s.pendidikan?.jenis_masuk || (s.pendidikan?.asal_sekolah_pindahan && s.pendidikan?.asal_sekolah_pindahan !== '-' ? 'Pindahan' : '')),
                     asal_tk_ra: String(s.pendidikan?.asal_tk_ra || '-'),
                     asal_sekolah_pindahan: String(s.pendidikan?.asal_sekolah_pindahan || '-'),
                     surat_pindah: String(s.pendidikan?.surat_pindah || '-'),
-                    tgl_masuk: String(s.pendidikan?.tgl_masuk || '2024-07-15'),
-                    diterima_kelas: String(s.pendidikan?.diterima_kelas || s.kelas_aktif || 'Kelas 1'),
+                    tgl_masuk: String(s.pendidikan?.tgl_masuk || ''),
+                    diterima_kelas: String(s.pendidikan?.diterima_kelas || ''),
                     tahun_lulus: String(s.pendidikan?.tahun_lulus || ''),
                     no_ijazah: String(s.pendidikan?.no_ijazah || '')
                 }
@@ -6302,12 +6349,12 @@
                         penghasilan_ortu: "-"
                     },
                     pendidikan: {
-                        jenis_masuk: "Siswa Baru (TK/RA)",
+                        jenis_masuk: "",
                         asal_tk_ra: "-",
                         asal_sekolah_pindahan: "-",
                         surat_pindah: "-",
-                        tgl_masuk: "2024-07-15",
-                        diterima_kelas: kelas,
+                        tgl_masuk: "",
+                        diterima_kelas: "",
                         tahun_lulus: "",
                         no_ijazah: ""
                     }
