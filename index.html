@@ -326,10 +326,17 @@
                                 <h3 class="text-2xl font-extrabold text-slate-900">Login Operator</h3>
                                 <p class="text-xs text-slate-500 mt-1">Masuk ke panel manajemen Buku Induk Madrasah</p>
                             </div>
-                            <span id="mode-indicator-badge"
-                                class="px-3 py-1 rounded-full text-[11px] font-bold bg-lime-100 text-lime-900 border border-lime-300">
-                                Sistem Online
-                            </span>
+                            <div class="flex items-center gap-1.5">
+                                <button type="button" onclick="window.openFirebaseConfigModal()" title="Pengaturan Firebase Config"
+                                    class="px-2.5 py-1 rounded-full text-[11px] font-bold bg-amber-50 hover:bg-amber-100 text-amber-800 border border-amber-300 transition flex items-center gap-1 shadow-sm">
+                                    <i class="fa-solid fa-fire text-amber-600"></i>
+                                    <span>Firebase</span>
+                                </button>
+                                <span id="mode-indicator-badge"
+                                    class="px-3 py-1 rounded-full text-[11px] font-bold bg-lime-100 text-lime-900 border border-lime-300">
+                                    Sistem Online
+                                </span>
+                            </div>
                         </div>
 
                         <!-- FORM LOGIN ADMIN -->
@@ -381,6 +388,19 @@
                                 </span>
                             </button>
                         </form>
+
+                        <!-- Footer Info & Pintasan Setting Firebase -->
+                        <div class="mt-4 pt-3 border-t border-slate-100 flex items-center justify-between text-xs text-slate-400">
+                            <span class="flex items-center gap-1.5 truncate pr-2">
+                                <i class="fa-solid fa-cloud text-slate-400"></i>
+                                <span id="login-firebase-project-name" class="font-mono text-[11px] truncate">buku-induk-siswa-44637</span>
+                            </span>
+                            <button type="button" onclick="window.openFirebaseConfigModal()"
+                                class="text-slate-600 hover:text-opti-dark font-bold text-xs flex items-center gap-1.5 transition shrink-0">
+                                <i class="fa-solid fa-gear text-amber-500"></i>
+                                <span>Setting Firebase</span>
+                            </button>
+                        </div>
                     </div>
                 </div>
 
@@ -473,6 +493,11 @@
                     </div>
 
                     <div class="flex items-center gap-2.5">
+                        <button type="button" onclick="window.openFirebaseConfigModal()" title="Pengaturan Firebase Config"
+                            class="px-3 py-1.5 rounded-full bg-white text-slate-700 hover:text-opti-dark border border-slate-200 text-xs font-bold transition flex items-center gap-1.5 shadow-sm">
+                            <i class="fa-solid fa-fire text-amber-500"></i>
+                            <span class="hidden sm:inline">Firebase Config</span>
+                        </button>
                         <!-- Mobile Logout Button -->
                         <button onclick="window.handleLogout()" title="Keluar"
                             class="lg:hidden w-9 h-9 rounded-full bg-red-50 text-red-600 border border-red-200 flex items-center justify-center text-sm">
@@ -1617,6 +1642,179 @@
                                     </div>
                                 </div>
                             </div>
+
+                            <!-- Card 4: Konfigurasi Firebase Cloud Database & Realtime Sync -->
+                            <div id="card-firebase-config"
+                                class="lg:col-span-12 bg-white rounded-3xl p-6 border border-slate-200/80 shadow-sm">
+                                <div
+                                    class="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 mb-4 pb-4 border-b border-slate-100">
+                                    <div>
+                                        <div class="flex items-center gap-2">
+                                            <span
+                                                class="text-[11px] font-bold uppercase tracking-wider px-2.5 py-1 rounded-full bg-amber-100 text-amber-900 flex items-center gap-1.5">
+                                                <i class="fa-solid fa-fire text-amber-600"></i>
+                                                <span>Cloud Database & Sync</span>
+                                            </span>
+                                            <span id="firebase-status-pill"
+                                                class="text-[11px] font-bold px-2.5 py-1 rounded-full bg-slate-100 text-slate-700 border border-slate-200 flex items-center gap-1.5">
+                                                <span class="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></span>
+                                                <span id="firebase-status-text">Memeriksa Koneksi...</span>
+                                            </span>
+                                        </div>
+                                        <h3 class="text-lg font-extrabold text-slate-900 mt-2">Konfigurasi Firebase Config</h3>
+                                        <p class="text-xs text-slate-500">Hubungkan aplikasi Buku Induk dengan project Firebase / Firestore milik Anda sendiri untuk sinkronisasi cloud real-time antar perangkat dan cadangan otomatis.</p>
+                                    </div>
+                                    <div class="flex items-center gap-2 shrink-0">
+                                        <button type="button" onclick="window.toggleFirebaseSnippetModal(true)"
+                                            class="px-3.5 py-2 rounded-xl bg-amber-50 hover:bg-amber-100 text-amber-800 border border-amber-300 text-xs font-bold transition flex items-center gap-1.5 shadow-sm">
+                                            <i class="fa-solid fa-paste text-amber-600"></i>
+                                            <span>Tempel Snippet / JSON</span>
+                                        </button>
+                                        <div
+                                            class="w-10 h-10 rounded-2xl bg-amber-50 text-amber-600 flex items-center justify-center text-lg shrink-0">
+                                            <i class="fa-solid fa-fire"></i>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <!-- Ringkasan Project Aktif -->
+                                <div
+                                    class="p-3.5 mb-5 rounded-2xl bg-slate-50 border border-slate-200 flex flex-wrap items-center justify-between gap-3 text-xs">
+                                    <div class="flex items-center gap-2">
+                                        <span class="text-slate-500 font-medium">Project ID Aktif:</span>
+                                        <span id="firebase-active-project-label"
+                                            class="font-mono font-bold text-slate-800 bg-white px-2 py-0.5 rounded-lg border border-slate-200">-</span>
+                                    </div>
+                                    <div class="flex items-center gap-2">
+                                        <span class="text-slate-500 font-medium">App Namespace:</span>
+                                        <span id="firebase-active-app-id-label"
+                                            class="font-mono font-bold text-slate-800 bg-white px-2 py-0.5 rounded-lg border border-slate-200">-</span>
+                                    </div>
+                                    <div class="flex items-center gap-2">
+                                        <span class="text-slate-500 font-medium">Tipe Konfigurasi:</span>
+                                        <span id="firebase-config-type-label"
+                                            class="font-semibold text-xs px-2.5 py-0.5 rounded-lg bg-lime-100 text-lime-900 border border-lime-300">Default Bawaan</span>
+                                    </div>
+                                </div>
+
+                                <!-- Formulir Firebase Config -->
+                                <form id="form-pengaturan-firebase" onsubmit="window.handleSaveFirebaseConfig(event, 'card')"
+                                    class="space-y-4">
+                                    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                                        <!-- apiKey -->
+                                        <div>
+                                            <label class="block text-xs font-bold text-slate-700 mb-1">
+                                                API Key <span class="text-red-500">*</span>
+                                            </label>
+                                            <div class="relative">
+                                                <input type="password" id="cfg-firebase-api-key" required placeholder="AIzaSy..."
+                                                    class="w-full px-3.5 pr-10 py-2.5 rounded-xl border border-slate-300 text-xs font-mono focus:outline-none focus:ring-2 focus:ring-opti-dark">
+                                                <button type="button"
+                                                    onclick="window.toggleSettingPasswordVisibility('cfg-firebase-api-key', 'toggle-cfg-key-icon')"
+                                                    class="absolute right-2.5 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-700 p-1 cursor-pointer focus:outline-none"
+                                                    title="Lihat / Sembunyikan API Key">
+                                                    <i id="toggle-cfg-key-icon" class="fa-solid fa-eye text-xs"></i>
+                                                </button>
+                                            </div>
+                                        </div>
+
+                                        <!-- authDomain -->
+                                        <div>
+                                            <label class="block text-xs font-bold text-slate-700 mb-1">
+                                                Auth Domain <span class="text-red-500">*</span>
+                                            </label>
+                                            <input type="text" id="cfg-firebase-auth-domain" required
+                                                placeholder="project-id.firebaseapp.com"
+                                                class="w-full px-3.5 py-2.5 rounded-xl border border-slate-300 text-xs font-mono focus:outline-none focus:ring-2 focus:ring-opti-dark">
+                                        </div>
+
+                                        <!-- projectId -->
+                                        <div>
+                                            <label class="block text-xs font-bold text-slate-700 mb-1">
+                                                Project ID <span class="text-red-500">*</span>
+                                            </label>
+                                            <input type="text" id="cfg-firebase-project-id" required placeholder="project-id"
+                                                class="w-full px-3.5 py-2.5 rounded-xl border border-slate-300 text-xs font-mono font-bold focus:outline-none focus:ring-2 focus:ring-opti-dark">
+                                        </div>
+
+                                        <!-- storageBucket -->
+                                        <div>
+                                            <label class="block text-xs font-bold text-slate-700 mb-1">
+                                                Storage Bucket
+                                            </label>
+                                            <input type="text" id="cfg-firebase-storage-bucket"
+                                                placeholder="project-id.firebasestorage.app"
+                                                class="w-full px-3.5 py-2.5 rounded-xl border border-slate-300 text-xs font-mono focus:outline-none focus:ring-2 focus:ring-opti-dark">
+                                        </div>
+
+                                        <!-- messagingSenderId -->
+                                        <div>
+                                            <label class="block text-xs font-bold text-slate-700 mb-1">
+                                                Messaging Sender ID
+                                            </label>
+                                            <input type="text" id="cfg-firebase-messaging-sender-id" placeholder="1234567890"
+                                                class="w-full px-3.5 py-2.5 rounded-xl border border-slate-300 text-xs font-mono focus:outline-none focus:ring-2 focus:ring-opti-dark">
+                                        </div>
+
+                                        <!-- appId -->
+                                        <div>
+                                            <label class="block text-xs font-bold text-slate-700 mb-1">
+                                                App ID (Firebase Web)
+                                            </label>
+                                            <input type="text" id="cfg-firebase-app-id"
+                                                placeholder="1:123456789:web:abcdef"
+                                                class="w-full px-3.5 py-2.5 rounded-xl border border-slate-300 text-xs font-mono focus:outline-none focus:ring-2 focus:ring-opti-dark">
+                                        </div>
+
+                                        <!-- Root App Namespace (Doc Namespace) -->
+                                        <div class="md:col-span-2 lg:col-span-3">
+                                            <label class="block text-xs font-bold text-slate-700 mb-1">
+                                                Firestore App Namespace (Nama Folder Penyimpanan Koleksi)
+                                            </label>
+                                            <div class="flex flex-col sm:flex-row items-stretch sm:items-center gap-2">
+                                                <input type="text" id="cfg-firebase-doc-app-id"
+                                                    placeholder="mis-nurul-islam-km5-bjm"
+                                                    class="flex-1 px-3.5 py-2.5 rounded-xl border border-slate-300 text-xs font-mono focus:outline-none focus:ring-2 focus:ring-opti-dark">
+                                                <span class="text-[11px] text-slate-400">Folder induk data di Firestore agar data sekolah tidak tertukar.</span>
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                    <!-- Panduan Ringkas -->
+                                    <div
+                                        class="p-3.5 rounded-2xl bg-amber-50/70 border border-amber-200/80 text-xs text-amber-900 leading-relaxed flex items-start gap-3">
+                                        <i class="fa-solid fa-circle-info text-amber-600 text-sm mt-0.5 shrink-0"></i>
+                                        <div>
+                                            <span class="font-bold">Panduan Mengambil Config:</span> Buka <a
+                                                href="https://console.firebase.google.com" target="_blank"
+                                                class="underline font-bold hover:text-amber-700">Firebase Console</a> &gt; Buka Project Anda &gt; ⚙️ Project Settings &gt; Tab General &gt; cari bagian <b>Your Apps (Web App)</b> &gt; salin <code>firebaseConfig</code>. Anda bisa langsung klik tombol <b>"Tempel Snippet / JSON"</b> di atas untuk mengisi semua kolom secara instan.
+                                        </div>
+                                    </div>
+
+                                    <!-- Tombol Aksi -->
+                                    <div class="flex flex-wrap items-center justify-between gap-3 pt-2">
+                                        <div class="flex items-center gap-2">
+                                            <button type="button" id="btn-test-firebase-conn"
+                                                onclick="window.handleTestFirebaseConnection('card')"
+                                                class="px-4 py-2.5 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold text-xs transition flex items-center gap-2 border border-slate-300 shadow-sm">
+                                                <i class="fa-solid fa-wifi text-emerald-600"></i>
+                                                <span>Uji Sambungan Firebase</span>
+                                            </button>
+                                            <button type="button" onclick="window.handleResetFirebaseConfig()"
+                                                class="px-4 py-2.5 rounded-xl bg-red-50 hover:bg-red-100 text-red-600 font-bold text-xs transition flex items-center gap-2 border border-red-200 shadow-sm"
+                                                title="Kembalikan ke konfigurasi bawaan">
+                                                <i class="fa-solid fa-rotate-left"></i>
+                                                <span>Reset ke Bawaan</span>
+                                            </button>
+                                        </div>
+                                        <button type="submit" id="btn-save-firebase-config"
+                                            class="px-6 py-2.5 rounded-full bg-opti-dark hover:bg-slate-800 text-opti-lime font-bold text-xs transition flex items-center gap-2 shadow-md">
+                                            <i class="fa-solid fa-floppy-disk"></i>
+                                            <span>Simpan & Terapkan Konfigurasi</span>
+                                        </button>
+                                    </div>
+                                </form>
+                            </div>
                         </div>
                     </section>
 
@@ -2747,12 +2945,205 @@
             </div>
         </div>
 
+        <!-- MODAL PENGATURAN FIREBASE CONFIG -->
+        <div id="modal-firebase-config"
+            class="hidden fixed inset-0 z-[1000003] bg-slate-900/70 backdrop-blur-sm flex items-center justify-center p-3 sm:p-6 overflow-y-auto">
+            <div
+                class="bg-white rounded-3xl max-w-3xl w-full max-h-[92vh] flex flex-col shadow-2xl border border-slate-200 overflow-hidden my-auto">
+                <div class="opti-mesh-bg px-6 py-5 text-white flex items-center justify-between shrink-0">
+                    <div class="flex items-center gap-3">
+                        <div
+                            class="w-10 h-10 rounded-2xl bg-amber-400 text-slate-900 flex items-center justify-center font-bold text-lg shadow-md">
+                            <i class="fa-solid fa-fire"></i>
+                        </div>
+                        <div>
+                            <h3 class="text-lg font-extrabold">Pengaturan Firebase Config</h3>
+                            <p class="text-xs text-slate-300">Konfigurasi Cloud Database & Autentikasi Buku Induk Siswa</p>
+                        </div>
+                    </div>
+                    <button type="button" onclick="window.closeFirebaseConfigModal()"
+                        class="w-9 h-9 rounded-full bg-white/10 hover:bg-white/20 text-white flex items-center justify-center transition">
+                        <i class="fa-solid fa-xmark"></i>
+                    </button>
+                </div>
+
+                <div class="p-6 overflow-y-auto space-y-4">
+                    <div class="p-3.5 rounded-2xl bg-slate-50 border border-slate-200 flex flex-wrap items-center justify-between gap-3 text-xs">
+                        <div class="flex items-center gap-2">
+                            <span class="text-slate-500 font-medium">Status Cloud:</span>
+                            <span id="modal-firebase-status-pill"
+                                class="font-bold px-2.5 py-0.5 rounded-full bg-lime-100 text-lime-900 border border-lime-300 flex items-center gap-1.5">
+                                <span class="w-2 h-2 rounded-full bg-emerald-500"></span>
+                                <span id="modal-firebase-status-text">Terhubung</span>
+                            </span>
+                        </div>
+                        <div class="flex items-center gap-2">
+                            <span class="text-slate-500 font-medium">Project ID:</span>
+                            <span id="modal-firebase-project-label"
+                                class="font-mono font-bold text-slate-800 bg-white px-2 py-0.5 rounded-lg border border-slate-200">-</span>
+                        </div>
+                        <button type="button" onclick="window.toggleFirebaseSnippetModal(true)"
+                            class="px-3 py-1 rounded-xl bg-amber-50 hover:bg-amber-100 text-amber-800 border border-amber-300 text-xs font-bold transition flex items-center gap-1.5 shadow-sm">
+                            <i class="fa-solid fa-paste text-amber-600"></i>
+                            <span>Tempel Snippet / JSON</span>
+                        </button>
+                    </div>
+
+                    <form id="form-modal-firebase" onsubmit="window.handleSaveFirebaseConfig(event, 'modal')" class="space-y-4">
+                        <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                            <div>
+                                <label class="block text-xs font-bold text-slate-700 mb-1">
+                                    API Key <span class="text-red-500">*</span>
+                                </label>
+                                <div class="relative">
+                                    <input type="password" id="modal-cfg-api-key" required placeholder="AIzaSy..."
+                                        class="w-full px-3.5 pr-10 py-2.5 rounded-xl border border-slate-300 text-xs font-mono focus:outline-none focus:ring-2 focus:ring-opti-dark">
+                                    <button type="button"
+                                        onclick="window.toggleSettingPasswordVisibility('modal-cfg-api-key', 'toggle-modal-key-icon')"
+                                        class="absolute right-2.5 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-700 p-1 cursor-pointer focus:outline-none"
+                                        title="Lihat / Sembunyikan API Key">
+                                        <i id="toggle-modal-key-icon" class="fa-solid fa-eye text-xs"></i>
+                                    </button>
+                                </div>
+                            </div>
+                            <div>
+                                <label class="block text-xs font-bold text-slate-700 mb-1">
+                                    Auth Domain <span class="text-red-500">*</span>
+                                </label>
+                                <input type="text" id="modal-cfg-auth-domain" required
+                                    placeholder="project-id.firebaseapp.com"
+                                    class="w-full px-3.5 py-2.5 rounded-xl border border-slate-300 text-xs font-mono focus:outline-none focus:ring-2 focus:ring-opti-dark">
+                            </div>
+                            <div>
+                                <label class="block text-xs font-bold text-slate-700 mb-1">
+                                    Project ID <span class="text-red-500">*</span>
+                                </label>
+                                <input type="text" id="modal-cfg-project-id" required placeholder="project-id"
+                                    class="w-full px-3.5 py-2.5 rounded-xl border border-slate-300 text-xs font-mono font-bold focus:outline-none focus:ring-2 focus:ring-opti-dark">
+                            </div>
+                            <div>
+                                <label class="block text-xs font-bold text-slate-700 mb-1">
+                                    Storage Bucket
+                                </label>
+                                <input type="text" id="modal-cfg-storage-bucket"
+                                    placeholder="project-id.firebasestorage.app"
+                                    class="w-full px-3.5 py-2.5 rounded-xl border border-slate-300 text-xs font-mono focus:outline-none focus:ring-2 focus:ring-opti-dark">
+                            </div>
+                            <div>
+                                <label class="block text-xs font-bold text-slate-700 mb-1">
+                                    Messaging Sender ID
+                                </label>
+                                <input type="text" id="modal-cfg-messaging-sender-id" placeholder="1234567890"
+                                    class="w-full px-3.5 py-2.5 rounded-xl border border-slate-300 text-xs font-mono focus:outline-none focus:ring-2 focus:ring-opti-dark">
+                            </div>
+                            <div>
+                                <label class="block text-xs font-bold text-slate-700 mb-1">
+                                    App ID (Firebase Web)
+                                </label>
+                                <input type="text" id="modal-cfg-app-id"
+                                    placeholder="1:123456789:web:abcdef"
+                                    class="w-full px-3.5 py-2.5 rounded-xl border border-slate-300 text-xs font-mono focus:outline-none focus:ring-2 focus:ring-opti-dark">
+                            </div>
+                            <div class="sm:col-span-2">
+                                <label class="block text-xs font-bold text-slate-700 mb-1">
+                                    Firestore App Namespace (Koleksi Root)
+                                </label>
+                                <input type="text" id="modal-cfg-doc-app-id"
+                                    placeholder="mis-nurul-islam-km5-bjm"
+                                    class="w-full px-3.5 py-2.5 rounded-xl border border-slate-300 text-xs font-mono focus:outline-none focus:ring-2 focus:ring-opti-dark">
+                                <p class="text-[11px] text-slate-400 mt-1">Nama folder induk data di Firestore agar data sekolah tidak tertukar.</p>
+                            </div>
+                        </div>
+
+                        <div class="p-3 rounded-2xl bg-amber-50/70 border border-amber-200 text-[11px] text-amber-900 flex items-start gap-2.5">
+                            <i class="fa-solid fa-shield-halved text-amber-600 mt-0.5 shrink-0"></i>
+                            <div>
+                                Konfigurasi disimpan aman di memori lokal browser (localStorage). Pastikan aturan Cloud Firestore di Firebase Console mengizinkan baca & tulis data.
+                            </div>
+                        </div>
+
+                        <div class="pt-2 flex flex-wrap items-center justify-between gap-3">
+                            <div class="flex items-center gap-2">
+                                <button type="button" id="btn-modal-test-firebase"
+                                    onclick="window.handleTestFirebaseConnection('modal')"
+                                    class="px-4 py-2 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold text-xs transition border border-slate-300 flex items-center gap-1.5 shadow-sm">
+                                    <i class="fa-solid fa-wifi text-emerald-600"></i>
+                                    <span>Uji Koneksi</span>
+                                </button>
+                                <button type="button" onclick="window.handleResetFirebaseConfig()"
+                                    class="px-3.5 py-2 rounded-xl bg-red-50 hover:bg-red-100 text-red-600 font-bold text-xs transition border border-red-200 flex items-center gap-1.5 shadow-sm">
+                                    <i class="fa-solid fa-rotate-left"></i>
+                                    <span>Reset Bawaan</span>
+                                </button>
+                            </div>
+                            <div class="flex items-center gap-2">
+                                <button type="button" onclick="window.closeFirebaseConfigModal()"
+                                    class="px-4 py-2 rounded-xl border border-slate-300 hover:bg-slate-100 text-slate-700 font-bold text-xs transition">
+                                    Tutup
+                                </button>
+                                <button type="submit" id="btn-modal-save-firebase"
+                                    class="px-5 py-2 rounded-full bg-opti-dark hover:bg-slate-800 text-opti-lime font-bold text-xs transition flex items-center gap-2 shadow-md">
+                                    <i class="fa-solid fa-floppy-disk"></i>
+                                    <span>Simpan & Terapkan</span>
+                                </button>
+                            </div>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+
+        <!-- MODAL SNIPPET / JSON PARSER -->
+        <div id="modal-firebase-snippet"
+            class="hidden fixed inset-0 z-[1000004] bg-slate-900/75 backdrop-blur-sm flex items-center justify-center p-3 sm:p-6 overflow-y-auto">
+            <div
+                class="bg-white rounded-3xl max-w-xl w-full p-6 shadow-2xl border border-slate-200 flex flex-col space-y-4 my-auto">
+                <div class="flex items-center justify-between pb-3 border-b border-slate-100">
+                    <div class="flex items-center gap-2.5">
+                        <div class="w-9 h-9 rounded-xl bg-amber-100 text-amber-700 flex items-center justify-center font-bold">
+                            <i class="fa-solid fa-paste"></i>
+                        </div>
+                        <div>
+                            <h3 class="text-base font-extrabold text-slate-900">Tempel Snippet Firebase</h3>
+                            <p class="text-[11px] text-slate-500">Salin kode dari Firebase Console & tempel di sini</p>
+                        </div>
+                    </div>
+                    <button type="button" onclick="window.toggleFirebaseSnippetModal(false)"
+                        class="w-8 h-8 rounded-full hover:bg-slate-100 text-slate-400 hover:text-slate-700 flex items-center justify-center">
+                        <i class="fa-solid fa-xmark"></i>
+                    </button>
+                </div>
+
+                <div>
+                    <label class="block text-xs font-bold text-slate-700 mb-1.5">
+                        Kode Konfigurasi (JS Snippet atau JSON):
+                    </label>
+                    <textarea id="raw-firebase-snippet" rows="8"
+                        placeholder="const firebaseConfig = {&#10;  apiKey: &quot;AIzaSy...&quot;,&#10;  authDomain: &quot;project.firebaseapp.com&quot;,&#10;  projectId: &quot;project&quot;,&#10;  storageBucket: &quot;project.appspot.com&quot;,&#10;  messagingSenderId: &quot;...&quot;,&#10;  appId: &quot;...&quot;&#10;};"
+                        class="w-full p-3.5 rounded-2xl border border-slate-300 font-mono text-xs text-slate-800 bg-slate-50 focus:bg-white focus:outline-none focus:ring-2 focus:ring-opti-dark leading-relaxed"></textarea>
+                    <p class="text-[11px] text-slate-400 mt-1">Sistem akan secara otomatis mengekstrak API Key, Auth Domain, Project ID, Storage Bucket, Messaging Sender ID, dan App ID.</p>
+                </div>
+
+                <div class="flex items-center justify-end gap-2.5 pt-2">
+                    <button type="button" onclick="window.toggleFirebaseSnippetModal(false)"
+                        class="px-4 py-2 rounded-xl text-xs font-bold text-slate-600 hover:bg-slate-100 transition">
+                        Batal
+                    </button>
+                    <button type="button" onclick="window.applyFirebaseSnippet()"
+                        class="px-5 py-2 rounded-full bg-amber-500 hover:bg-amber-600 text-white font-bold text-xs transition flex items-center gap-2 shadow-md">
+                        <i class="fa-solid fa-wand-magic-sparkles"></i>
+                        <span>Ekstrak & Terapkan ke Form</span>
+                    </button>
+                </div>
+            </div>
+        </div>
+
     </div>
 
     <!-- JAVASCRIPT LOGIC (COMPAT SDK) -->
     <script>
-        // Konfigurasi Live Firebase Anda
-        const firebaseConfig = {
+        // Konfigurasi Bawaan (Default) Live Firebase
+        const DEFAULT_FIREBASE_CONFIG = {
             apiKey: "AIzaSyBMl8koDD68AfQMRv8-0L4mAmdvxD6iMb4",
             authDomain: "buku-induk-siswa-44637.firebaseapp.com",
             projectId: "buku-induk-siswa-44637",
@@ -2761,7 +3152,34 @@
             appId: "1:346062024139:web:deeb61e1e71ea3651f5a4e"
         };
 
-        const appId = typeof __app_id !== 'undefined' ? __app_id : 'mis-nurul-islam-km5-bjm';
+        const DEFAULT_APP_ID = typeof __app_id !== 'undefined' ? __app_id : 'mis-nurul-islam-km5-bjm';
+
+        // Pembaca Konfigurasi Aktif (Memuat Kustom jika Disimpan Pengguna)
+        function getActiveFirebaseConfig() {
+            try {
+                const saved = localStorage.getItem('mis_custom_firebase_config');
+                if (saved) {
+                    const parsed = JSON.parse(saved);
+                    if (parsed && typeof parsed === 'object' && parsed.apiKey && parsed.projectId) {
+                        return { ...DEFAULT_FIREBASE_CONFIG, ...parsed };
+                    }
+                }
+            } catch (e) {
+                console.warn("Gagal membaca konfigurasi Firebase kustom:", e);
+            }
+            return { ...DEFAULT_FIREBASE_CONFIG };
+        }
+
+        function getActiveAppId() {
+            try {
+                const savedAppId = localStorage.getItem('mis_custom_app_id');
+                if (savedAppId && savedAppId.trim()) return savedAppId.trim();
+            } catch (e) { }
+            return DEFAULT_APP_ID;
+        }
+
+        let firebaseConfig = getActiveFirebaseConfig();
+        let appId = getActiveAppId();
 
         let db = null;
         let auth = null;
@@ -3588,15 +4006,21 @@
                     badgeEl.textContent = "Sistem Online";
                     badgeEl.className = "px-3 py-1 rounded-full text-[11px] font-bold bg-lime-100 text-lime-900 border border-lime-300";
                 }
+                const loginProj = document.getElementById('login-firebase-project-name');
+                if (loginProj) loginProj.textContent = firebaseConfig.projectId || 'Firebase';
                 await startCloudSync();
+                if (typeof window.populateFirebaseConfigUI === 'function') window.populateFirebaseConfigUI();
             } catch (error) {
                 console.warn("Init note:", error);
-                isCloudConnected = true;
+                isCloudConnected = false;
                 if (badgeEl) {
-                    badgeEl.textContent = "Sistem Online";
-                    badgeEl.className = "px-3 py-1 rounded-full text-[11px] font-bold bg-lime-100 text-lime-900 border border-lime-300";
+                    badgeEl.textContent = "Mode Offline";
+                    badgeEl.className = "px-3 py-1 rounded-full text-[11px] font-bold bg-amber-100 text-amber-900 border border-amber-300";
                 }
+                const loginProj = document.getElementById('login-firebase-project-name');
+                if (loginProj) loginProj.textContent = firebaseConfig.projectId || 'Firebase';
                 refreshAllUI();
+                if (typeof window.populateFirebaseConfigUI === 'function') window.populateFirebaseConfigUI();
             }
         }
 
@@ -3892,6 +4316,9 @@
             renderAcademicSection();
             renderMutationSection();
             populatePrintSelector();
+            if (typeof window.populateFirebaseConfigUI === 'function') {
+                window.populateFirebaseConfigUI();
+            }
         }
 
         function renderAdminDashboard() {
@@ -5819,6 +6246,325 @@
         };
 
         // ==========================================
+        // FITUR PENGATURAN FIREBASE CONFIG (CLOUD DATABASE & AUTH)
+        // ==========================================
+
+        // Fungsi Ekstraksi & Parser Snippet Kode Firebase Console (JS / JSON)
+        function parseFirebaseConfigSnippet(text) {
+            if (!text || typeof text !== 'string') return null;
+            const clean = text.trim();
+            const result = {};
+
+            // 1. Coba parse JSON murni terlebih dahulu
+            try {
+                const parsed = JSON.parse(clean);
+                if (parsed && typeof parsed === 'object') {
+                    ['apiKey', 'authDomain', 'projectId', 'storageBucket', 'messagingSenderId', 'appId'].forEach(k => {
+                        if (parsed[k]) result[k] = String(parsed[k]).trim();
+                    });
+                    if (result.apiKey || result.projectId) return result;
+                }
+            } catch (e) { }
+
+            // 2. Ekstraksi via Regex untuk JavaScript Object Literal
+            const keys = ['apiKey', 'authDomain', 'projectId', 'storageBucket', 'messagingSenderId', 'appId'];
+            keys.forEach(key => {
+                const strRegex = new RegExp(`['"]?${key}['"]?\\s*:\\s*['"\`]([^'"\`]+)['"\`]`, 'i');
+                const matchStr = clean.match(strRegex);
+                if (matchStr && matchStr[1]) {
+                    result[key] = matchStr[1].trim();
+                } else if (key === 'messagingSenderId') {
+                    const numRegex = new RegExp(`['"]?${key}['"]?\\s*:\\s*([0-9]+)`, 'i');
+                    const matchNum = clean.match(numRegex);
+                    if (matchNum && matchNum[1]) {
+                        result[key] = matchNum[1].trim();
+                    }
+                }
+            });
+
+            if (result.apiKey || result.projectId) {
+                return result;
+            }
+            return null;
+        }
+
+        // Sinkronisasi dan Render Form Pengaturan Firebase di UI (Card & Modal)
+        window.populateFirebaseConfigUI = function () {
+            const isCustom = !!localStorage.getItem('mis_custom_firebase_config');
+
+            // 1. Input pada Card Pengaturan
+            const cardKey = document.getElementById('cfg-firebase-api-key');
+            if (cardKey) cardKey.value = firebaseConfig.apiKey || '';
+            const cardDomain = document.getElementById('cfg-firebase-auth-domain');
+            if (cardDomain) cardDomain.value = firebaseConfig.authDomain || '';
+            const cardProj = document.getElementById('cfg-firebase-project-id');
+            if (cardProj) cardProj.value = firebaseConfig.projectId || '';
+            const cardBucket = document.getElementById('cfg-firebase-storage-bucket');
+            if (cardBucket) cardBucket.value = firebaseConfig.storageBucket || '';
+            const cardMsg = document.getElementById('cfg-firebase-messaging-sender-id');
+            if (cardMsg) cardMsg.value = firebaseConfig.messagingSenderId || '';
+            const cardAppId = document.getElementById('cfg-firebase-app-id');
+            if (cardAppId) cardAppId.value = firebaseConfig.appId || '';
+            const cardDocId = document.getElementById('cfg-firebase-doc-app-id');
+            if (cardDocId) cardDocId.value = appId || DEFAULT_APP_ID;
+
+            // 2. Input pada Modal Pengaturan
+            const modalKey = document.getElementById('modal-cfg-api-key');
+            if (modalKey) modalKey.value = firebaseConfig.apiKey || '';
+            const modalDomain = document.getElementById('modal-cfg-auth-domain');
+            if (modalDomain) modalDomain.value = firebaseConfig.authDomain || '';
+            const modalProj = document.getElementById('modal-cfg-project-id');
+            if (modalProj) modalProj.value = firebaseConfig.projectId || '';
+            const modalBucket = document.getElementById('modal-cfg-storage-bucket');
+            if (modalBucket) modalBucket.value = firebaseConfig.storageBucket || '';
+            const modalMsg = document.getElementById('modal-cfg-messaging-sender-id');
+            if (modalMsg) modalMsg.value = firebaseConfig.messagingSenderId || '';
+            const modalAppId = document.getElementById('modal-cfg-app-id');
+            if (modalAppId) modalAppId.value = firebaseConfig.appId || '';
+            const modalDocId = document.getElementById('modal-cfg-doc-app-id');
+            if (modalDocId) modalDocId.value = appId || DEFAULT_APP_ID;
+
+            // 3. Label info & badge
+            const projLabel = document.getElementById('firebase-active-project-label');
+            if (projLabel) projLabel.textContent = firebaseConfig.projectId || '-';
+            const modalProjLabel = document.getElementById('modal-firebase-project-label');
+            if (modalProjLabel) modalProjLabel.textContent = firebaseConfig.projectId || '-';
+
+            const appLabel = document.getElementById('firebase-active-app-id-label');
+            if (appLabel) appLabel.textContent = appId || DEFAULT_APP_ID;
+
+            const typeLabel = document.getElementById('firebase-config-type-label');
+            if (typeLabel) {
+                if (isCustom) {
+                    typeLabel.textContent = 'Kustom (Tersimpan Lokal)';
+                    typeLabel.className = 'font-semibold text-xs px-2.5 py-0.5 rounded-lg bg-amber-100 text-amber-900 border border-amber-300';
+                } else {
+                    typeLabel.textContent = 'Default Bawaan';
+                    typeLabel.className = 'font-semibold text-xs px-2.5 py-0.5 rounded-lg bg-lime-100 text-lime-900 border border-lime-300';
+                }
+            }
+
+            const loginProj = document.getElementById('login-firebase-project-name');
+            if (loginProj) loginProj.textContent = firebaseConfig.projectId || 'Firebase';
+
+            // 4. Update status koneksi
+            window.updateFirebaseStatusBadge(isCloudConnected, isCloudConnected ? `Online (${firebaseConfig.projectId})` : 'Mode Offline');
+        };
+
+        // Update indikator status Cloud
+        window.updateFirebaseStatusBadge = function (isConnected, customText = '') {
+            const statusTextEl = document.getElementById('firebase-status-text');
+            const statusPillEl = document.getElementById('firebase-status-pill');
+            const modalStatusTextEl = document.getElementById('modal-firebase-status-text');
+            const modalStatusPillEl = document.getElementById('modal-firebase-status-pill');
+
+            const text = customText || (isConnected ? 'Sistem Online' : 'Mode Offline');
+
+            if (statusTextEl) statusTextEl.textContent = text;
+            if (statusPillEl) {
+                if (isConnected) {
+                    statusPillEl.className = "text-[11px] font-bold px-2.5 py-1 rounded-full bg-lime-100 text-lime-900 border border-lime-300 flex items-center gap-1.5";
+                    statusPillEl.innerHTML = `<span class="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></span><span>${text}</span>`;
+                } else {
+                    statusPillEl.className = "text-[11px] font-bold px-2.5 py-1 rounded-full bg-amber-100 text-amber-900 border border-amber-300 flex items-center gap-1.5";
+                    statusPillEl.innerHTML = `<span class="w-2 h-2 rounded-full bg-amber-500"></span><span>${text}</span>`;
+                }
+            }
+
+            if (modalStatusTextEl) modalStatusTextEl.textContent = text;
+            if (modalStatusPillEl) {
+                if (isConnected) {
+                    modalStatusPillEl.className = "font-bold px-2.5 py-0.5 rounded-full bg-lime-100 text-lime-900 border border-lime-300 flex items-center gap-1.5";
+                    modalStatusPillEl.innerHTML = `<span class="w-2 h-2 rounded-full bg-emerald-500"></span><span>${text}</span>`;
+                } else {
+                    modalStatusPillEl.className = "font-bold px-2.5 py-0.5 rounded-full bg-amber-100 text-amber-900 border border-amber-300 flex items-center gap-1.5";
+                    modalStatusPillEl.innerHTML = `<span class="w-2 h-2 rounded-full bg-amber-500"></span><span>${text}</span>`;
+                }
+            }
+        };
+
+        // Buka / Tutup Modal Firebase Config
+        window.openFirebaseConfigModal = function () {
+            window.populateFirebaseConfigUI();
+            const modal = document.getElementById('modal-firebase-config');
+            if (modal) modal.classList.remove('hidden');
+        };
+
+        window.closeFirebaseConfigModal = function () {
+            const modal = document.getElementById('modal-firebase-config');
+            if (modal) modal.classList.add('hidden');
+        };
+
+        // Buka / Tutup Modal Tempel Snippet
+        window.toggleFirebaseSnippetModal = function (show) {
+            const modal = document.getElementById('modal-firebase-snippet');
+            if (modal) {
+                if (show) {
+                    modal.classList.remove('hidden');
+                    const ta = document.getElementById('raw-firebase-snippet');
+                    if (ta) { ta.value = ''; ta.focus(); }
+                } else {
+                    modal.classList.add('hidden');
+                }
+            }
+        };
+
+        // Terapkan Snippet Hasil Parser ke Kedua Form (Card & Modal)
+        window.applyFirebaseSnippet = function () {
+            const textarea = document.getElementById('raw-firebase-snippet');
+            if (!textarea) return;
+            const snippet = textarea.value.trim();
+            if (!snippet) {
+                showToast("Silakan tempel kode snippet atau JSON konfigurasi Firebase terlebih dahulu.", "error");
+                return;
+            }
+
+            const parsed = parseFirebaseConfigSnippet(snippet);
+            if (!parsed || (!parsed.apiKey && !parsed.projectId)) {
+                showToast("Format konfigurasi tidak dikenali. Pastikan Anda menyalin blok firebaseConfig atau format JSON yang valid.", "error");
+                return;
+            }
+
+            const fields = [
+                { key: 'apiKey', ids: ['cfg-firebase-api-key', 'modal-cfg-api-key'] },
+                { key: 'authDomain', ids: ['cfg-firebase-auth-domain', 'modal-cfg-auth-domain'] },
+                { key: 'projectId', ids: ['cfg-firebase-project-id', 'modal-cfg-project-id'] },
+                { key: 'storageBucket', ids: ['cfg-firebase-storage-bucket', 'modal-cfg-storage-bucket'] },
+                { key: 'messagingSenderId', ids: ['cfg-firebase-messaging-sender-id', 'modal-cfg-messaging-sender-id'] },
+                { key: 'appId', ids: ['cfg-firebase-app-id', 'modal-cfg-app-id'] }
+            ];
+
+            fields.forEach(f => {
+                if (parsed[f.key]) {
+                    f.ids.forEach(id => {
+                        const el = document.getElementById(id);
+                        if (el) el.value = parsed[f.key];
+                    });
+                }
+            });
+
+            window.toggleFirebaseSnippetModal(false);
+            showToast("Kode konfigurasi berhasil diuraikan! Silakan klik 'Simpan & Terapkan'.", "success");
+        };
+
+        // Uji Sambungan Firebase (Ping Firestore REST API)
+        window.handleTestFirebaseConnection = async function (source = 'card') {
+            const btnId = source === 'modal' ? 'btn-modal-test-firebase' : 'btn-test-firebase-conn';
+            const btn = document.getElementById(btnId);
+            const origHtml = btn ? btn.innerHTML : '';
+            if (btn) {
+                btn.disabled = true;
+                btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin text-emerald-600"></i> <span>Menguji Sambungan...</span>';
+            }
+
+            const prefix = source === 'modal' ? 'modal-cfg-' : 'cfg-firebase-';
+            const apiKey = (document.getElementById(`${prefix}api-key`)?.value || firebaseConfig.apiKey || '').trim();
+            const projectId = (document.getElementById(`${prefix}project-id`)?.value || firebaseConfig.projectId || '').trim();
+
+            if (!apiKey || !projectId) {
+                showToast("Harap isi API Key dan Project ID terlebih dahulu untuk menguji koneksi.", "error");
+                if (btn) { btn.disabled = false; btn.innerHTML = origHtml; }
+                return;
+            }
+
+            try {
+                // Test ping via Firestore REST API
+                const url = `https://firestore.googleapis.com/v1/projects/${encodeURIComponent(projectId)}/databases/(default)/documents?key=${encodeURIComponent(apiKey)}&pageSize=1`;
+                const resp = await fetch(url);
+
+                if (resp.status === 200 || resp.status === 404) {
+                    showToast(`Koneksi Sukses! Project "${projectId}" aktif dan dapat diakses dengan baik.`, "success");
+                    window.updateFirebaseStatusBadge(true, `Terhubung (${projectId})`);
+                } else if (resp.status === 403) {
+                    const data = await resp.json().catch(() => ({}));
+                    const msg = data.error?.message || "Izin ditolak (Security Rules)";
+                    showToast(`Project "${projectId}" terhubung! Namun aturan Firestore membatasi akses: "${msg}". Pastikan Security Rules di Firebase Console sudah diizinkan (allow read, write: if true).`, "info");
+                    window.updateFirebaseStatusBadge(true, `Terhubung (${projectId})`);
+                } else {
+                    const data = await resp.json().catch(() => ({}));
+                    const errMsg = data.error?.message || `HTTP ${resp.status}`;
+                    showToast(`Gagal terhubung ke Firebase: ${errMsg}. Periksa kembali API Key dan Project ID Anda.`, "error");
+                    window.updateFirebaseStatusBadge(false, "Gagal Terhubung");
+                }
+            } catch (err) {
+                console.warn("Test connection network error:", err);
+                showToast("Gagal melakukan ping ke server Firebase. Periksa koneksi internet Anda.", "error");
+                window.updateFirebaseStatusBadge(false, "Offline / Putus");
+            } finally {
+                if (btn) {
+                    btn.disabled = false;
+                    btn.innerHTML = origHtml;
+                }
+            }
+        };
+
+        // Simpan & Terapkan Konfigurasi Firebase
+        window.handleSaveFirebaseConfig = async function (e, source = 'card') {
+            if (e && e.preventDefault) e.preventDefault();
+
+            const prefix = source === 'modal' ? 'modal-cfg-' : 'cfg-firebase-';
+            const apiKey = (document.getElementById(`${prefix}api-key`)?.value || '').trim();
+            const authDomain = (document.getElementById(`${prefix}auth-domain`)?.value || '').trim();
+            const projectId = (document.getElementById(`${prefix}project-id`)?.value || '').trim();
+            const storageBucket = (document.getElementById(`${prefix}storage-bucket`)?.value || '').trim();
+            const messagingSenderId = (document.getElementById(`${prefix}messaging-sender-id`)?.value || '').trim();
+            const webAppId = (document.getElementById(`${prefix}app-id`)?.value || '').trim();
+            const docAppId = (document.getElementById(`${prefix}doc-app-id`)?.value || '').trim();
+
+            if (!apiKey || !projectId) {
+                showToast("API Key dan Project ID wajib diisi!", "error");
+                return;
+            }
+
+            const newConfig = {
+                apiKey: apiKey,
+                authDomain: authDomain || `${projectId}.firebaseapp.com`,
+                projectId: projectId,
+                storageBucket: storageBucket || `${projectId}.firebasestorage.app`,
+                messagingSenderId: messagingSenderId || '',
+                appId: webAppId || ''
+            };
+
+            const targetAppId = docAppId || DEFAULT_APP_ID;
+
+            try {
+                localStorage.setItem('mis_custom_firebase_config', JSON.stringify(newConfig));
+                localStorage.setItem('mis_custom_app_id', targetAppId);
+            } catch (err) {
+                console.warn("Gagal menyimpan ke localStorage:", err);
+            }
+
+            firebaseConfig = { ...newConfig };
+            appId = targetAppId;
+
+            window.closeFirebaseConfigModal();
+            showToast("Konfigurasi Firebase berhasil disimpan! Memuat ulang sistem untuk menerapkan perubahan...", "success");
+
+            setTimeout(() => {
+                window.location.reload();
+            }, 1000);
+        };
+
+        // Reset Konfigurasi Firebase ke Pengaturan Bawaan
+        window.handleResetFirebaseConfig = function () {
+            showConfirmModal(
+                "Reset Konfigurasi Firebase?",
+                "Apakah Anda yakin ingin menghapus konfigurasi kustom dan kembali ke project Firebase bawaan sistem?",
+                async () => {
+                    try {
+                        localStorage.removeItem('mis_custom_firebase_config');
+                        localStorage.removeItem('mis_custom_app_id');
+                    } catch (e) { }
+
+                    showToast("Konfigurasi Firebase telah direset ke bawaan. Memuat ulang sistem...", "info");
+                    setTimeout(() => {
+                        window.location.reload();
+                    }, 1000);
+                }
+            );
+        };
+
+        // ==========================================
         // FITUR CADANGAN & PEMULIHAN DATABASE (BACKUP & RESTORE)
         // ==========================================
         window.exportDatabaseBackup = function () {
@@ -5827,6 +6573,8 @@
                 appName: "Buku Induk Siswa Digital",
                 madrasah: state.madrasahSettings.nama_madrasah,
                 exportDate: new Date().toISOString(),
+                firebaseConfig: localStorage.getItem('mis_custom_firebase_config') ? JSON.parse(localStorage.getItem('mis_custom_firebase_config')) : null,
+                docAppId: localStorage.getItem('mis_custom_app_id') || null,
                 madrasahSettings: state.madrasahSettings,
                 students: state.students,
                 teachers: state.teachers,
@@ -5866,6 +6614,12 @@
                         () => {
                             window.showTransitionLoading("Memulihkan Database...", "Mengembalikan seluruh data siswa, guru & pengaturan");
                             setTimeout(() => {
+                                if (data.firebaseConfig && data.firebaseConfig.apiKey) {
+                                    try {
+                                        localStorage.setItem('mis_custom_firebase_config', JSON.stringify(data.firebaseConfig));
+                                        if (data.docAppId) localStorage.setItem('mis_custom_app_id', data.docAppId);
+                                    } catch (e) { }
+                                }
                                 if (Array.isArray(data.students)) {
                                     state.students = data.students.map(normalizeStudentData);
                                     saveOfflineStudents();
