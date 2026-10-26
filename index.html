@@ -1737,8 +1737,9 @@
                         </div>
                         <div>
                             <label class="block text-xs font-bold text-slate-700 mb-1">Kelas Saat Ini *</label>
-                            <select id="f-kelas"
+                            <select id="f-kelas" required
                                 class="w-full px-3.5 py-2.5 rounded-xl border border-slate-300 text-xs bg-white font-bold">
+                                <option value="" selected>-- Pilih Kelas Saat Ini --</option>
                                 <option value="Kelas 1">Kelas 1</option>
                                 <option value="Kelas 2">Kelas 2</option>
                                 <option value="Kelas 3">Kelas 3</option>
@@ -1759,7 +1760,7 @@
                     <div id="ftab-panel-2" class="form-tab-panel hidden grid grid-cols-1 sm:grid-cols-2 gap-4">
                         <div>
                             <label class="block text-xs font-bold text-slate-700 mb-1">Nama Ayah *</label>
-                            <input type="text" id="f-nama-ayah" required
+                            <input type="text" id="f-nama-ayah" required placeholder="Nama Lengkap Ayah Kandung / Wali"
                                 class="w-full px-3.5 py-2.5 rounded-xl border border-slate-300 text-xs">
                         </div>
                         <div>
@@ -1769,7 +1770,7 @@
                         </div>
                         <div>
                             <label class="block text-xs font-bold text-slate-700 mb-1">Nama Ibu *</label>
-                            <input type="text" id="f-nama-ibu" required
+                            <input type="text" id="f-nama-ibu" required placeholder="Nama Lengkap Ibu Kandung"
                                 class="w-full px-3.5 py-2.5 rounded-xl border border-slate-300 text-xs">
                         </div>
                         <div>
@@ -4221,7 +4222,7 @@
                 if (jsVal === '-') jsVal = '';
                 document.getElementById('f-anak-ke').value = akVal;
                 document.getElementById('f-jml-saudara').value = jsVal;
-                document.getElementById('f-kelas').value = s.kelas_aktif;
+                document.getElementById('f-kelas').value = s.kelas_aktif || '';
                 document.getElementById('f-alamat').value = s.alamat;
 
                 document.getElementById('f-nama-ayah').value = s.orang_tua?.nama_ayah || '';
@@ -4263,6 +4264,7 @@
                 document.getElementById('f-agama').value = "";
                 document.getElementById('f-anak-ke').value = "";
                 document.getElementById('f-jml-saudara').value = "";
+                document.getElementById('f-kelas').value = "";
                 document.getElementById('f-penghasilan-ortu').value = "";
                 document.getElementById('f-penghasilan-custom').classList.add('hidden');
                 document.getElementById('f-penghasilan-custom').value = "";
@@ -4303,6 +4305,14 @@
                 const isPindahan = rawJenisMasuk.includes('Pindahan');
                 const studentStatus = (existingStudent && existingStudent.status_siswa) || 'Aktif';
 
+                const kelasAktifVal = document.getElementById('f-kelas').value;
+                if (!kelasAktifVal) {
+                    showToast("Silakan pilih kelas saat ini terlebih dahulu.", "warning");
+                    window.switchFormTab(1);
+                    document.getElementById('f-kelas').focus();
+                    return;
+                }
+
                 const studentPayload = {
                     id: docId,
                     nisn: nisnVal || '-',
@@ -4316,7 +4326,7 @@
                     agama: document.getElementById('f-agama').value.trim() || '-',
                     anak_ke: anakKe,
                     jml_saudara: jmlSaudara,
-                    kelas_aktif: document.getElementById('f-kelas').value,
+                    kelas_aktif: kelasAktifVal,
                     alamat: document.getElementById('f-alamat').value.trim() || 'Banjarmasin',
                     status_siswa: studentStatus,
                     orang_tua: {
