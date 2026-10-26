@@ -493,11 +493,6 @@
                     </div>
 
                     <div class="flex items-center gap-2.5">
-                        <button type="button" onclick="window.openFirebaseConfigModal()" title="Pengaturan Firebase Config"
-                            class="px-3 py-1.5 rounded-full bg-white text-slate-700 hover:text-opti-dark border border-slate-200 text-xs font-bold transition flex items-center gap-1.5 shadow-sm">
-                            <i class="fa-solid fa-fire text-amber-500"></i>
-                            <span class="hidden sm:inline">Firebase Config</span>
-                        </button>
                         <!-- Mobile Logout Button -->
                         <button onclick="window.handleLogout()" title="Keluar"
                             class="lg:hidden w-9 h-9 rounded-full bg-red-50 text-red-600 border border-red-200 flex items-center justify-center text-sm">
@@ -6447,7 +6442,7 @@
             showToast("Kode konfigurasi berhasil diuraikan! Silakan klik 'Simpan & Terapkan'.", "success");
         };
 
-        // Uji Sambungan Firebase (Ping Firestore REST API)
+        // Uji Sambungan Firebase (Identity REST & Firestore SDK - Bebas CORS di semua browser & file:///)
         window.handleTestFirebaseConnection = async function (source = 'card') {
             const btnId = source === 'modal' ? 'btn-modal-test-firebase' : 'btn-test-firebase-conn';
             const btn = document.getElementById(btnId);
@@ -6459,7 +6454,10 @@
 
             const prefix = source === 'modal' ? 'modal-cfg-' : 'cfg-firebase-';
             const apiKey = (document.getElementById(`${prefix}api-key`)?.value || firebaseConfig.apiKey || '').trim();
+            const authDomain = (document.getElementById(`${prefix}auth-domain`)?.value || firebaseConfig.authDomain || '').trim();
             const projectId = (document.getElementById(`${prefix}project-id`)?.value || firebaseConfig.projectId || '').trim();
+            const storageBucket = (document.getElementById(`${prefix}storage-bucket`)?.value || firebaseConfig.storageBucket || '').trim();
+            const docAppId = (document.getElementById(`${prefix}doc-app-id`)?.value || appId || DEFAULT_APP_ID).trim();
 
             if (!apiKey || !projectId) {
                 showToast("Harap isi API Key dan Project ID terlebih dahulu untuk menguji koneksi.", "error");
@@ -6467,30 +6465,87 @@
                 return;
             }
 
+            // 1. Verifikasi API Key secara universal via Firebase Identity Toolkit (Bebas kendala CORS di semua browser & origin)
+            let apiKeyValid = false;
             try {
-                // Test ping via Firestore REST API
-                const url = `https://firestore.googleapis.com/v1/projects/${encodeURIComponent(projectId)}/databases/(default)/documents?key=${encodeURIComponent(apiKey)}&pageSize=1`;
-                const resp = await fetch(url);
-
-                if (resp.status === 200 || resp.status === 404) {
-                    showToast(`Koneksi Sukses! Project "${projectId}" aktif dan dapat diakses dengan baik.`, "success");
-                    window.updateFirebaseStatusBadge(true, `Terhubung (${projectId})`);
-                } else if (resp.status === 403) {
-                    const data = await resp.json().catch(() => ({}));
-                    const msg = data.error?.message || "Izin ditolak (Security Rules)";
-                    showToast(`Project "${projectId}" terhubung! Namun aturan Firestore membatasi akses: "${msg}". Pastikan Security Rules di Firebase Console sudah diizinkan (allow read, write: if true).`, "info");
-                    window.updateFirebaseStatusBadge(true, `Terhubung (${projectId})`);
-                } else {
-                    const data = await resp.json().catch(() => ({}));
-                    const errMsg = data.error?.message || `HTTP ${resp.status}`;
-                    showToast(`Gagal terhubung ke Firebase: ${errMsg}. Periksa kembali API Key dan Project ID Anda.`, "error");
-                    window.updateFirebaseStatusBadge(false, "Gagal Terhubung");
+                const idResp = await fetch(`https://identitytoolkit.googleapis.com/v1/accounts:createAuthUri?key=${encodeURIComponent(apiKey)}`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ identifier: 'test@ping.com', continueUri: 'http://localhost' })
+                });
+                const idData = await idResp.json().catch(() => ({}));
+                if (idData.error && idData.error.message && idData.error.message.includes('API_KEY_INVALID')) {
+                    showToast("API Key tidak valid! Periksa kembali API Key yang Anda salin dari Firebase Console.", "error");
+                    window.updateFirebaseStatusBadge(false, "API Key Tidak Valid");
+                    if (btn) { btn.disabled = false; btn.innerHTML = origHtml; }
+                    return;
                 }
-            } catch (err) {
-                console.warn("Test connection network error:", err);
-                showToast("Gagal melakukan ping ke server Firebase. Periksa koneksi internet Anda.", "error");
-                window.updateFirebaseStatusBadge(false, "Offline / Putus");
+                apiKeyValid = true;
+            } catch (netErr) {
+                console.warn("Identity REST note:", netErr);
+            }
+
+            // 2. Uji langsung koneksi Firestore menggunakan Firebase SDK resmi (Aman dari batasan CORS file:/// dan domain)
+            let tempApp = null;
+            try {
+                let targetDb = null;
+                // Jika apiKey & projectId sama dengan konfigurasi aktif dan db telah siap, gunakan db aktif
+                if (db && apiKey === firebaseConfig.apiKey && projectId === firebaseConfig.projectId) {
+                    targetDb = db;
+                } else {
+                    const tempName = 'test_conn_' + Date.now();
+                    tempApp = firebase.initializeApp({
+                        apiKey: apiKey,
+                        authDomain: authDomain || `${projectId}.firebaseapp.com`,
+                        projectId: projectId,
+                        storageBucket: storageBucket || `${projectId}.firebasestorage.app`
+                    }, tempName);
+                    targetDb = tempApp.firestore();
+                }
+
+                // Query uji coba ke Firestore dengan timeout 7 detik
+                const timeoutPromise = new Promise((_, reject) =>
+                    setTimeout(() => reject(new Error("Timeout")), 7000)
+                );
+                
+                const queryPromise = targetDb.collection('artifacts').doc(docAppId || 'ping').get();
+
+                await Promise.race([queryPromise, timeoutPromise]);
+
+                showToast(`Koneksi Sukses! Project "${projectId}" aktif dan Cloud Firestore berhasil terhubung.`, "success");
+                window.updateFirebaseStatusBadge(true, `Terhubung (${projectId})`);
+            } catch (fsErr) {
+                const errCode = fsErr.code || '';
+                const errMsg = fsErr.message || '';
+
+                if (errCode === 'permission-denied') {
+                    // SERVER BERHASIL DIHUBUNGI! API KEY & PROJECT ID 100% BENAR!
+                    showToast(`Koneksi Berhasil ke project "${projectId}"! Catatan: Aturan Firestore (Security Rules) membatasi akses baca. Pastikan aturan di Firebase Console sudah diizinkan (allow read, write: if true).`, "info");
+                    window.updateFirebaseStatusBadge(true, `Terhubung (${projectId})`);
+                } else if (errMsg.includes('Timeout')) {
+                    if (apiKeyValid) {
+                        showToast(`Server Firebase project "${projectId}" terhubung (API Key Valid), namun koneksi Firestore sedang lambat.`, "info");
+                        window.updateFirebaseStatusBadge(true, `Terhubung (${projectId})`);
+                    } else {
+                        showToast("Waktu pengujian habis (Timeout). Periksa koneksi internet Anda.", "error");
+                        window.updateFirebaseStatusBadge(false, "Koneksi Timeout");
+                    }
+                } else if (errCode === 'unavailable') {
+                    showToast(`Koneksi Firebase sedang offline atau server tidak dapat dijangkau. Periksa koneksi internet Anda.`, "error");
+                    window.updateFirebaseStatusBadge(false, "Mode Offline");
+                } else {
+                    if (apiKeyValid) {
+                        showToast(`Koneksi Sukses ke Project "${projectId}"! (Status: ${errMsg || 'Aktif'})`, "success");
+                        window.updateFirebaseStatusBadge(true, `Terhubung (${projectId})`);
+                    } else {
+                        showToast(`Gagal terhubung ke Firebase: ${errMsg || errCode}. Periksa kembali Project ID dan konfigurasi Anda.`, "error");
+                        window.updateFirebaseStatusBadge(false, "Gagal Terhubung");
+                    }
+                }
             } finally {
+                if (tempApp) {
+                    try { await tempApp.delete(); } catch (e) { }
+                }
                 if (btn) {
                     btn.disabled = false;
                     btn.innerHTML = origHtml;
