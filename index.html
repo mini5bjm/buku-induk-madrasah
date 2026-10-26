@@ -455,27 +455,19 @@
             <aside
                 class="desktop-sidebar fixed top-0 left-0 bottom-0 w-[280px] opti-mesh-bg text-white flex flex-col justify-between z-40 shadow-2xl border-r border-white/10 no-print">
                 <div>
-                    <!-- Brand Logo Header with Collapse Button -->
-                    <div class="p-5 border-b border-white/10 flex items-center justify-between gap-2.5">
-                        <div class="flex items-center gap-3 overflow-hidden">
-                            <div
-                                class="w-10 h-10 rounded-2xl bg-opti-lime text-opti-dark flex items-center justify-center font-extrabold text-lg shadow-md shrink-0">
-                                <i class="fa-solid fa-graduation-cap"></i>
-                            </div>
-                            <div class="overflow-hidden">
-                                <span class="text-[10px] font-bold uppercase tracking-widest text-opti-lime block">Buku
-                                    Induk Digital</span>
-                                <h1 class="font-bold text-sm text-white truncate" id="sidebar-madrasah-name">MIS. Nurul
-                                    Islam Km. 5</h1>
-                                <p class="text-[11px] text-slate-300 truncate" id="sidebar-madrasah-address">Banjarmasin</p>
-                            </div>
+                    <!-- Brand Logo Header -->
+                    <div class="p-6 border-b border-white/10 flex items-center gap-3.5">
+                        <div
+                            class="w-11 h-11 rounded-2xl bg-opti-lime text-opti-dark flex items-center justify-center font-extrabold text-xl shadow-md shrink-0">
+                            <i class="fa-solid fa-graduation-cap"></i>
                         </div>
-                        <!-- Tombol Sembunyikan Sidebar -->
-                        <button type="button" onclick="window.toggleSidebar(false)"
-                            title="Sembunyikan Sidebar (Ctrl+B)" aria-label="Tutup Sidebar"
-                            class="w-8 h-8 rounded-xl bg-white/10 hover:bg-white/20 text-slate-300 hover:text-white flex items-center justify-center shrink-0 transition-all border border-white/10 cursor-pointer active:scale-95">
-                            <i class="fa-solid fa-chevron-left text-xs"></i>
-                        </button>
+                        <div class="overflow-hidden">
+                            <span class="text-[10px] font-bold uppercase tracking-widest text-opti-lime block">Buku
+                                Induk Digital</span>
+                            <h1 class="font-bold text-sm text-white truncate" id="sidebar-madrasah-name">MIS. Nurul
+                                Islam Km. 5</h1>
+                            <p class="text-[11px] text-slate-300 truncate" id="sidebar-madrasah-address">Banjarmasin</p>
+                        </div>
                     </div>
 
                     <!-- User Info Pill -->
@@ -530,7 +522,7 @@
                         <button type="button" id="btn-toggle-sidebar" onclick="window.toggleSidebar()"
                             title="Sembunyikan / Tampilkan Menu Sidebar (Ctrl+B)" aria-label="Toggle Sidebar"
                             class="w-9 h-9 sm:w-10 sm:h-10 rounded-xl bg-white hover:bg-slate-100 text-slate-700 hover:text-opti-dark border border-slate-200 shadow-sm flex items-center justify-center transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-opti-lime/50 active:scale-95 cursor-pointer shrink-0">
-                            <i id="icon-toggle-sidebar" class="fa-solid fa-bars-staggered text-sm sm:text-base"></i>
+                            <i id="icon-toggle-sidebar" class="fa-solid fa-bars text-sm sm:text-base"></i>
                         </button>
                         <div
                             class="lg:hidden w-8 h-8 rounded-xl bg-opti-dark text-opti-lime flex items-center justify-center font-bold shrink-0">
@@ -4318,15 +4310,14 @@
 
             if (isDesktop) {
                 const isCollapsed = html.classList.contains('sidebar-collapsed');
+                icon.className = 'fa-solid fa-bars text-sm sm:text-base';
                 if (isCollapsed) {
-                    icon.className = 'fa-solid fa-bars text-sm sm:text-base text-opti-dark font-bold';
                     btn.title = 'Tampilkan Menu Sidebar (Ctrl+B)';
-                    btn.classList.add('bg-opti-lime', 'border-opti-lime', 'text-opti-dark');
+                    btn.classList.add('bg-opti-lime/20', 'border-opti-lime/50', 'text-opti-dark');
                     btn.classList.remove('bg-white', 'text-slate-700');
                 } else {
-                    icon.className = 'fa-solid fa-bars-staggered text-sm sm:text-base text-slate-700';
                     btn.title = 'Sembunyikan Menu Sidebar (Ctrl+B)';
-                    btn.classList.remove('bg-opti-lime', 'border-opti-lime', 'text-opti-dark');
+                    btn.classList.remove('bg-opti-lime/20', 'border-opti-lime/50', 'text-opti-dark');
                     btn.classList.add('bg-white', 'text-slate-700');
                 }
             } else {
