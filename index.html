@@ -1558,7 +1558,7 @@
                                     </div>
                                 </div>
 
-                                <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 pt-2">
+                                <div class="grid grid-cols-1 md:grid-cols-3 gap-4 pt-2">
                                     <!-- Tombol 1: Unduh Backup -->
                                     <div
                                         class="p-4 rounded-2xl bg-slate-50 border border-slate-200 flex flex-col justify-between">
@@ -1613,23 +1613,6 @@
                                             class="w-full py-2.5 px-4 rounded-xl bg-opti-lime text-opti-dark hover:bg-opti-limeHover font-extrabold text-xs transition flex items-center justify-center gap-2 shadow-sm">
                                             <i class="fa-solid fa-cloud-arrow-up"></i>
                                             <span>Unggah ke Cloud Online</span>
-                                        </button>
-                                    </div>
-
-                                    <!-- Tombol 4: Bersihkan Data Dummy -->
-                                    <div
-                                        class="p-4 rounded-2xl bg-amber-50/60 border border-amber-200 flex flex-col justify-between">
-                                        <div>
-                                            <div class="font-bold text-xs text-amber-900 flex items-center gap-2 mb-1">
-                                                <i class="fa-solid fa-broom text-amber-600"></i>
-                                                <span>4. Bersihkan Data Dummy</span>
-                                            </div>
-                                            <p class="text-[11px] text-slate-500 mb-3">Hapus sisa data siswa contoh bawaan dari sistem sehingga daftar buku induk menjadi bersih 100%.</p>
-                                        </div>
-                                        <button type="button" onclick="window.clearAllDummyData()"
-                                            class="w-full py-2.5 px-4 rounded-xl bg-amber-600 hover:bg-amber-700 text-white font-bold text-xs transition flex items-center justify-center gap-2 shadow-sm">
-                                            <i class="fa-solid fa-trash-can"></i>
-                                            <span>Hapus Data Siswa Dummy</span>
                                         </button>
                                     </div>
                                 </div>
@@ -2798,27 +2781,52 @@
             admin_password: ""
         };
 
-        // Data awal siswa kosong (Data resmi diisi melalui Impor Excel atau Tambah Siswa)
+        // Data awal resmi kosong (Siswa, Guru, Alumni diisi oleh pengguna tanpa data dummy)
         const INITIAL_STUDENTS = [];
+        const INITIAL_TEACHERS = [];
+        const INITIAL_ALUMNI = [];
 
-        const INITIAL_TEACHERS = [
-            { id: "GURU-001", nip: "197804122005011004", nama_lengkap: "H. Ahmad Fauzi, S.Pd.I", jk: "L", jabatan: "Kepala Madrasah", mapel: "Pendidikan Agama Islam", no_hp: "081250123456", status: "Aktif" },
-            { id: "GURU-002", nip: "198306152009022003", nama_lengkap: "Hj. Siti Mariam, S.Pd", jk: "P", jabatan: "Wali Kelas 1", mapel: "Tematik & Guru Kelas", no_hp: "081348123457", status: "Aktif" },
-            { id: "GURU-003", nip: "198511202011011005", nama_lengkap: "Muhammad Ridhoni, S.Pd.I", jk: "L", jabatan: "Wali Kelas 5", mapel: "Al-Qur'an Hadits & Fikih", no_hp: "085249123458", status: "Aktif" },
-            { id: "GURU-004", nip: "199002142014022001", nama_lengkap: "Nurul Hidayah, S.Pd", jk: "P", jabatan: "Guru Bidang Studi", mapel: "Matematika & IPA", no_hp: "082153123459", status: "Aktif" }
-        ];
+        // Identifikasi & Pembersih Otomatis Data Dummy (Siswa, Guru, Alumni)
+        const DUMMY_STUDENT_IDS = ["SISWA-0134567801", "SISWA-0134567802", "SISWA-0134567803", "SISWA-0134567804", "SISWA-0134567805", "SISWA-0134567806"];
+        const DUMMY_STUDENT_NAMES = ["Ahmad Rizky Pratama", "Siti Nurhaliza", "Muhammad Fikri", "Aisyah Humaira", "Zainal Abidin", "Fatimah Azzahra", "Muhammad Hafidz Al-Banjari", "Aisyah Az-Zahra", "Ahmad Maulana Fajar"];
 
-        const INITIAL_ALUMNI = [
-            { id: "ALUMNI-2025-01", nisn: "0112345678", nis_lokal: "1112637100181901", nama_lengkap: "Ahmad Fikri Anshari", jk: "L", tahun_lulus: "2024/2025", no_ijazah: "DN-01/MI/2025/00123", jenis_lanjutan: "MTs", nama_sekolah_lanjutan: "MTsN 2 Kota Banjarmasin", no_hp: "081251987654", alamat: "Jl. A. Yani Km. 5" },
-            { id: "ALUMNI-2025-02", nisn: "0112345679", nis_lokal: "1112637100181902", nama_lengkap: "Siti Fatimah Zahra", jk: "P", tahun_lulus: "2024/2025", no_ijazah: "DN-01/MI/2025/00124", jenis_lanjutan: "Ponpes", nama_sekolah_lanjutan: "Pondok Pesantren Darussalam Martapura", no_hp: "085248987655", alamat: "Jl. Pemurus Dalam" }
-        ];
+        const DUMMY_TEACHER_IDS = ["GURU-001", "GURU-002", "GURU-003", "GURU-004"];
+        const DUMMY_TEACHER_NIPS = ["197804122005011004", "198306152009022003", "198511202011011005", "199002142014022001"];
+        const DUMMY_TEACHER_NAMES = ["H. Ahmad Fauzi, S.Pd.I", "Hj. Siti Mariam, S.Pd", "Muhammad Ridhoni, S.Pd.I", "Nurul Hidayah, S.Pd"];
+
+        const DUMMY_ALUMNI_IDS = ["ALUMNI-2025-01", "ALUMNI-2025-02"];
+        const DUMMY_ALUMNI_NISNS = ["0112345678", "0112345679"];
+        const DUMMY_ALUMNI_NAMES = ["Ahmad Fikri Anshari", "Siti Fatimah Zahra"];
+
+        window.isDummyStudent = function (s) {
+            if (!s) return false;
+            if (s.id && DUMMY_STUDENT_IDS.includes(s.id)) return true;
+            const name = (s.nama_lengkap || '').toLowerCase();
+            return DUMMY_STUDENT_NAMES.some(dn => name.includes(dn.toLowerCase()));
+        };
+
+        window.isDummyTeacher = function (t) {
+            if (!t) return false;
+            if (t.id && DUMMY_TEACHER_IDS.includes(t.id)) return true;
+            if (t.nip && DUMMY_TEACHER_NIPS.includes(t.nip)) return true;
+            const name = (t.nama_lengkap || '').trim().toLowerCase();
+            return DUMMY_TEACHER_NAMES.some(dn => name === dn.toLowerCase());
+        };
+
+        window.isDummyAlumni = function (a) {
+            if (!a) return false;
+            if (a.id && DUMMY_ALUMNI_IDS.includes(a.id)) return true;
+            if (a.nisn && DUMMY_ALUMNI_NISNS.includes(String(a.nisn))) return true;
+            const name = (a.nama_lengkap || '').trim().toLowerCase();
+            return DUMMY_ALUMNI_NAMES.some(dn => name === dn.toLowerCase());
+        };
 
         let state = {
             currentUser: null,
             madrasahSettings: { ...INITIAL_MADRASAH_SETTINGS },
-            students: [...INITIAL_STUDENTS],
-            teachers: [...INITIAL_TEACHERS],
-            alumni: [...INITIAL_ALUMNI],
+            students: [],
+            teachers: [],
+            alumni: [],
             academics: [],
             mutations: [],
             corrections: []
@@ -3197,26 +3205,55 @@
         async function startCloudSync() {
             if (!db) return;
             try {
-                // Cek apakah database kosong, jika ya lakukan auto-setup HANYA jika sistem belum pernah diinisialisasi
+                // Cek apakah database profil madrasah kosong, jika ya lakukan inisialisasi profil dasar
                 const hasInit = localStorage.getItem('mis_system_initialized');
                 const snap = await getColRef('buku_induk_siswa').get().catch(() => null);
                 if (!hasInit && snap && snap.empty) {
                     localStorage.setItem('mis_system_initialized', 'true');
                     await getDocRef('pengaturan_madrasah', 'profil').set(INITIAL_MADRASAH_SETTINGS).catch(e => console.warn(e));
-                    for (const s of INITIAL_STUDENTS) {
-                        if (!window.getDeletedStudentIds().includes(s.id)) {
-                            await getDocRef('buku_induk_siswa', s.id).set(normalizeStudentData(s)).catch(e => console.warn(e));
-                        }
-                    }
-                    for (const t of INITIAL_TEACHERS) {
-                        await getDocRef('data_guru', t.id).set(t).catch(e => console.warn(e));
-                    }
-                    for (const a of INITIAL_ALUMNI) {
-                        await getDocRef('data_alumni', a.id).set(a).catch(e => console.warn(e));
-                    }
                 } else if (!hasInit) {
                     localStorage.setItem('mis_system_initialized', 'true');
                 }
+
+                // Bersihkan dokumen dummy yang ada di Cloud Firestore secara senyap
+                try {
+                    for (const dId of DUMMY_STUDENT_IDS) {
+                        getDocRef('buku_induk_siswa', dId).delete().catch(() => {});
+                    }
+                    for (const tId of DUMMY_TEACHER_IDS) {
+                        getDocRef('data_guru', tId).delete().catch(() => {});
+                    }
+                    for (const aId of DUMMY_ALUMNI_IDS) {
+                        getDocRef('data_alumni', aId).delete().catch(() => {});
+                    }
+                    getColRef('data_guru').get().then(snapG => {
+                        if (snapG && !snapG.empty) {
+                            snapG.forEach(doc => {
+                                if (window.isDummyTeacher({ id: doc.id, ...doc.data() })) {
+                                    doc.ref.delete().catch(() => {});
+                                }
+                            });
+                        }
+                    }).catch(() => {});
+                    getColRef('data_alumni').get().then(snapA => {
+                        if (snapA && !snapA.empty) {
+                            snapA.forEach(doc => {
+                                if (window.isDummyAlumni({ id: doc.id, ...doc.data() })) {
+                                    doc.ref.delete().catch(() => {});
+                                }
+                            });
+                        }
+                    }).catch(() => {});
+                    getColRef('buku_induk_siswa').get().then(snapS => {
+                        if (snapS && !snapS.empty) {
+                            snapS.forEach(doc => {
+                                if (window.isDummyStudent({ id: doc.id, ...doc.data() })) {
+                                    doc.ref.delete().catch(() => {});
+                                }
+                            });
+                        }
+                    }).catch(() => {});
+                } catch (e) { }
 
                 // Realtime Listeners
                 getColRef('pengaturan_madrasah').onSnapshot(snap => {
@@ -3234,11 +3271,11 @@
                         const deletedIds = window.getDeletedStudentIds();
                         const cloudStudents = snap.docs
                             .map(d => normalizeStudentData({ id: d.id, ...d.data() }))
-                            .filter(s => !deletedIds.includes(s.id));
+                            .filter(s => !deletedIds.includes(s.id) && !window.isDummyStudent(s));
 
                         const combined = [...cloudStudents];
                         for (const localSt of state.students) {
-                            if (deletedIds.includes(localSt.id)) continue;
+                            if (deletedIds.includes(localSt.id) || window.isDummyStudent(localSt)) continue;
                             const hasValidNisn = localSt.nisn && localSt.nisn !== '-' && localSt.nisn !== '0' && String(localSt.nisn).length >= 6;
                             const existingIdx = combined.findIndex(c => c.id === localSt.id || (hasValidNisn && c.nisn === localSt.nisn));
                             if (existingIdx >= 0) {
@@ -3263,10 +3300,10 @@
                         const deletedTeacherIds = window.getDeletedTeacherIds();
                         const cloudTeachers = snap.docs
                             .map(d => ({ id: d.id, ...d.data() }))
-                            .filter(t => !deletedTeacherIds.includes(t.id));
+                            .filter(t => !deletedTeacherIds.includes(t.id) && !window.isDummyTeacher(t));
                         const combined = [...cloudTeachers];
                         for (const localT of state.teachers) {
-                            if (deletedTeacherIds.includes(localT.id)) continue;
+                            if (deletedTeacherIds.includes(localT.id) || window.isDummyTeacher(localT)) continue;
                             const hasValidNip = localT.nip && localT.nip !== '-' && localT.nip.length >= 6;
                             const existingIdx = combined.findIndex(c => c.id === localT.id || (hasValidNip && c.nip === localT.nip) || (localT.nama_lengkap && c.nama_lengkap && c.nama_lengkap.toLowerCase() === localT.nama_lengkap.toLowerCase()));
                             if (existingIdx >= 0) {
@@ -3291,10 +3328,10 @@
                         const deletedAlumniIds = window.getDeletedAlumniIds();
                         const cloudAlumni = snap.docs
                             .map(d => ({ id: d.id, ...d.data() }))
-                            .filter(a => !deletedAlumniIds.includes(a.id));
+                            .filter(a => !deletedAlumniIds.includes(a.id) && !window.isDummyAlumni(a));
                         const combined = [...cloudAlumni];
                         for (const localA of state.alumni) {
-                            if (deletedAlumniIds.includes(localA.id)) continue;
+                            if (deletedAlumniIds.includes(localA.id) || window.isDummyAlumni(localA)) continue;
                             const hasValidNisn = localA.nisn && localA.nisn !== '-' && localA.nisn !== '0' && String(localA.nisn).length >= 6;
                             const existingIdx = combined.findIndex(c => c.id === localA.id || (hasValidNisn && c.nisn === localA.nisn) || (localA.nama_lengkap && c.nama_lengkap && c.nama_lengkap.toLowerCase() === localA.nama_lengkap.toLowerCase()));
                             if (existingIdx >= 0) {
@@ -3366,31 +3403,36 @@
         async function initFirebase() {
             const badgeEl = document.getElementById('mode-indicator-badge');
 
-            // Muat data tersimpan lokal jika ada (sinkron cepat)
+            // Muat data tersimpan lokal jika ada (sinkron cepat & bersihkan dummy otomatis)
             try {
+                // Tandai ID dummy ke daftar terhapus agar tidak pernah muncul lagi
+                DUMMY_STUDENT_IDS.forEach(id => window.trackDeletedStudentId(id));
+                DUMMY_TEACHER_IDS.forEach(id => window.trackDeletedTeacherId(id));
+                DUMMY_ALUMNI_IDS.forEach(id => window.trackDeletedAlumniId(id));
+
                 const deletedIds = window.getDeletedStudentIds();
                 const cachedStudents = localStorage.getItem('mis_offline_students');
                 if (cachedStudents) {
                     state.students = JSON.parse(cachedStudents)
                         .map(normalizeStudentData)
-                        .filter(s => !deletedIds.includes(s.id));
+                        .filter(s => !deletedIds.includes(s.id) && !window.isDummyStudent(s));
                     state.students.sort((a, b) => (a.nama_lengkap || '').localeCompare(b.nama_lengkap || '', 'id', { sensitivity: 'base' }));
                 } else {
-                    state.students = state.students.filter(s => !deletedIds.includes(s.id));
+                    state.students = state.students.filter(s => !deletedIds.includes(s.id) && !window.isDummyStudent(s));
                 }
                 const deletedTeacherIds = window.getDeletedTeacherIds();
                 const cachedTeachers = localStorage.getItem('mis_offline_teachers');
                 if (cachedTeachers) {
-                    state.teachers = JSON.parse(cachedTeachers).filter(t => !deletedTeacherIds.includes(t.id));
+                    state.teachers = JSON.parse(cachedTeachers).filter(t => !deletedTeacherIds.includes(t.id) && !window.isDummyTeacher(t));
                 } else {
-                    state.teachers = state.teachers.filter(t => !deletedTeacherIds.includes(t.id));
+                    state.teachers = state.teachers.filter(t => !deletedTeacherIds.includes(t.id) && !window.isDummyTeacher(t));
                 }
                 const deletedAlumniIds = window.getDeletedAlumniIds();
                 const cachedAlumni = localStorage.getItem('mis_offline_alumni');
                 if (cachedAlumni) {
-                    state.alumni = JSON.parse(cachedAlumni).filter(a => !deletedAlumniIds.includes(a.id));
+                    state.alumni = JSON.parse(cachedAlumni).filter(a => !deletedAlumniIds.includes(a.id) && !window.isDummyAlumni(a));
                 } else {
-                    state.alumni = state.alumni.filter(a => !deletedAlumniIds.includes(a.id));
+                    state.alumni = state.alumni.filter(a => !deletedAlumniIds.includes(a.id) && !window.isDummyAlumni(a));
                 }
                 const cachedAcademics = localStorage.getItem('mis_offline_academics');
                 if (cachedAcademics) state.academics = JSON.parse(cachedAcademics);
@@ -3411,7 +3453,7 @@
                 if (cachedPassword) state.madrasahSettings.admin_password = cachedPassword;
             } catch (e) { }
 
-            // PULIHKAN DOKUMEN & FOTO UTUH DARI INDEXEDDB (ANTI HILANG SAAT REFRESH!)
+            // PULIHKAN DOKUMEN & FOTO UTUH DARI INDEXEDDB (BERSIHKAN DARI DUMMY)
             try {
                 const [idbTeachers, idbAlumni, idbStudents, idbMutations] = await Promise.all([
                     idbGet('mis_full_teachers'),
@@ -3423,7 +3465,7 @@
                 if (Array.isArray(idbTeachers) && idbTeachers.length > 0) {
                     const deletedTeacherIds = window.getDeletedTeacherIds();
                     idbTeachers.forEach(it => {
-                        if (deletedTeacherIds.includes(it.id)) return;
+                        if (deletedTeacherIds.includes(it.id) || window.isDummyTeacher(it)) return;
                         const cur = state.teachers.find(t => t.id === it.id);
                         if (cur) {
                             Object.assign(cur, it);
@@ -3431,14 +3473,15 @@
                             state.teachers.push(it);
                         }
                     });
-                } else if (state.teachers && state.teachers.length > 0) {
+                    idbSet('mis_full_teachers', state.teachers);
+                } else {
                     idbSet('mis_full_teachers', state.teachers);
                 }
 
                 if (Array.isArray(idbAlumni) && idbAlumni.length > 0) {
                     const deletedAlumniIds = window.getDeletedAlumniIds();
                     idbAlumni.forEach(ia => {
-                        if (deletedAlumniIds.includes(ia.id)) return;
+                        if (deletedAlumniIds.includes(ia.id) || window.isDummyAlumni(ia)) return;
                         const cur = state.alumni.find(a => a.id === ia.id);
                         if (cur) {
                             Object.assign(cur, ia);
@@ -3446,14 +3489,15 @@
                             state.alumni.push(ia);
                         }
                     });
-                } else if (state.alumni && state.alumni.length > 0) {
+                    idbSet('mis_full_alumni', state.alumni);
+                } else {
                     idbSet('mis_full_alumni', state.alumni);
                 }
 
                 if (Array.isArray(idbStudents) && idbStudents.length > 0) {
                     const deletedIds = window.getDeletedStudentIds();
                     idbStudents.forEach(is => {
-                        if (deletedIds.includes(is.id)) return;
+                        if (deletedIds.includes(is.id) || window.isDummyStudent(is)) return;
                         const cur = state.students.find(s => s.id === is.id);
                         if (cur) {
                             Object.assign(cur, normalizeStudentData(is));
@@ -3461,7 +3505,8 @@
                             state.students.push(normalizeStudentData(is));
                         }
                     });
-                } else if (state.students && state.students.length > 0) {
+                    idbSet('mis_full_students', state.students);
+                } else {
                     idbSet('mis_full_students', state.students);
                 }
 
@@ -3477,6 +3522,11 @@
                 } else if (state.mutations && state.mutations.length > 0) {
                     idbSet('mis_full_mutations', state.mutations);
                 }
+
+                // Simpan cache bersih ke localStorage
+                saveOfflineStudents();
+                saveOfflineTeachers();
+                saveOfflineAlumni();
             } catch (idbErr) {
                 console.warn("Gagal memulihkan berkas dari IndexedDB:", idbErr);
             }
@@ -5900,31 +5950,15 @@
             );
         };
 
+        // Pembersihan data dummy kini berjalan otomatis secara permanen saat aplikasi dimuat
         window.clearAllDummyData = function () {
-            const dummyNames = ["Ahmad Rizky Pratama", "Siti Nurhaliza", "Muhammad Fikri", "Aisyah Humaira", "Zainal Abidin", "Fatimah Azzahra", "Muhammad Hafidz Al-Banjari"];
-            const dummyIds = ["SISWA-0134567801", "SISWA-0134567802", "SISWA-0134567803", "SISWA-0134567804", "SISWA-0134567805", "SISWA-0134567806"];
-
-            showConfirmModal(
-                "Bersihkan Seluruh Data Siswa Dummy?",
-                "Semua data siswa contoh bawaan akan dihapus permanen. Data siswa resmi yang Anda input/impor sendiri tidak akan terhapus.",
-                () => {
-                    const beforeCount = state.students.length;
-                    state.students = state.students.filter(s => {
-                        const isDummy = dummyIds.includes(s.id) || dummyNames.some(dn => (s.nama_lengkap || '').toLowerCase().includes(dn.toLowerCase()));
-                        if (isDummy) {
-                            window.trackDeletedStudentId(s.id);
-                            return false;
-                        }
-                        return true;
-                    });
-                    const removedCount = beforeCount - state.students.length;
-                    try {
-                        localStorage.setItem('mis_offline_students', JSON.stringify(state.students));
-                    } catch (e) { }
-                    refreshAllUI();
-                    showToast(`Selesai! ${removedCount} data siswa dummy berhasil dibersihkan.`, "success");
-                }
-            );
+            state.students = state.students.filter(s => !window.isDummyStudent(s));
+            state.teachers = state.teachers.filter(t => !window.isDummyTeacher(t));
+            state.alumni = state.alumni.filter(a => !window.isDummyAlumni(a));
+            saveOfflineStudents();
+            saveOfflineTeachers();
+            saveOfflineAlumni();
+            refreshAllUI();
         };
 
         // ==========================================
