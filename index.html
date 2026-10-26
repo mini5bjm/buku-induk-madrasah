@@ -55,12 +55,15 @@
     <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore-compat.js"></script>
     <!-- SheetJS (XLSX) Library untuk Baca & Tulis File Excel (.xlsx) Asli -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
-    <!-- Deteksi Sesi Login Aktif (Mencegah Flashing / Kembali ke Login saat Halaman di-Refresh) -->
+    <!-- Deteksi Sesi Login & State Sidebar Aktif (Mencegah Flashing saat Refresh) -->
     <script>
             (function () {
                 try {
                     if (localStorage.getItem('mis_auth_session')) {
                         document.documentElement.classList.add('has-active-session');
+                    }
+                    if (localStorage.getItem('mis_sidebar_collapsed') === 'true' && window.innerWidth >= 1024) {
+                        document.documentElement.classList.add('sidebar-collapsed');
                     }
                 } catch (e) { }
             })();
@@ -142,10 +145,37 @@
                 linear-gradient(160deg, #07191c 0%, #0d282d 55%, #133840 100%);
         }
 
-        /* Responsive Navigation Media Queries */
+        /* Responsive Sidebar Navigation & Layout Transitions */
+        .desktop-sidebar {
+            transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+
+        .main-viewport {
+            transition: margin-left 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+
+        #sidebar-backdrop {
+            display: none;
+            position: fixed;
+            inset: 0;
+            background-color: rgba(15, 23, 42, 0.6);
+            backdrop-filter: blur(4px);
+            -webkit-backdrop-filter: blur(4px);
+            z-index: 45;
+            transition: opacity 0.3s ease;
+            opacity: 0;
+            pointer-events: none;
+        }
+
         @media (min-width: 1024px) {
             .desktop-sidebar {
                 display: flex !important;
+                transform: translateX(0);
+            }
+
+            /* Saat sidebar disembunyikan di layar desktop */
+            html.sidebar-collapsed .desktop-sidebar {
+                transform: translateX(-100%) !important;
             }
 
             .mobile-bottom-nav {
@@ -156,11 +186,28 @@
                 margin-left: 280px;
                 padding-bottom: 2rem;
             }
+
+            /* Saat sidebar disembunyikan, konten mengambil lebar penuh */
+            html.sidebar-collapsed .main-viewport {
+                margin-left: 0 !important;
+            }
+
+            #sidebar-backdrop {
+                display: none !important;
+            }
         }
 
         @media (max-width: 1023px) {
             .desktop-sidebar {
-                display: none !important;
+                display: flex !important;
+                transform: translateX(-100%);
+                z-index: 50 !important;
+                box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5);
+            }
+
+            /* Saat sidebar dibuka sebagai drawer di mobile / tablet */
+            html.sidebar-mobile-open .desktop-sidebar {
+                transform: translateX(0) !important;
             }
 
             .mobile-bottom-nav {
@@ -168,8 +215,17 @@
             }
 
             .main-viewport {
-                margin-left: 0;
+                margin-left: 0 !important;
                 padding-bottom: 6.5rem;
+            }
+
+            #sidebar-backdrop {
+                display: block;
+            }
+
+            html.sidebar-mobile-open #sidebar-backdrop {
+                opacity: 1 !important;
+                pointer-events: auto !important;
             }
         }
 
@@ -392,23 +448,34 @@
          ========================================== -->
         <div id="app-shell" class="hidden w-full h-full flex flex-col overflow-hidden bg-slate-50">
 
+            <!-- SIDEBAR BACKDROP OVERLAY (Mobile/Tablet Drawer) -->
+            <div id="sidebar-backdrop" onclick="window.toggleSidebar(false)" aria-label="Tutup Menu Sidebar" class="no-print"></div>
+
             <!-- DESKTOP FIXED LEFT SIDEBAR -->
             <aside
-                class="desktop-sidebar fixed top-0 left-0 bottom-0 w-[280px] opti-mesh-bg text-white flex-col justify-between z-40 shadow-2xl border-r border-white/10 no-print">
+                class="desktop-sidebar fixed top-0 left-0 bottom-0 w-[280px] opti-mesh-bg text-white flex flex-col justify-between z-40 shadow-2xl border-r border-white/10 no-print">
                 <div>
-                    <!-- Brand Logo Header -->
-                    <div class="p-6 border-b border-white/10 flex items-center gap-3.5">
-                        <div
-                            class="w-11 h-11 rounded-2xl bg-opti-lime text-opti-dark flex items-center justify-center font-extrabold text-xl shadow-md shrink-0">
-                            <i class="fa-solid fa-graduation-cap"></i>
+                    <!-- Brand Logo Header with Collapse Button -->
+                    <div class="p-5 border-b border-white/10 flex items-center justify-between gap-2.5">
+                        <div class="flex items-center gap-3 overflow-hidden">
+                            <div
+                                class="w-10 h-10 rounded-2xl bg-opti-lime text-opti-dark flex items-center justify-center font-extrabold text-lg shadow-md shrink-0">
+                                <i class="fa-solid fa-graduation-cap"></i>
+                            </div>
+                            <div class="overflow-hidden">
+                                <span class="text-[10px] font-bold uppercase tracking-widest text-opti-lime block">Buku
+                                    Induk Digital</span>
+                                <h1 class="font-bold text-sm text-white truncate" id="sidebar-madrasah-name">MIS. Nurul
+                                    Islam Km. 5</h1>
+                                <p class="text-[11px] text-slate-300 truncate" id="sidebar-madrasah-address">Banjarmasin</p>
+                            </div>
                         </div>
-                        <div class="overflow-hidden">
-                            <span class="text-[10px] font-bold uppercase tracking-widest text-opti-lime block">Buku
-                                Induk Digital</span>
-                            <h1 class="font-bold text-sm text-white truncate" id="sidebar-madrasah-name">MIS. Nurul
-                                Islam Km. 5</h1>
-                            <p class="text-[11px] text-slate-300 truncate" id="sidebar-madrasah-address">Banjarmasin</p>
-                        </div>
+                        <!-- Tombol Sembunyikan Sidebar -->
+                        <button type="button" onclick="window.toggleSidebar(false)"
+                            title="Sembunyikan Sidebar (Ctrl+B)" aria-label="Tutup Sidebar"
+                            class="w-8 h-8 rounded-xl bg-white/10 hover:bg-white/20 text-slate-300 hover:text-white flex items-center justify-center shrink-0 transition-all border border-white/10 cursor-pointer active:scale-95">
+                            <i class="fa-solid fa-chevron-left text-xs"></i>
+                        </button>
                     </div>
 
                     <!-- User Info Pill -->
@@ -457,17 +524,23 @@
 
                 <!-- Sticky Topbar -->
                 <header
-                    class="sticky top-0 z-30 glass-light px-4 sm:px-8 py-4 flex items-center justify-between gap-4 no-print">
+                    class="sticky top-0 z-30 glass-light px-4 sm:px-8 py-3.5 flex items-center justify-between gap-3 sm:gap-4 no-print">
                     <div class="flex items-center gap-3">
+                        <!-- Toggle Button Sidebar (Desktop & Mobile) -->
+                        <button type="button" id="btn-toggle-sidebar" onclick="window.toggleSidebar()"
+                            title="Sembunyikan / Tampilkan Menu Sidebar (Ctrl+B)" aria-label="Toggle Sidebar"
+                            class="w-9 h-9 sm:w-10 sm:h-10 rounded-xl bg-white hover:bg-slate-100 text-slate-700 hover:text-opti-dark border border-slate-200 shadow-sm flex items-center justify-center transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-opti-lime/50 active:scale-95 cursor-pointer shrink-0">
+                            <i id="icon-toggle-sidebar" class="fa-solid fa-bars-staggered text-sm sm:text-base"></i>
+                        </button>
                         <div
-                            class="lg:hidden w-9 h-9 rounded-xl bg-opti-dark text-opti-lime flex items-center justify-center font-bold">
-                            <i class="fa-solid fa-graduation-cap text-sm"></i>
+                            class="lg:hidden w-8 h-8 rounded-xl bg-opti-dark text-opti-lime flex items-center justify-center font-bold shrink-0">
+                            <i class="fa-solid fa-graduation-cap text-xs"></i>
                         </div>
                         <div>
                             <h2 id="topbar-page-title"
-                                class="text-lg sm:text-xl font-extrabold text-slate-900 leading-tight">Dashboard
+                                class="text-base sm:text-xl font-extrabold text-slate-900 leading-tight">Dashboard
                                 Analitik</h2>
-                            <p id="topbar-page-subtitle" class="text-xs text-slate-500 hidden sm:block">Ringkasan
+                            <p id="topbar-page-subtitle" class="text-[11px] sm:text-xs text-slate-500 hidden sm:block">Ringkasan
                                 pangkalan data buku induk siswa MIS. Nurul Islam Km. 5 Banjarmasin</p>
                         </div>
                     </div>
@@ -4190,10 +4263,113 @@
             { id: 'admin-pengaturan', label: 'Pengaturan', icon: 'fa-sliders', title: 'Profil Madrasah & Akun' }
         ];
 
+        // ==========================================
+        // PENGELOLAAN SIDEBAR MENU (COLLAPSIBLE & MOBILE DRAWER)
+        // ==========================================
+        window.toggleSidebar = function (forceState = null) {
+            const isDesktop = window.innerWidth >= 1024;
+            const html = document.documentElement;
+
+            if (isDesktop) {
+                // Desktop: Toggle kelas 'sidebar-collapsed'
+                // forceState: true = tampilkan, false = sembunyikan
+                let willCollapse;
+                if (forceState === true) {
+                    willCollapse = false;
+                } else if (forceState === false) {
+                    willCollapse = true;
+                } else {
+                    willCollapse = !html.classList.contains('sidebar-collapsed');
+                }
+
+                if (willCollapse) {
+                    html.classList.add('sidebar-collapsed');
+                    try { localStorage.setItem('mis_sidebar_collapsed', 'true'); } catch (e) { }
+                } else {
+                    html.classList.remove('sidebar-collapsed');
+                    try { localStorage.setItem('mis_sidebar_collapsed', 'false'); } catch (e) { }
+                }
+            } else {
+                // Mobile/Tablet: Toggle kelas 'sidebar-mobile-open'
+                let willOpen;
+                if (forceState === true) {
+                    willOpen = true;
+                } else if (forceState === false) {
+                    willOpen = false;
+                } else {
+                    willOpen = !html.classList.contains('sidebar-mobile-open');
+                }
+
+                if (willOpen) {
+                    html.classList.add('sidebar-mobile-open');
+                } else {
+                    html.classList.remove('sidebar-mobile-open');
+                }
+            }
+            window.updateSidebarToggleIcon();
+        };
+
+        window.updateSidebarToggleIcon = function () {
+            const isDesktop = window.innerWidth >= 1024;
+            const html = document.documentElement;
+            const icon = document.getElementById('icon-toggle-sidebar');
+            const btn = document.getElementById('btn-toggle-sidebar');
+            if (!icon || !btn) return;
+
+            if (isDesktop) {
+                const isCollapsed = html.classList.contains('sidebar-collapsed');
+                if (isCollapsed) {
+                    icon.className = 'fa-solid fa-bars text-sm sm:text-base text-opti-dark font-bold';
+                    btn.title = 'Tampilkan Menu Sidebar (Ctrl+B)';
+                    btn.classList.add('bg-opti-lime', 'border-opti-lime', 'text-opti-dark');
+                    btn.classList.remove('bg-white', 'text-slate-700');
+                } else {
+                    icon.className = 'fa-solid fa-bars-staggered text-sm sm:text-base text-slate-700';
+                    btn.title = 'Sembunyikan Menu Sidebar (Ctrl+B)';
+                    btn.classList.remove('bg-opti-lime', 'border-opti-lime', 'text-opti-dark');
+                    btn.classList.add('bg-white', 'text-slate-700');
+                }
+            } else {
+                const isOpen = html.classList.contains('sidebar-mobile-open');
+                if (isOpen) {
+                    icon.className = 'fa-solid fa-xmark text-sm sm:text-base text-slate-800';
+                    btn.title = 'Tutup Menu Sidebar';
+                } else {
+                    icon.className = 'fa-solid fa-bars text-sm sm:text-base text-slate-700';
+                    btn.title = 'Buka Menu Sidebar';
+                }
+            }
+        };
+
+        // Window resize & keyboard shortcut listener
+        window.addEventListener('resize', function () {
+            if (window.innerWidth >= 1024) {
+                document.documentElement.classList.remove('sidebar-mobile-open');
+            }
+            if (typeof window.updateSidebarToggleIcon === 'function') {
+                window.updateSidebarToggleIcon();
+            }
+        });
+
+        window.addEventListener('keydown', function (e) {
+            if ((e.ctrlKey || e.metaKey) && e.key && e.key.toLowerCase() === 'b') {
+                const tag = document.activeElement ? document.activeElement.tagName.toLowerCase() : '';
+                if (tag !== 'input' && tag !== 'textarea') {
+                    e.preventDefault();
+                    window.toggleSidebar();
+                }
+            }
+        });
+
         window.navigateMenu = function (menuId) {
             try {
                 localStorage.setItem('mis_active_menu', menuId);
             } catch (e) { }
+
+            // Tutup sidebar drawer otomatis pada layar mobile/tablet saat menu diklik
+            if (window.innerWidth < 1024 && typeof window.toggleSidebar === 'function') {
+                window.toggleSidebar(false);
+            }
 
             const activeItem = ADMIN_MENUS.find(m => m.id === menuId) || ADMIN_MENUS[0];
             document.getElementById('topbar-page-title').textContent = activeItem.title;
@@ -4293,6 +4469,9 @@
             populatePrintSelector();
             if (typeof window.populateFirebaseConfigUI === 'function') {
                 window.populateFirebaseConfigUI();
+            }
+            if (typeof window.updateSidebarToggleIcon === 'function') {
+                window.updateSidebarToggleIcon();
             }
         }
 
@@ -9382,7 +9561,12 @@
             document.getElementById('confirm-cancel-btn').onclick = () => modal.classList.add('hidden');
         }
 
-        window.addEventListener('DOMContentLoaded', initFirebase);
+        window.addEventListener('DOMContentLoaded', () => {
+            initFirebase();
+            if (typeof window.updateSidebarToggleIcon === 'function') {
+                window.updateSidebarToggleIcon();
+            }
+        });
     </script>
 
 </body>
