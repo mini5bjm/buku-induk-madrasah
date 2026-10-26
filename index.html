@@ -165,6 +165,8 @@
             transition: opacity 0.3s ease;
             opacity: 0;
             pointer-events: none;
+            cursor: pointer;
+            -webkit-tap-highlight-color: transparent;
         }
 
         @media (min-width: 1024px) {
@@ -449,7 +451,7 @@
         <div id="app-shell" class="hidden w-full h-full flex flex-col overflow-hidden bg-slate-50">
 
             <!-- SIDEBAR BACKDROP OVERLAY (Mobile/Tablet Drawer) -->
-            <div id="sidebar-backdrop" onclick="window.toggleSidebar(false)" aria-label="Tutup Menu Sidebar" class="no-print"></div>
+            <div id="sidebar-backdrop" onclick="window.toggleSidebar(false)" ontouchstart="window.toggleSidebar(false)" aria-label="Tutup Menu Sidebar" class="no-print"></div>
 
             <!-- DESKTOP FIXED LEFT SIDEBAR -->
             <aside
@@ -4334,7 +4336,8 @@
 
         // Window resize & keyboard shortcut listener
         window.addEventListener('resize', function () {
-            if (window.innerWidth >= 1024) {
+            if (window.innerWidth < 1024) {
+                // Pada HP / Tablet, pastikan selalu tertutup secara otomatis saat resize / rotasi layar
                 document.documentElement.classList.remove('sidebar-mobile-open');
             }
             if (typeof window.updateSidebarToggleIcon === 'function') {
@@ -4342,7 +4345,11 @@
             }
         });
 
+        // Tutup otomatis pada HP/Tablet saat menekan tombol Escape
         window.addEventListener('keydown', function (e) {
+            if (e.key === 'Escape' && window.innerWidth < 1024) {
+                window.toggleSidebar(false);
+            }
             if ((e.ctrlKey || e.metaKey) && e.key && e.key.toLowerCase() === 'b') {
                 const tag = document.activeElement ? document.activeElement.tagName.toLowerCase() : '';
                 if (tag !== 'input' && tag !== 'textarea') {
@@ -4352,12 +4359,30 @@
             }
         });
 
+        // Tutup otomatis pada HP/Tablet saat mengetuk area di luar sidebar
+        document.addEventListener('click', function (e) {
+            if (window.innerWidth < 1024 && document.documentElement.classList.contains('sidebar-mobile-open')) {
+                const sidebar = document.querySelector('.desktop-sidebar');
+                const toggleBtn = document.getElementById('btn-toggle-sidebar');
+                if (sidebar && !sidebar.contains(e.target) && (!toggleBtn || !toggleBtn.contains(e.target))) {
+                    window.toggleSidebar(false);
+                }
+            }
+        });
+
+        // Tutup otomatis pada HP/Tablet saat menggulir (scroll) halaman
+        window.addEventListener('scroll', function () {
+            if (window.innerWidth < 1024 && document.documentElement.classList.contains('sidebar-mobile-open')) {
+                window.toggleSidebar(false);
+            }
+        }, { passive: true });
+
         window.navigateMenu = function (menuId) {
             try {
                 localStorage.setItem('mis_active_menu', menuId);
             } catch (e) { }
 
-            // Tutup sidebar drawer otomatis pada layar mobile/tablet saat menu diklik
+            // Tutup otomatis sidebar drawer HANYA pada layar HP/tablet saat menu diklik
             if (window.innerWidth < 1024 && typeof window.toggleSidebar === 'function') {
                 window.toggleSidebar(false);
             }
@@ -9554,6 +9579,9 @@
 
         window.addEventListener('DOMContentLoaded', () => {
             initFirebase();
+            if (window.innerWidth < 1024) {
+                document.documentElement.classList.remove('sidebar-mobile-open');
+            }
             if (typeof window.updateSidebarToggleIcon === 'function') {
                 window.updateSidebarToggleIcon();
             }
