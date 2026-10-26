@@ -673,6 +673,12 @@
                                     <i class="fa-solid fa-file-import text-emerald-600"></i>
                                     <span>Impor Data Siswa</span>
                                 </button>
+                                <button onclick="window.openExportModal('siswa')"
+                                    title="Ekspor data siswa ke file Excel (.xlsx) atau CSV"
+                                    class="py-2.5 px-3.5 rounded-full bg-blue-50 hover:bg-blue-100 text-blue-800 border border-blue-200 font-bold text-xs transition flex items-center justify-center gap-1.5 shrink-0 shadow-sm">
+                                    <i class="fa-solid fa-file-export text-blue-600"></i>
+                                    <span>Ekspor Data</span>
+                                </button>
                                 <button onclick="window.openNaikKelasModal()"
                                     title="Kenaikan kelas massal untuk tahun ajaran baru"
                                     class="py-2.5 px-3.5 rounded-full bg-amber-50 hover:bg-amber-100 text-amber-900 border border-amber-200 font-bold text-xs transition flex items-center justify-center gap-1.5 shrink-0 shadow-sm">
@@ -805,6 +811,12 @@
                                     <i class="fa-solid fa-file-import text-emerald-600"></i>
                                     <span>Impor Data Guru</span>
                                 </button>
+                                <button onclick="window.openExportModal('guru')"
+                                    title="Ekspor data guru ke file Excel (.xlsx) atau CSV"
+                                    class="py-2.5 px-3.5 rounded-full bg-blue-50 hover:bg-blue-100 text-blue-800 border border-blue-200 font-bold text-xs transition flex items-center justify-center gap-1.5 shrink-0 shadow-sm">
+                                    <i class="fa-solid fa-file-export text-blue-600"></i>
+                                    <span>Ekspor Data</span>
+                                </button>
                                 <button onclick="window.openTeacherModal()"
                                     class="py-2.5 px-4 rounded-full bg-opti-lime hover:bg-opti-limeHover text-opti-dark font-extrabold text-xs transition flex items-center justify-center gap-1.5 shrink-0 shadow-sm">
                                     <i class="fa-solid fa-user-plus"></i>
@@ -917,6 +929,12 @@
                                     class="py-2.5 px-3.5 rounded-full bg-emerald-50 hover:bg-emerald-100 text-emerald-800 border border-emerald-200 font-bold text-xs transition flex items-center justify-center gap-1.5 shrink-0 shadow-sm">
                                     <i class="fa-solid fa-file-import text-emerald-600"></i>
                                     <span>Impor Data Alumni</span>
+                                </button>
+                                <button onclick="window.openExportModal('alumni')"
+                                    title="Ekspor data alumni ke file Excel (.xlsx) atau CSV"
+                                    class="py-2.5 px-3.5 rounded-full bg-blue-50 hover:bg-blue-100 text-blue-800 border border-blue-200 font-bold text-xs transition flex items-center justify-center gap-1.5 shrink-0 shadow-sm">
+                                    <i class="fa-solid fa-file-export text-blue-600"></i>
+                                    <span>Ekspor Data</span>
                                 </button>
                                 <button onclick="window.openAlumniModal()"
                                     class="py-2.5 px-4 rounded-full bg-opti-lime hover:bg-opti-limeHover text-opti-dark font-extrabold text-xs transition flex items-center justify-center gap-1.5 shrink-0 shadow-sm">
@@ -1311,8 +1329,13 @@
                                     <i class="fa-solid fa-print"></i>
                                     <span>Cetak Lembar Induk (A4)</span>
                                 </button>
+                                <button onclick="window.exportStudentsToExcel()"
+                                    class="px-5 py-3 rounded-full bg-emerald-700 hover:bg-emerald-800 text-white font-bold text-xs transition flex items-center gap-2 shadow-sm">
+                                    <i class="fa-solid fa-file-excel"></i>
+                                    <span>Ekspor Excel (.xlsx)</span>
+                                </button>
                                 <button onclick="window.exportStudentsToCSV()"
-                                    class="px-5 py-3 rounded-full bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-xs transition flex items-center gap-2">
+                                    class="px-5 py-3 rounded-full bg-blue-600 hover:bg-blue-700 text-white font-bold text-xs transition flex items-center gap-2 shadow-sm">
                                     <i class="fa-solid fa-file-csv"></i>
                                     <span>Ekspor CSV</span>
                                 </button>
@@ -1777,11 +1800,12 @@
 
                     <!-- TAB 3: RIWAYAT MASUK (TK/RA & PINDAHAN) -->
                     <div id="ftab-panel-3"
-                        class="form-tab-panel hidden grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
-                        <div class="sm:col-span-2 lg:col-span-3">
+                        class="form-tab-panel hidden grid grid-cols-1 sm:grid-cols-2 gap-4">
+                        <div class="sm:col-span-2">
                             <label class="block text-xs font-bold text-slate-700 mb-1">Status / Jalur Masuk *</label>
                             <select id="f-jenis-masuk" onchange="window.updateJenisMasukFields(true)"
                                 class="w-full px-3.5 py-2.5 rounded-xl border border-slate-300 text-xs bg-white font-bold cursor-pointer transition focus:border-emerald-500 focus:ring-1 focus:ring-emerald-500">
+                                <option value="" selected>-- Pilih Status / Jalur Masuk --</option>
                                 <option value="Siswa Baru (TK/RA)">Siswa Baru (dari TK / RA)</option>
                                 <option value="Pindahan">Siswa Pindahan (dari MI / SD / Sekolah Lain)</option>
                             </select>
@@ -1803,22 +1827,15 @@
                                 class="w-full px-3.5 py-2.5 rounded-xl border border-slate-300 text-xs transition duration-200">
                         </div>
                         <div>
-                            <div class="flex items-center justify-between mb-1">
-                                <label class="block text-xs font-bold text-slate-700">Surat Keterangan Pindah</label>
-                                <span id="badge-surat-pindah" class="text-[10px]"></span>
-                            </div>
-                            <input type="text" id="f-surat-pindah" placeholder="No. surat pindah (opsional)"
-                                class="w-full px-3.5 py-2.5 rounded-xl border border-slate-300 text-xs font-mono transition duration-200">
-                        </div>
-                        <div>
                             <label class="block text-xs font-bold text-slate-700 mb-1">Tanggal Diterima</label>
-                            <input type="date" id="f-tgl-masuk" value="2024-07-15"
+                            <input type="date" id="f-tgl-masuk" value=""
                                 class="w-full px-3.5 py-2.5 rounded-xl border border-slate-300 text-xs">
                         </div>
                         <div>
                             <label class="block text-xs font-bold text-slate-700 mb-1">Diterima di Kelas</label>
                             <select id="f-diterima-kelas"
                                 class="w-full px-3.5 py-2.5 rounded-xl border border-slate-300 text-xs bg-white font-medium">
+                                <option value="" selected>-- Pilih Kelas --</option>
                                 <option value="Kelas 1">Kelas 1</option>
                                 <option value="Kelas 2">Kelas 2</option>
                                 <option value="Kelas 3">Kelas 3</option>
@@ -2558,6 +2575,174 @@
 
                 <div id="doc-viewer-body" class="p-4 bg-slate-100 flex items-center justify-center overflow-auto min-h-[320px] max-h-[75vh]">
                     <!-- Konten dokumen (gambar atau PDF) diisi JS -->
+                </div>
+            </div>
+        </div>
+
+        <!-- MODAL EKSPOR DATA (SISWA, GURU, ALUMNI) -->
+        <div id="modal-export-data"
+            class="hidden fixed inset-0 z-[1000003] bg-slate-900/70 backdrop-blur-sm flex items-center justify-center p-3 sm:p-6 overflow-y-auto"
+            onclick="if(event.target === this) window.closeExportModal()">
+            <div
+                class="bg-white rounded-3xl max-w-2xl w-full flex flex-col shadow-2xl border border-slate-200 overflow-hidden my-auto max-h-[92vh]">
+                <!-- Header -->
+                <div class="opti-mesh-bg px-6 py-5 text-white flex items-center justify-between shrink-0">
+                    <div class="flex items-center gap-3.5">
+                        <div id="export-modal-icon-badge"
+                            class="w-11 h-11 rounded-2xl bg-opti-lime text-opti-dark flex items-center justify-center font-bold text-xl shadow-md">
+                            <i id="export-modal-icon" class="fa-solid fa-file-export"></i>
+                        </div>
+                        <div>
+                            <h3 id="export-modal-title" class="text-lg font-extrabold text-white">Ekspor Data</h3>
+                            <p id="export-modal-subtitle" class="text-xs text-slate-300">Unduh data ke file Excel (.xlsx) atau CSV</p>
+                        </div>
+                    </div>
+                    <button type="button" onclick="window.closeExportModal()"
+                        class="w-8 h-8 rounded-full bg-white/10 hover:bg-white/20 text-white flex items-center justify-center transition">
+                        <i class="fa-solid fa-xmark"></i>
+                    </button>
+                </div>
+
+                <!-- Body -->
+                <div class="p-6 space-y-5 overflow-y-auto">
+                    <!-- Metadata Madrasah Info Box -->
+                    <div class="p-3.5 rounded-2xl bg-slate-50 border border-slate-200/90 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 text-xs">
+                        <div class="flex items-center gap-2.5 text-slate-700">
+                            <i class="fa-solid fa-school text-opti-dark text-base"></i>
+                            <div>
+                                <span class="font-bold text-slate-900 block" id="export-madrasah-name">MIS. Nurul Islam Km. 5 Banjarmasin</span>
+                                <span class="text-[11px] text-slate-500" id="export-madrasah-info">NSM: 111263710018 | Tahun Ajaran: 2026/2027</span>
+                            </div>
+                        </div>
+                        <div class="text-left sm:text-right shrink-0">
+                            <span class="text-[10px] uppercase font-bold text-slate-400 block tracking-wider">Tanggal Ekspor</span>
+                            <span class="text-xs font-semibold text-slate-700" id="export-current-date">-</span>
+                        </div>
+                    </div>
+
+                    <!-- Scope Selection (Filtered vs All) -->
+                    <div>
+                        <label class="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-2.5">
+                            Pilih Cakupan Data yang Ingin Diekspor:
+                        </label>
+                        <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                            <!-- Opsi 1: Sesuai Filter Aktif -->
+                            <label id="export-opt-filtered-card"
+                                class="relative flex flex-col p-4 rounded-2xl border-2 border-opti-dark bg-lime-50/40 cursor-pointer transition hover:shadow-sm">
+                                <div class="flex items-start justify-between">
+                                    <div class="flex items-center gap-2.5">
+                                        <input type="radio" name="export-scope" id="export-scope-filtered" value="filtered" checked
+                                            onchange="window.updateExportScopeUI()"
+                                            class="w-4 h-4 text-opti-dark focus:ring-opti-dark">
+                                        <span class="font-bold text-xs text-slate-900">Sesuai Filter & Pencarian</span>
+                                    </div>
+                                    <span id="export-badge-filtered"
+                                        class="px-2 py-0.5 rounded-full text-[10px] font-extrabold bg-opti-lime text-opti-dark">0 Data</span>
+                                </div>
+                                <p id="export-desc-filtered" class="text-[11px] text-slate-500 mt-2 pl-6.5 leading-relaxed">
+                                    Hanya mengekspor data yang saat ini aktif tampil di tabel.
+                                </p>
+                            </label>
+
+                            <!-- Opsi 2: Seluruh Data Master -->
+                            <label id="export-opt-all-card"
+                                class="relative flex flex-col p-4 rounded-2xl border-2 border-slate-200 bg-white cursor-pointer transition hover:border-slate-300 hover:shadow-sm">
+                                <div class="flex items-start justify-between">
+                                    <div class="flex items-center gap-2.5">
+                                        <input type="radio" name="export-scope" id="export-scope-all" value="all"
+                                            onchange="window.updateExportScopeUI()"
+                                            class="w-4 h-4 text-opti-dark focus:ring-opti-dark">
+                                        <span class="font-bold text-xs text-slate-900">Seluruh Data Master</span>
+                                    </div>
+                                    <span id="export-badge-all"
+                                        class="px-2 py-0.5 rounded-full text-[10px] font-extrabold bg-slate-100 text-slate-700">0 Data</span>
+                                </div>
+                                <p id="export-desc-all" class="text-[11px] text-slate-500 mt-2 pl-6.5 leading-relaxed">
+                                    Mengekspor seluruh rekaman master lengkap tanpa batasan filter tabel.
+                                </p>
+                            </label>
+                        </div>
+                    </div>
+
+                    <!-- Format Pilihan & Tombol Download -->
+                    <div>
+                        <label class="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-2.5">
+                            Pilih Format Unduhan:
+                        </label>
+                        <div class="grid grid-cols-1 sm:grid-cols-2 gap-3.5">
+                            <!-- Format 1: Excel (.xlsx) -->
+                            <div class="rounded-2xl border-2 border-emerald-500/30 bg-emerald-50/25 p-4 flex flex-col justify-between gap-3 hover:border-emerald-500/60 transition group">
+                                <div class="space-y-1.5">
+                                    <div class="flex items-center justify-between">
+                                        <div class="flex items-center gap-2">
+                                            <div class="w-8 h-8 rounded-xl bg-emerald-100 text-emerald-700 flex items-center justify-center font-bold text-sm">
+                                                <i class="fa-solid fa-file-excel"></i>
+                                            </div>
+                                            <span class="font-extrabold text-sm text-slate-900">Excel (.xlsx)</span>
+                                        </div>
+                                        <span class="px-2 py-0.5 rounded-md text-[9px] font-bold uppercase tracking-wider bg-emerald-600 text-white">Disarankan</span>
+                                    </div>
+                                    <p class="text-[11px] text-slate-600 leading-relaxed">
+                                        File spreadsheet Excel asli (.xlsx) dengan kolom rapi, auto-width, dan format teks nomor identitas terjaga.
+                                    </p>
+                                </div>
+                                <button type="button" onclick="window.triggerExecuteExport('excel')"
+                                    class="w-full py-2.5 px-4 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-xs transition flex items-center justify-center gap-2 shadow-sm group-hover:shadow">
+                                    <i class="fa-solid fa-file-excel text-sm"></i>
+                                    <span>Unduh File Excel (.xlsx)</span>
+                                </button>
+                            </div>
+
+                            <!-- Format 2: CSV (.csv) -->
+                            <div class="rounded-2xl border-2 border-blue-500/30 bg-blue-50/25 p-4 flex flex-col justify-between gap-3 hover:border-blue-500/60 transition group">
+                                <div class="space-y-1.5">
+                                    <div class="flex items-center justify-between">
+                                        <div class="flex items-center gap-2">
+                                            <div class="w-8 h-8 rounded-xl bg-blue-100 text-blue-700 flex items-center justify-center font-bold text-sm">
+                                                <i class="fa-solid fa-file-csv"></i>
+                                            </div>
+                                            <span class="font-extrabold text-sm text-slate-900">File CSV (.csv)</span>
+                                        </div>
+                                        <span class="px-2 py-0.5 rounded-md text-[9px] font-bold uppercase tracking-wider bg-blue-600 text-white">Universal</span>
+                                    </div>
+                                    <p class="text-[11px] text-slate-600 leading-relaxed">
+                                        Format nilai terpisah koma (UTF-8 BOM) yang ringan dan kompatibel untuk impor database maupun software lain.
+                                    </p>
+                                </div>
+                                <button type="button" onclick="window.triggerExecuteExport('csv')"
+                                    class="w-full py-2.5 px-4 rounded-xl bg-blue-600 hover:bg-blue-700 text-white font-bold text-xs transition flex items-center justify-center gap-2 shadow-sm group-hover:shadow">
+                                    <i class="fa-solid fa-file-csv text-sm"></i>
+                                    <span>Unduh File CSV (.csv)</span>
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Detail Kolom yang Diekspor -->
+                    <div class="border border-slate-200 rounded-2xl p-3.5 bg-slate-50/60">
+                        <div class="flex items-center justify-between text-xs text-slate-600 font-bold mb-1.5">
+                            <span class="flex items-center gap-1.5">
+                                <i class="fa-solid fa-table-columns text-slate-400"></i>
+                                <span>Kolom Data yang Disertakan:</span>
+                            </span>
+                            <span id="export-columns-count" class="text-[11px] text-slate-500 font-medium">0 Kolom</span>
+                        </div>
+                        <div id="export-columns-pills" class="flex flex-wrap gap-1 text-[10px] text-slate-600 max-h-24 overflow-y-auto pt-1">
+                            <!-- Diisi JS -->
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Footer -->
+                <div class="px-6 py-4 bg-slate-50 border-t border-slate-200 flex items-center justify-between gap-3 shrink-0">
+                    <span class="text-[11px] text-slate-500 flex items-center gap-1.5">
+                        <i class="fa-solid fa-circle-check text-emerald-600"></i>
+                        <span>Ekspor diproses langsung di browser secara aman & instan</span>
+                    </span>
+                    <button type="button" onclick="window.closeExportModal()"
+                        class="px-4 py-2 rounded-xl border border-slate-300 hover:bg-slate-200 text-slate-700 font-bold text-xs transition">
+                        Tutup
+                    </button>
                 </div>
             </div>
         </div>
@@ -3937,12 +4122,10 @@
             const selectEl = document.getElementById('f-jenis-masuk');
             const asalTkEl = document.getElementById('f-asal-tk');
             const asalPindahanEl = document.getElementById('f-asal-pindahan');
-            const suratPindahEl = document.getElementById('f-surat-pindah');
             const badgeTk = document.getElementById('badge-asal-tk');
             const badgePindahan = document.getElementById('badge-asal-pindahan');
-            const badgeSurat = document.getElementById('badge-surat-pindah');
 
-            if (!selectEl || !asalTkEl || !asalPindahanEl || !suratPindahEl) return;
+            if (!selectEl || !asalTkEl || !asalPindahanEl) return;
 
             const val = selectEl.value;
             const isPindahan = val.includes('Pindahan');
@@ -3968,16 +4151,18 @@
                 }
             };
 
-            if (isPindahan) {
-                // Siswa Pindahan: Asal TK/RA terkunci; Asal Sekolah Pindahan & Surat Pindah terbuka
+            if (!val) {
+                // Belum dipilih: kedua kolom di-set menunggu pemilihan status
+                applyLockStyle(asalTkEl, true, 'Pilih Status / Jalur Masuk terlebih dahulu', 'Contoh: RA Nurul Islam', badgeTk);
+                applyLockStyle(asalPindahanEl, true, 'Pilih Status / Jalur Masuk terlebih dahulu', 'Nama MI / SD asal jika pindahan', badgePindahan);
+            } else if (isPindahan) {
+                // Siswa Pindahan: Asal TK/RA terkunci; Asal Sekolah Pindahan terbuka
                 applyLockStyle(asalTkEl, true, 'Terkunci (Hanya untuk Siswa Baru TK/RA)', 'Contoh: RA Nurul Islam', badgeTk);
                 applyLockStyle(asalPindahanEl, false, 'Terkunci (Hanya untuk Siswa Pindahan)', 'Nama MI / SD asal jika pindahan', badgePindahan);
-                applyLockStyle(suratPindahEl, false, 'Terkunci (Hanya untuk Siswa Pindahan)', 'No. surat pindah (opsional)', badgeSurat);
             } else {
-                // Siswa Baru: Asal TK/RA terbuka; Asal Sekolah Pindahan & Surat Pindah terkunci
+                // Siswa Baru: Asal TK/RA terbuka; Asal Sekolah Pindahan terkunci
                 applyLockStyle(asalTkEl, false, 'Terkunci (Hanya untuk Siswa Baru TK/RA)', 'Contoh: RA Nurul Islam', badgeTk);
                 applyLockStyle(asalPindahanEl, true, 'Terkunci (Hanya untuk Siswa Pindahan)', 'Nama MI / SD asal jika pindahan', badgePindahan);
-                applyLockStyle(suratPindahEl, true, 'Terkunci (Hanya untuk Siswa Pindahan)', 'No. surat pindah (opsional)', badgeSurat);
             }
         };
 
@@ -4027,13 +4212,12 @@
                     document.getElementById('f-penghasilan-custom').value = (penghasilanVal === '-' || penghasilanVal === 'Lainnya') ? '' : penghasilanVal;
                 }
 
-                const jm = s.pendidikan?.jenis_masuk || (s.pendidikan?.asal_sekolah_pindahan && s.pendidikan?.asal_sekolah_pindahan !== '-' ? 'Pindahan' : 'Siswa Baru (TK/RA)');
-                document.getElementById('f-jenis-masuk').value = jm;
+                const jm = s.pendidikan?.jenis_masuk || (s.pendidikan?.asal_sekolah_pindahan && s.pendidikan?.asal_sekolah_pindahan !== '-' ? 'Pindahan' : (s.pendidikan?.asal_tk_ra && s.pendidikan?.asal_tk_ra !== '-' ? 'Siswa Baru (TK/RA)' : ''));
+                document.getElementById('f-jenis-masuk').value = jm || '';
                 document.getElementById('f-asal-tk').value = (s.pendidikan?.asal_tk_ra && s.pendidikan?.asal_tk_ra !== '-') ? s.pendidikan?.asal_tk_ra : '';
                 document.getElementById('f-asal-pindahan').value = (s.pendidikan?.asal_sekolah_pindahan && s.pendidikan?.asal_sekolah_pindahan !== '-') ? s.pendidikan?.asal_sekolah_pindahan : '';
-                document.getElementById('f-surat-pindah').value = (s.pendidikan?.surat_pindah && s.pendidikan?.surat_pindah !== '-') ? s.pendidikan?.surat_pindah : '';
-                document.getElementById('f-tgl-masuk').value = s.pendidikan?.tgl_masuk || '2024-07-15';
-                document.getElementById('f-diterima-kelas').value = s.pendidikan?.diterima_kelas || 'Kelas 1';
+                document.getElementById('f-tgl-masuk').value = s.pendidikan?.tgl_masuk || '';
+                document.getElementById('f-diterima-kelas').value = s.pendidikan?.diterima_kelas || '';
                 window.updateJenisMasukFields(false);
             } else {
                 document.getElementById('modal-siswa-title').textContent = "Tambah Siswa Baru";
@@ -4047,7 +4231,11 @@
                 document.getElementById('f-penghasilan-ortu').value = "Rp 1.000.000 - Rp 2.500.000";
                 document.getElementById('f-penghasilan-custom').classList.add('hidden');
                 document.getElementById('f-penghasilan-custom').value = "";
-                document.getElementById('f-jenis-masuk').value = "Siswa Baru (TK/RA)";
+                document.getElementById('f-jenis-masuk').value = "";
+                document.getElementById('f-asal-tk').value = "";
+                document.getElementById('f-asal-pindahan').value = "";
+                document.getElementById('f-tgl-masuk').value = "";
+                document.getElementById('f-diterima-kelas').value = "";
                 window.updateJenisMasukFields(true);
             }
         };
@@ -4076,7 +4264,8 @@
                 const rawJs = document.getElementById('f-jml-saudara').value.trim();
                 const anakKe = (rawAk === '-') ? '' : rawAk;
                 const jmlSaudara = (rawJs === '-') ? '' : rawJs;
-                const isPindahan = (document.getElementById('f-jenis-masuk')?.value || '').includes('Pindahan');
+                const rawJenisMasuk = document.getElementById('f-jenis-masuk')?.value || '';
+                const isPindahan = rawJenisMasuk.includes('Pindahan');
                 const studentStatus = (existingStudent && existingStudent.status_siswa) || 'Aktif';
 
                 const studentPayload = {
@@ -4104,12 +4293,12 @@
                         penghasilan_ortu: savedPenghasilan || '-'
                     },
                     pendidikan: {
-                        jenis_masuk: isPindahan ? 'Pindahan' : 'Siswa Baru (TK/RA)',
+                        jenis_masuk: rawJenisMasuk ? (isPindahan ? 'Pindahan' : 'Siswa Baru (TK/RA)') : '',
                         asal_tk_ra: isPindahan ? '-' : (document.getElementById('f-asal-tk')?.value.trim() || '-'),
                         asal_sekolah_pindahan: isPindahan ? (document.getElementById('f-asal-pindahan')?.value.trim() || '-') : '-',
-                        surat_pindah: isPindahan ? (document.getElementById('f-surat-pindah')?.value.trim() || '-') : '-',
-                        tgl_masuk: document.getElementById('f-tgl-masuk')?.value || '2024-07-15',
-                        diterima_kelas: document.getElementById('f-diterima-kelas')?.value || 'Kelas 1',
+                        surat_pindah: existingStudent?.pendidikan?.surat_pindah || '-',
+                        tgl_masuk: document.getElementById('f-tgl-masuk')?.value || '',
+                        diterima_kelas: document.getElementById('f-diterima-kelas')?.value || '',
                         tahun_lulus: existingStudent?.pendidikan?.tahun_lulus || '',
                         no_ijazah: existingStudent?.pendidikan?.no_ijazah || ''
                     }
@@ -4756,25 +4945,559 @@
             `;
         };
 
+        // ==========================================
+        // SISTEM EKSPOR DATA LENGKAP (SISWA, GURU, ALUMNI)
+        // ==========================================
+        let currentExportTarget = 'siswa';
+
+        // Utility: Ekspor Data ke File Excel (.xlsx) dengan SheetJS
+        function exportToExcel(filename, sheetName, headers, rows, colWidths) {
+            if (typeof XLSX === 'undefined') {
+                showToast("Pustaka SheetJS belum termuat. Mengalihkan ke format CSV...", "info");
+                exportToCSV(filename.replace(/\.xlsx$/i, '.csv'), headers, rows);
+                return;
+            }
+            try {
+                const wsData = [headers, ...rows];
+                const ws = XLSX.utils.aoa_to_sheet(wsData);
+                if (colWidths && colWidths.length > 0) {
+                    ws['!cols'] = colWidths;
+                }
+                // Pastikan seluruh data sel bertipe teks/string terformat dengan benar agar Excel tidak mengubah NIK/NISN ke notasi ilmiah
+                for (const cellAddr in ws) {
+                    if (!cellAddr || cellAddr[0] === '!') continue;
+                    const cell = ws[cellAddr];
+                    if (cell && typeof cell.v === 'string') {
+                        cell.t = 's';
+                        cell.z = '@';
+                    }
+                }
+                const wb = XLSX.utils.book_new();
+                XLSX.utils.book_append_sheet(wb, ws, sheetName);
+                const finalFilename = filename.toLowerCase().endsWith('.xlsx') ? filename : `${filename}.xlsx`;
+                XLSX.writeFile(wb, finalFilename);
+            } catch (err) {
+                console.error("Gagal mengekspor file Excel:", err);
+                showToast("Terjadi kendala saat membuat file Excel: " + err.message, "error");
+            }
+        }
+
+        // Utility: Ekspor Data ke File CSV (.csv) dengan UTF-8 BOM
+        function exportToCSV(filename, headers, rows) {
+            try {
+                const escapeCsv = (val) => {
+                    if (val === null || val === undefined) return '""';
+                    const str = String(val).replace(/"/g, '""');
+                    return `"${str}"`;
+                };
+                const headerLine = headers.map(escapeCsv).join(',');
+                const dataLines = rows.map(r => r.map(escapeCsv).join(','));
+                const csvContent = '\uFEFF' + [headerLine, ...dataLines].join('\r\n');
+                const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+                const url = URL.createObjectURL(blob);
+                const link = document.createElement('a');
+                link.href = url;
+                link.download = filename.toLowerCase().endsWith('.csv') ? filename : `${filename}.csv`;
+                document.body.appendChild(link);
+                link.click();
+                document.body.removeChild(link);
+                setTimeout(() => URL.revokeObjectURL(url), 1000);
+            } catch (err) {
+                console.error("Gagal mengekspor file CSV:", err);
+                showToast("Terjadi kendala saat membuat file CSV: " + err.message, "error");
+            }
+        }
+
+        // Buka Modal Ekspor Interaktif
+        window.openExportModal = function (type = 'siswa') {
+            currentExportTarget = type;
+            const modal = document.getElementById('modal-export-data');
+            if (!modal) return;
+
+            const iconEl = document.getElementById('export-modal-icon');
+            const titleEl = document.getElementById('export-modal-title');
+            const subtitleEl = document.getElementById('export-modal-subtitle');
+            const descFilteredEl = document.getElementById('export-desc-filtered');
+            const descAllEl = document.getElementById('export-desc-all');
+            const badgeFilteredEl = document.getElementById('export-badge-filtered');
+            const badgeAllEl = document.getElementById('export-badge-all');
+            const colCountEl = document.getElementById('export-columns-count');
+            const colPillsEl = document.getElementById('export-columns-pills');
+            const dateEl = document.getElementById('export-current-date');
+            const madrasahNameEl = document.getElementById('export-madrasah-name');
+            const madrasahInfoEl = document.getElementById('export-madrasah-info');
+
+            if (dateEl) {
+                dateEl.textContent = new Date().toLocaleDateString('id-ID', { day: 'numeric', month: 'long', year: 'numeric' });
+            }
+            if (madrasahNameEl) {
+                madrasahNameEl.textContent = state.madrasahSettings?.nama_madrasah || "MIS. Nurul Islam Km. 5 Banjarmasin";
+            }
+            if (madrasahInfoEl) {
+                madrasahInfoEl.textContent = `NSM: ${state.madrasahSettings?.nsm || '-'} | Tahun Ajaran: ${state.madrasahSettings?.tahun_ajaran_aktif || '2026/2027'}`;
+            }
+
+            let filteredCount = 0;
+            let allCount = 0;
+            let filterDescription = '';
+            let columns = [];
+
+            if (type === 'siswa') {
+                if (iconEl) iconEl.className = 'fa-solid fa-graduation-cap';
+                if (titleEl) titleEl.textContent = 'Ekspor Data Buku Induk Siswa';
+                if (subtitleEl) subtitleEl.textContent = 'Unduh data siswa lengkap ke spreadsheet Excel (.xlsx) atau file CSV';
+
+                const q = (document.getElementById('filter-search-siswa')?.value || '').toLowerCase().trim();
+                const kls = document.getElementById('filter-kelas-siswa')?.value || 'ALL';
+                const filteredList = (state.students || []).filter(s => {
+                    if ((s.status_siswa || 'Aktif') !== 'Aktif') return false;
+                    const matchText = !q || (s.nama_lengkap || '').toLowerCase().includes(q) || String(s.nisn || '').includes(q) || String(s.nis_lokal || '').includes(q) || String(s.nik || '').includes(q);
+                    const matchKelas = kls === 'ALL' || s.kelas_aktif === kls;
+                    return matchText && matchKelas;
+                });
+                const allList = (state.students || []).filter(s => (s.status_siswa || 'Aktif') === 'Aktif');
+                filteredCount = filteredList.length;
+                allCount = allList.length;
+
+                const filterParts = [];
+                if (kls !== 'ALL') filterParts.push(`Kelas: <b>${kls}</b>`);
+                else filterParts.push('Semua Kelas');
+                if (q) filterParts.push(`Pencarian: "<i>${q}</i>"`);
+                filterDescription = `Data berdasarkan filter: ${filterParts.join(' & ')} (${filteredCount} siswa).`;
+
+                columns = [
+                    "No", "Nama Lengkap", "NISN", "NIS Lokal", "NIK", "Jenis Kelamin (L/P)",
+                    "Tempat Lahir", "Tanggal Lahir", "Kelas Aktif", "Status Siswa", "Agama",
+                    "Anak Ke", "Jumlah Saudara", "Nama Ayah", "Pekerjaan Ayah", "Nama Ibu",
+                    "Pekerjaan Ibu", "No HP Ortu", "Penghasilan Ortu", "Alamat Lengkap",
+                    "Jenis Masuk", "Asal Sekolah / TK", "Tanggal Masuk", "Diterima di Kelas"
+                ];
+            } else if (type === 'guru') {
+                if (iconEl) iconEl.className = 'fa-solid fa-chalkboard-user';
+                if (titleEl) titleEl.textContent = 'Ekspor Data Guru & Tenaga Kependidikan';
+                if (subtitleEl) subtitleEl.textContent = 'Unduh data profil tenaga pendidik ke spreadsheet Excel (.xlsx) atau file CSV';
+
+                const q = (document.getElementById('filter-search-guru')?.value || '').toLowerCase().trim();
+                const jbt = document.getElementById('filter-jabatan-guru')?.value || 'ALL';
+                const filteredList = (state.teachers || []).filter(t => {
+                    const matchText = !q || (t.nama_lengkap || '').toLowerCase().includes(q) || String(t.nip || '').toLowerCase().includes(q) || (t.mapel || '').toLowerCase().includes(q);
+                    const matchJabatan = jbt === 'ALL' || (t.jabatan || '').includes(jbt);
+                    return matchText && matchJabatan;
+                });
+                filteredCount = filteredList.length;
+                allCount = (state.teachers || []).length;
+
+                const filterParts = [];
+                if (jbt !== 'ALL') filterParts.push(`Jabatan: <b>${jbt}</b>`);
+                else filterParts.push('Semua Jabatan');
+                if (q) filterParts.push(`Pencarian: "<i>${q}</i>"`);
+                filterDescription = `Data berdasarkan filter: ${filterParts.join(' & ')} (${filteredCount} guru).`;
+
+                columns = [
+                    "No", "Nama Lengkap & Gelar", "NIP / PegID", "Jenis Kelamin (L/P)",
+                    "Jabatan / Tugas", "Mata Pelajaran Diampu", "No HP / WhatsApp", "Status Keaktifan"
+                ];
+            } else if (type === 'alumni') {
+                if (iconEl) iconEl.className = 'fa-solid fa-user-graduate';
+                if (titleEl) titleEl.textContent = 'Ekspor Data Alumni & Penelusuran Lulusan';
+                if (subtitleEl) subtitleEl.textContent = 'Unduh data rekam jejak lulusan & ijazah ke spreadsheet Excel (.xlsx) atau file CSV';
+
+                const q = (document.getElementById('filter-search-alumni')?.value || '').toLowerCase().trim();
+                const thn = document.getElementById('filter-tahun-alumni')?.value || 'ALL';
+                const ljt = document.getElementById('filter-lanjutan-alumni')?.value || 'ALL';
+                const filteredList = (state.alumni || []).filter(a => {
+                    const matchText = !q || (a.nama_lengkap || '').toLowerCase().includes(q) || String(a.nisn || '').includes(q) || (a.nama_sekolah_lanjutan || '').toLowerCase().includes(q);
+                    const matchThn = thn === 'ALL' || a.tahun_lulus === thn;
+                    const matchLjt = ljt === 'ALL' || a.jenis_lanjutan === ljt;
+                    return matchText && matchThn && matchLjt;
+                });
+                filteredCount = filteredList.length;
+                allCount = (state.alumni || []).length;
+
+                const filterParts = [];
+                if (thn !== 'ALL') filterParts.push(`Tahun: <b>${thn}</b>`);
+                else filterParts.push('Semua Tahun');
+                if (ljt !== 'ALL') filterParts.push(`Lanjutan: <b>${ljt}</b>`);
+                if (q) filterParts.push(`Pencarian: "<i>${q}</i>"`);
+                filterDescription = `Data berdasarkan filter: ${filterParts.join(' & ')} (${filteredCount} alumni).`;
+
+                columns = [
+                    "No", "Nama Lengkap Alumni", "NISN", "NIS Lokal", "Jenis Kelamin (L/P)",
+                    "Tahun Lulus", "No Ijazah", "Jenis Lanjutan", "Sekolah Lanjutan", "No HP / WhatsApp", "Alamat Lengkap"
+                ];
+            }
+
+            if (badgeFilteredEl) badgeFilteredEl.textContent = `${filteredCount} Data`;
+            if (badgeAllEl) badgeAllEl.textContent = `${allCount} Data`;
+            if (descFilteredEl) descFilteredEl.innerHTML = filterDescription;
+            if (descAllEl) descAllEl.textContent = `Seluruh total master ${allCount} data yang tersimpan di sistem tanpa batasan filter.`;
+
+            if (colCountEl) colCountEl.textContent = `${columns.length} Kolom`;
+            if (colPillsEl) {
+                colPillsEl.innerHTML = columns.map(c =>
+                    `<span class="px-2 py-0.5 rounded-md bg-white border border-slate-200 text-slate-700 font-medium whitespace-nowrap shadow-2xs">${c}</span>`
+                ).join('');
+            }
+
+            const radioFiltered = document.getElementById('export-scope-filtered');
+            if (radioFiltered) radioFiltered.checked = true;
+            window.updateExportScopeUI();
+
+            modal.classList.remove('hidden');
+        };
+
+        // Tutup Modal Ekspor
+        window.closeExportModal = function () {
+            const modal = document.getElementById('modal-export-data');
+            if (modal) modal.classList.add('hidden');
+        };
+
+        // Update Gaya Radio Pilihan Cakupan Data Ekspor
+        window.updateExportScopeUI = function () {
+            const isFiltered = document.getElementById('export-scope-filtered')?.checked;
+            const cardFiltered = document.getElementById('export-opt-filtered-card');
+            const cardAll = document.getElementById('export-opt-all-card');
+            if (cardFiltered && cardAll) {
+                if (isFiltered) {
+                    cardFiltered.classList.add('border-opti-dark', 'bg-lime-50/40');
+                    cardFiltered.classList.remove('border-slate-200', 'bg-white');
+                    cardAll.classList.remove('border-opti-dark', 'bg-lime-50/40');
+                    cardAll.classList.add('border-slate-200', 'bg-white');
+                } else {
+                    cardAll.classList.add('border-opti-dark', 'bg-lime-50/40');
+                    cardAll.classList.remove('border-slate-200', 'bg-white');
+                    cardFiltered.classList.remove('border-opti-dark', 'bg-lime-50/40');
+                    cardFiltered.classList.add('border-slate-200', 'bg-white');
+                }
+            }
+        };
+
+        // Trigger Eksekusi dari Modal
+        window.triggerExecuteExport = function (format) {
+            const scope = document.querySelector('input[name="export-scope"]:checked')?.value || 'filtered';
+            window.exportData(currentExportTarget, format, scope);
+            window.closeExportModal();
+        };
+
+        // Fungsi Ekspor Data Terpadu (Siswa, Guru, Alumni)
+        window.exportData = function (type = 'siswa', format = 'excel', scope = 'filtered') {
+            const dateStr = new Date().toISOString().slice(0, 10).replace(/-/g, '');
+
+            if (type === 'siswa') {
+                const q = (document.getElementById('filter-search-siswa')?.value || '').toLowerCase().trim();
+                const klsFilter = document.getElementById('filter-kelas-siswa')?.value || 'ALL';
+
+                let list = (state.students || []).filter(s => {
+                    const status = s.status_siswa || 'Aktif';
+                    if (status !== 'Aktif') return false;
+                    if (scope === 'filtered') {
+                        const matchText = !q ||
+                            (s.nama_lengkap || '').toLowerCase().includes(q) ||
+                            String(s.nisn || '').includes(q) ||
+                            String(s.nis_lokal || '').includes(q) ||
+                            String(s.nik || '').includes(q);
+                        const matchKelas = klsFilter === 'ALL' || s.kelas_aktif === klsFilter;
+                        return matchText && matchKelas;
+                    }
+                    return true;
+                });
+
+                list.sort((a, b) => (a.nama_lengkap || '').localeCompare(b.nama_lengkap || '', 'id', { sensitivity: 'base' }));
+
+                if (list.length === 0) {
+                    showToast("Tidak ada data siswa yang sesuai untuk diekspor.", "error");
+                    return;
+                }
+
+                const headers = [
+                    "No", "Nama Lengkap", "NISN", "NIS Lokal", "NIK", "Jenis Kelamin (L/P)",
+                    "Tempat Lahir", "Tanggal Lahir", "Kelas Aktif", "Status Siswa", "Agama",
+                    "Anak Ke", "Jumlah Saudara", "Nama Ayah", "Pekerjaan Ayah", "Nama Ibu",
+                    "Pekerjaan Ibu", "No HP Ortu", "Penghasilan Ortu", "Alamat Lengkap",
+                    "Jenis Masuk", "Asal Sekolah / TK", "Tanggal Masuk", "Diterima di Kelas"
+                ];
+
+                const rows = list.map((s, idx) => [
+                    idx + 1,
+                    s.nama_lengkap || '',
+                    String(s.nisn || ''),
+                    String(s.nis_lokal || ''),
+                    String(s.nik || ''),
+                    s.jk || '',
+                    s.tempat_lahir || '',
+                    s.tgl_lahir || '',
+                    s.kelas_aktif || '',
+                    s.status_siswa || 'Aktif',
+                    s.agama || 'Islam',
+                    s.anak_ke || '',
+                    s.jml_saudara || '',
+                    s.orang_tua?.nama_ayah || '',
+                    s.orang_tua?.pekerjaan_ayah || '',
+                    s.orang_tua?.nama_ibu || '',
+                    s.orang_tua?.pekerjaan_ibu || '',
+                    String(s.orang_tua?.no_hp_ortu || ''),
+                    s.orang_tua?.penghasilan_ortu || '',
+                    s.alamat || '',
+                    s.pendidikan?.jenis_masuk || '',
+                    s.pendidikan?.asal_tk_ra || s.pendidikan?.asal_sekolah_pindahan || '',
+                    s.pendidikan?.tgl_masuk || '',
+                    s.pendidikan?.diterima_kelas || ''
+                ]);
+
+                const colWidths = [
+                    { wch: 6 }, { wch: 30 }, { wch: 16 }, { wch: 20 }, { wch: 20 }, { wch: 8 },
+                    { wch: 18 }, { wch: 14 }, { wch: 12 }, { wch: 12 }, { wch: 10 }, { wch: 10 },
+                    { wch: 14 }, { wch: 24 }, { wch: 20 }, { wch: 24 }, { wch: 20 }, { wch: 18 },
+                    { wch: 18 }, { wch: 36 }, { wch: 16 }, { wch: 26 }, { wch: 14 }, { wch: 14 }
+                ];
+
+                const klsTag = (scope === 'filtered' && klsFilter !== 'ALL') ? `_${klsFilter.replace(/\s+/g, '_')}` : '';
+                const filename = `Data_Siswa_MIS_Nurul_Islam${klsTag}_${dateStr}`;
+
+                if (format === 'excel') {
+                    exportToExcel(filename, "Data Siswa", headers, rows, colWidths);
+                    showToast(`Berhasil mengekspor ${rows.length} data siswa ke Excel (.xlsx)!`, "success");
+                } else {
+                    exportToCSV(filename, headers, rows);
+                    showToast(`Berhasil mengekspor ${rows.length} data siswa ke CSV!`, "success");
+                }
+            } else if (type === 'guru') {
+                const q = (document.getElementById('filter-search-guru')?.value || '').toLowerCase().trim();
+                const jbtFilter = document.getElementById('filter-jabatan-guru')?.value || 'ALL';
+
+                let list = (state.teachers || []).filter(t => {
+                    if (scope === 'filtered') {
+                        const matchText = !q ||
+                            (t.nama_lengkap || '').toLowerCase().includes(q) ||
+                            String(t.nip || '').toLowerCase().includes(q) ||
+                            (t.mapel || '').toLowerCase().includes(q);
+                        const matchJabatan = jbtFilter === 'ALL' || (t.jabatan || '').includes(jbtFilter);
+                        return matchText && matchJabatan;
+                    }
+                    return true;
+                });
+
+                list.sort((a, b) => (a.nama_lengkap || '').localeCompare(b.nama_lengkap || '', 'id', { sensitivity: 'base' }));
+
+                if (list.length === 0) {
+                    showToast("Tidak ada data guru yang sesuai untuk diekspor.", "error");
+                    return;
+                }
+
+                const headers = [
+                    "No", "Nama Lengkap & Gelar", "NIP / PegID", "Jenis Kelamin (L/P)",
+                    "Jabatan / Tugas", "Mata Pelajaran Diampu", "No HP / WhatsApp", "Status Keaktifan"
+                ];
+
+                const rows = list.map((t, idx) => [
+                    idx + 1,
+                    t.nama_lengkap || '',
+                    String(t.nip || ''),
+                    t.jk || '',
+                    t.jabatan || '',
+                    t.mapel || '',
+                    String(t.no_hp || ''),
+                    t.status || 'Aktif'
+                ]);
+
+                const colWidths = [
+                    { wch: 6 }, { wch: 32 }, { wch: 24 }, { wch: 18 },
+                    { wch: 24 }, { wch: 28 }, { wch: 20 }, { wch: 18 }
+                ];
+
+                const jbtTag = (scope === 'filtered' && jbtFilter !== 'ALL') ? `_${jbtFilter.replace(/\s+/g, '_')}` : '';
+                const filename = `Data_Guru_MIS_Nurul_Islam${jbtTag}_${dateStr}`;
+
+                if (format === 'excel') {
+                    exportToExcel(filename, "Data Guru", headers, rows, colWidths);
+                    showToast(`Berhasil mengekspor ${rows.length} data guru ke Excel (.xlsx)!`, "success");
+                } else {
+                    exportToCSV(filename, headers, rows);
+                    showToast(`Berhasil mengekspor ${rows.length} data guru ke CSV!`, "success");
+                }
+            } else if (type === 'alumni') {
+                const q = (document.getElementById('filter-search-alumni')?.value || '').toLowerCase().trim();
+                const thnFilter = document.getElementById('filter-tahun-alumni')?.value || 'ALL';
+                const ljtFilter = document.getElementById('filter-lanjutan-alumni')?.value || 'ALL';
+
+                let list = (state.alumni || []).filter(a => {
+                    if (scope === 'filtered') {
+                        const matchText = !q ||
+                            (a.nama_lengkap || '').toLowerCase().includes(q) ||
+                            String(a.nisn || '').includes(q) ||
+                            (a.nama_sekolah_lanjutan || '').toLowerCase().includes(q);
+                        const matchThn = thnFilter === 'ALL' || a.tahun_lulus === thnFilter;
+                        const matchLjt = ljtFilter === 'ALL' || a.jenis_lanjutan === ljtFilter;
+                        return matchText && matchThn && matchLjt;
+                    }
+                    return true;
+                });
+
+                list.sort((a, b) => (a.nama_lengkap || '').localeCompare(b.nama_lengkap || '', 'id', { sensitivity: 'base' }));
+
+                if (list.length === 0) {
+                    showToast("Tidak ada data alumni yang sesuai untuk diekspor.", "error");
+                    return;
+                }
+
+                const headers = [
+                    "No", "Nama Lengkap Alumni", "NISN", "NIS Lokal", "Jenis Kelamin (L/P)",
+                    "Tahun Lulus", "No Ijazah", "Jenis Lanjutan", "Sekolah Lanjutan", "No HP / WhatsApp", "Alamat Lengkap"
+                ];
+
+                const rows = list.map((a, idx) => [
+                    idx + 1,
+                    a.nama_lengkap || '',
+                    String(a.nisn || ''),
+                    String(a.nis_lokal || ''),
+                    a.jk || '',
+                    a.tahun_lulus || '',
+                    String(a.no_ijazah || ''),
+                    a.jenis_lanjutan || '',
+                    a.nama_sekolah_lanjutan || '',
+                    String(a.no_hp || ''),
+                    a.alamat || ''
+                ]);
+
+                const colWidths = [
+                    { wch: 6 }, { wch: 30 }, { wch: 16 }, { wch: 20 }, { wch: 18 },
+                    { wch: 14 }, { wch: 24 }, { wch: 24 }, { wch: 32 }, { wch: 20 }, { wch: 36 }
+                ];
+
+                const thnTag = (scope === 'filtered' && thnFilter !== 'ALL') ? `_Lulusan_${thnFilter.replace(/\//g, '-')}` : '';
+                const filename = `Data_Alumni_MIS_Nurul_Islam${thnTag}_${dateStr}`;
+
+                if (format === 'excel') {
+                    exportToExcel(filename, "Data Alumni", headers, rows, colWidths);
+                    showToast(`Berhasil mengekspor ${rows.length} data alumni ke Excel (.xlsx)!`, "success");
+                } else {
+                    exportToCSV(filename, headers, rows);
+                    showToast(`Berhasil mengekspor ${rows.length} data alumni ke CSV!`, "success");
+                }
+            }
+        };
+
+        // Ekspor Siswa Cepat dari Menu Cetak & Ekspor
+        window.exportStudentsToExcel = function () {
+            const klsFilter = document.getElementById('print-filter-kelas')?.value || 'ALL';
+            const q = (document.getElementById('print-search-siswa')?.value || '').toLowerCase().trim();
+            let exportList = (state.students || []).filter(s => {
+                if ((s.status_siswa || 'Aktif') !== 'Aktif') return false;
+                const matchText = !q || (s.nama_lengkap || '').toLowerCase().includes(q) || String(s.nisn || '').includes(q);
+                const matchKelas = klsFilter === 'ALL' || s.kelas_aktif === klsFilter;
+                return matchText && matchKelas;
+            });
+            exportList.sort((a, b) => (a.nama_lengkap || '').localeCompare(b.nama_lengkap || '', 'id', { sensitivity: 'base' }));
+
+            if (exportList.length === 0) {
+                showToast("Tidak ada data siswa yang sesuai untuk diekspor ke Excel.", "error");
+                return;
+            }
+
+            const headers = [
+                "No", "Nama Lengkap", "NISN", "NIS Lokal", "NIK", "Jenis Kelamin (L/P)",
+                "Tempat Lahir", "Tanggal Lahir", "Kelas Aktif", "Status Siswa", "Agama",
+                "Anak Ke", "Jumlah Saudara", "Nama Ayah", "Pekerjaan Ayah", "Nama Ibu",
+                "Pekerjaan Ibu", "No HP Ortu", "Penghasilan Ortu", "Alamat Lengkap",
+                "Jenis Masuk", "Asal Sekolah / TK", "Tanggal Masuk", "Diterima di Kelas"
+            ];
+
+            const rows = exportList.map((s, idx) => [
+                idx + 1,
+                s.nama_lengkap || '',
+                String(s.nisn || ''),
+                String(s.nis_lokal || ''),
+                String(s.nik || ''),
+                s.jk || '',
+                s.tempat_lahir || '',
+                s.tgl_lahir || '',
+                s.kelas_aktif || '',
+                s.status_siswa || 'Aktif',
+                s.agama || 'Islam',
+                s.anak_ke || '',
+                s.jml_saudara || '',
+                s.orang_tua?.nama_ayah || '',
+                s.orang_tua?.pekerjaan_ayah || '',
+                s.orang_tua?.nama_ibu || '',
+                s.orang_tua?.pekerjaan_ibu || '',
+                String(s.orang_tua?.no_hp_ortu || ''),
+                s.orang_tua?.penghasilan_ortu || '',
+                s.alamat || '',
+                s.pendidikan?.jenis_masuk || '',
+                s.pendidikan?.asal_tk_ra || s.pendidikan?.asal_sekolah_pindahan || '',
+                s.pendidikan?.tgl_masuk || '',
+                s.pendidikan?.diterima_kelas || ''
+            ]);
+
+            const colWidths = [
+                { wch: 6 }, { wch: 30 }, { wch: 16 }, { wch: 20 }, { wch: 20 }, { wch: 8 },
+                { wch: 18 }, { wch: 14 }, { wch: 12 }, { wch: 12 }, { wch: 10 }, { wch: 10 },
+                { wch: 14 }, { wch: 24 }, { wch: 20 }, { wch: 24 }, { wch: 20 }, { wch: 18 },
+                { wch: 18 }, { wch: 36 }, { wch: 16 }, { wch: 26 }, { wch: 14 }, { wch: 14 }
+            ];
+
+            const dateStr = new Date().toISOString().slice(0, 10).replace(/-/g, '');
+            const klsTag = klsFilter !== 'ALL' ? `_${klsFilter.replace(/\s+/g, '_')}` : '';
+            exportToExcel(`Data_Siswa_MIS_Nurul_Islam${klsTag}_${dateStr}`, "Data Siswa", headers, rows, colWidths);
+            showToast(`Berhasil mengekspor ${rows.length} data siswa ke Excel (.xlsx)!`, "success");
+        };
+
+        // Ekspor Siswa Cepat CSV (Kompatibilitas & Cetak)
         window.exportStudentsToCSV = function () {
             const klsFilter = document.getElementById('print-filter-kelas')?.value || 'ALL';
-            const headers = ["NISN", "NIS_Lokal", "NIK", "Nama_Lengkap", "JK", "Tempat_Lahir", "Tgl_Lahir", "Kelas", "Status", "Nama_Ayah", "Nama_Ibu", "No_HP_Ortu", "Alamat"];
-            let exportList = state.students || [];
-            if (klsFilter !== 'ALL') {
-                exportList = exportList.filter(s => s.kelas_aktif === klsFilter);
+            const q = (document.getElementById('print-search-siswa')?.value || '').toLowerCase().trim();
+            let exportList = (state.students || []).filter(s => {
+                if ((s.status_siswa || 'Aktif') !== 'Aktif') return false;
+                const matchText = !q || (s.nama_lengkap || '').toLowerCase().includes(q) || String(s.nisn || '').includes(q);
+                const matchKelas = klsFilter === 'ALL' || s.kelas_aktif === klsFilter;
+                return matchText && matchKelas;
+            });
+            exportList.sort((a, b) => (a.nama_lengkap || '').localeCompare(b.nama_lengkap || '', 'id', { sensitivity: 'base' }));
+
+            if (exportList.length === 0) {
+                showToast("Tidak ada data siswa yang sesuai untuk diekspor ke CSV.", "error");
+                return;
             }
-            const rows = exportList.map(s => [
-                `'${s.nisn}`, `'${s.nis_lokal}`, `'${s.nik}`, `"${s.nama_lengkap}"`, s.jk, `"${s.tempat_lahir}"`, s.tgl_lahir, `"${s.kelas_aktif}"`, `"${s.status_siswa}"`, `"${s.orang_tua?.nama_ayah || ''}"`, `"${s.orang_tua?.nama_ibu || ''}"`, `'${s.orang_tua?.no_hp_ortu || ''}`, `"${s.alamat}"`
+
+            const headers = [
+                "No", "Nama Lengkap", "NISN", "NIS Lokal", "NIK", "Jenis Kelamin (L/P)",
+                "Tempat Lahir", "Tanggal Lahir", "Kelas Aktif", "Status Siswa", "Agama",
+                "Anak Ke", "Jumlah Saudara", "Nama Ayah", "Pekerjaan Ayah", "Nama Ibu",
+                "Pekerjaan Ibu", "No HP Ortu", "Penghasilan Ortu", "Alamat Lengkap",
+                "Jenis Masuk", "Asal Sekolah / TK", "Tanggal Masuk", "Diterima di Kelas"
+            ];
+
+            const rows = exportList.map((s, idx) => [
+                idx + 1,
+                s.nama_lengkap || '',
+                String(s.nisn || ''),
+                String(s.nis_lokal || ''),
+                String(s.nik || ''),
+                s.jk || '',
+                s.tempat_lahir || '',
+                s.tgl_lahir || '',
+                s.kelas_aktif || '',
+                s.status_siswa || 'Aktif',
+                s.agama || 'Islam',
+                s.anak_ke || '',
+                s.jml_saudara || '',
+                s.orang_tua?.nama_ayah || '',
+                s.orang_tua?.pekerjaan_ayah || '',
+                s.orang_tua?.nama_ibu || '',
+                s.orang_tua?.pekerjaan_ibu || '',
+                String(s.orang_tua?.no_hp_ortu || ''),
+                s.orang_tua?.penghasilan_ortu || '',
+                s.alamat || '',
+                s.pendidikan?.jenis_masuk || '',
+                s.pendidikan?.asal_tk_ra || s.pendidikan?.asal_sekolah_pindahan || '',
+                s.pendidikan?.tgl_masuk || '',
+                s.pendidikan?.diterima_kelas || ''
             ]);
-            const csvContent = "data:text/csv;charset=utf-8," + [headers.join(","), ...rows.map(r => r.join(","))].join("\n");
-            const encodedUri = encodeURI(csvContent);
-            const link = document.createElement("a");
-            link.setAttribute("href", encodedUri);
-            link.setAttribute("download", `Buku_Induk_MIS_Nurul_Islam_Km5.csv`);
-            document.body.appendChild(link);
-            link.click();
-            document.body.removeChild(link);
-            showToast("Ekspor CSV berhasil!", "success");
+
+            const dateStr = new Date().toISOString().slice(0, 10).replace(/-/g, '');
+            const klsTag = klsFilter !== 'ALL' ? `_${klsFilter.replace(/\s+/g, '_')}` : '';
+            exportToCSV(`Data_Siswa_MIS_Nurul_Islam${klsTag}_${dateStr}`, headers, rows);
+            showToast(`Berhasil mengekspor ${rows.length} data siswa ke CSV!`, "success");
         };
 
         window.handleSaveSettings = async function (e) {
